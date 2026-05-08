@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(start \"\" \"C:\\\\Users\\\\User\\\\Documents\\\\Imali Biz\\\\Internal Website\\\\index.html\")"
+    ]
+  }
+}

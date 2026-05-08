@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<script>(function(){var t=localStorage.getItem('imali-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Land Inventory — Imali.biz Internal</title>
+<meta name="description" content="Detailed land parcel inventory for Imali.biz internal operations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* ─── Hero ────────────────────────────────────────────────────────── */
+  .hero {
+    background: #0d0d12;
+    background-image: linear-gradient(rgba(212,168,50,0.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(212,168,50,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridShift 8s linear infinite;
+    padding: 4rem 2.5rem 3.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-orb {
+    position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    filter: blur(100px);
+    animation: orbFloat 10s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .orb-1 { background: rgba(200,82,26,0.08); top: -100px; right: -80px; }
+  .orb-2 { background: rgba(212,168,50,0.05); bottom: -150px; left: -60px; animation-delay: -4s; }
+  .hero-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 3rem;
+    align-items: flex-start;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+  }
+  .hero-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--terracotta); }
+  .hero-sub { font-size: 0.9rem; color: rgba(245,240,232,0.5); max-width: 520px; line-height: 1.65; }
+  .hero-stats { display: flex; gap: 2.5rem; flex-shrink: 0; padding-top: 0.5rem; }
+  .hero-stat-val { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--cream); line-height: 1; }
+  .hero-stat-lbl { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.35); margin-top: 0.35rem; }
+
+  /* ─── Filter bar ──────────────────────────────────────────────────── */
+  .filter-section { background: rgba(245,240,232,0.02); border-bottom: 1px solid rgba(245,240,232,0.06); padding: 1.25rem 2.5rem; }
+  .filter-inner { max-width: 1200px; margin: 0 auto; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+  .filter-input {
+    background: rgba(245,240,232,0.04);
+    border: 1px solid rgba(245,240,232,0.08);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    color: var(--cream);
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 200px;
+  }
+  .filter-input::placeholder { color: rgba(245,240,232,0.25); }
+  .filter-input:focus { border-color: rgba(212,168,50,0.35); }
+  .filter-select {
+    background: rgba(245,240,232,0.04);
+    border: 1px solid rgba(245,240,232,0.08);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    color: var(--cream);
+    outline: none;
+    cursor: none;
+    transition: border-color 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(245,240,232,0.3)'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2rem;
+  }
+  .filter-select option { background: #1a1a24; color: var(--cream); }
+  .filter-count { margin-left: auto; font-size: 0.72rem; color: rgba(245,240,232,0.35); white-space: nowrap; }
+
+  /* ─── Main content ────────────────────────────────────────────────── */
+  .main { max-width: 1200px; margin: 0 auto; padding: 3rem 2.5rem; }
+
+  /* ─── Cards grid ──────────────────────────────────────────────────── */
+  .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 3.5rem; }
+  .parcel-card {
+    background: rgba(245,240,232,0.02);
+    border: 1px solid rgba(245,240,232,0.07);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.25s, box-shadow 0.25s, background 0.2s;
+    display: flex; flex-direction: column;
+  }
+  .parcel-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.3); background: rgba(245,240,232,0.035); }
+  .card-stripe { height: 4px; }
+  .stripe-residential { background: linear-gradient(90deg, var(--terracotta), #e8721a); }
+  .stripe-commercial  { background: linear-gradient(90deg, var(--gold), #e8b832); }
+  .stripe-mixed-use   { background: linear-gradient(90deg, #5ecba1, #3aaa80); }
+  .card-body { padding: 1.25rem; flex: 1; }
+  .card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.75rem; gap: 0.5rem; }
+  .card-id { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.25); margin-bottom: 0.3rem; }
+  .card-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--cream); line-height: 1.2; }
+  .card-location { font-size: 0.72rem; color: rgba(245,240,232,0.4); margin-top: 0.25rem; }
+  .card-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+  .card-metric-lbl { font-size: 0.62rem; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(245,240,232,0.3); margin-bottom: 0.2rem; }
+  .card-metric-val { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--cream); }
+  .card-metric-val.gold { color: var(--gold); }
+  .card-divider { border: none; border-top: 1px solid rgba(245,240,232,0.06); margin: 1rem 0; }
+  .derived-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .derived-item { text-align: center; background: rgba(245,240,232,0.03); border-radius: 8px; padding: 0.5rem 0.4rem; }
+  .derived-val { font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700; color: var(--cream); }
+  .derived-lbl { font-size: 0.58rem; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(245,240,232,0.3); margin-top: 0.15rem; }
+
+  /* ─── Readiness bar ───────────────────────────────────────────────── */
+  .readiness-section { margin-top: 1rem; }
+  .readiness-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+  .readiness-title { font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,240,232,0.3); }
+  .readiness-score { font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700; }
+  .readiness-segments { display: flex; gap: 3px; }
+  .readiness-seg { flex: 1; height: 6px; border-radius: 3px; }
+  .readiness-dim-labels { display: flex; gap: 3px; margin-top: 0.3rem; }
+  .readiness-dim-lbl { flex: 1; font-size: 0.5rem; text-align: center; color: rgba(245,240,232,0.2); letter-spacing: 0.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-footer-bar { padding: 0.85rem 1.25rem; border-top: 1px solid rgba(245,240,232,0.05); display: flex; align-items: center; justify-content: space-between; }
+
+  /* ─── Summary table ───────────────────────────────────────────────── */
+  .table-section { margin-top: 0; }
+  .table-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .table-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--gold); }
+  .table-sub { font-size: 0.82rem; color: rgba(245,240,232,0.4); margin-bottom: 1.5rem; }
+  .no-results { text-align: center; padding: 3rem; color: rgba(245,240,232,0.3); font-size: 0.9rem; }
+
+  /* Light mode */
+  [data-theme="light"] .hero { background: #f0ebe0; }
+  [data-theme="light"] .hero-title { color: var(--ink); }
+  [data-theme="light"] .hero-sub { color: rgba(10,10,15,0.5); }
+  [data-theme="light"] .hero-stat-val { color: var(--ink); }
+  [data-theme="light"] .hero-stat-lbl { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .filter-section { background: rgba(10,10,15,0.02); border-bottom-color: rgba(10,10,15,0.08); }
+  [data-theme="light"] .filter-input  { background: rgba(10,10,15,0.04); border-color: rgba(10,10,15,0.1); color: var(--ink); }
+  [data-theme="light"] .filter-input::placeholder { color: rgba(10,10,15,0.3); }
+  [data-theme="light"] .filter-select { background: rgba(10,10,15,0.04); border-color: rgba(10,10,15,0.1); color: var(--ink); }
+  [data-theme="light"] .filter-count { color: rgba(10,10,15,0.4); }
+  [data-theme="light"] .parcel-card { background: white; border-color: rgba(10,10,15,0.08); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  [data-theme="light"] .parcel-card:hover { background: white; box-shadow: 0 16px 40px rgba(0,0,0,0.1); }
+  [data-theme="light"] .card-id { color: rgba(10,10,15,0.3); }
+  [data-theme="light"] .card-name { color: var(--ink); }
+  [data-theme="light"] .card-location { color: rgba(10,10,15,0.45); }
+  [data-theme="light"] .card-metric-lbl { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .card-metric-val { color: var(--ink); }
+  [data-theme="light"] .derived-item { background: rgba(10,10,15,0.03); }
+  [data-theme="light"] .derived-val { color: var(--ink); }
+  [data-theme="light"] .derived-lbl { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .readiness-title { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .readiness-dim-lbl { color: rgba(10,10,15,0.3); }
+  [data-theme="light"] .card-footer-bar { border-top-color: rgba(10,10,15,0.07); }
+  [data-theme="light"] .card-divider { border-top-color: rgba(10,10,15,0.07); }
+  [data-theme="light"] .table-title { color: var(--ink); }
+  [data-theme="light"] .table-sub { color: rgba(10,10,15,0.45); }
+
+  @media (max-width: 1024px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px) {
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-stats { flex-wrap: wrap; gap: 1.5rem; }
+    .cards-grid { grid-template-columns: 1fr; }
+    .main { padding: 2rem 1.25rem; }
+    .filter-inner { flex-direction: column; align-items: stretch; }
+    .filter-count { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="cursor"></div>
+<div class="cursor-ring"></div>
+
+<nav class="int-nav">
+  <div class="int-nav-left">
+    <a href="index.html" class="int-nav-logo">Imali<span>.</span>biz</a>
+    <div class="int-nav-divider"></div>
+    <span class="int-nav-badge">Internal Ops</span>
+  </div>
+  <div class="int-nav-right">
+    <a href="index.html" class="int-nav-link">Overview</a>
+    <a href="materials.html" class="int-nav-link">Materials</a>
+    <a href="inventory.html" class="int-nav-link active">Inventory</a>
+    <button class="theme-toggle" onclick="toggleTheme()">☀ Light</button>
+  </div>
+</nav>
+
+<div class="page-body">
+
+  <section class="hero">
+    <div class="hero-orb orb-1"></div>
+    <div class="hero-orb orb-2"></div>
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Portfolio Intelligence</div>
+        <h1 class="hero-title">Land Parcel <em>Inventory</em></h1>
+        <p class="hero-sub">Detailed data for every parcel in the Imali.biz land bank — sizes, valuations, development projections, and readiness scores.</p>
+      </div>
+      <div class="hero-stats" id="heroStats"></div>
+    </div>
+  </section>
+
+  <div class="filter-section">
+    <div class="filter-inner">
+      <input class="filter-input" id="searchInput" type="text" placeholder="Search by name or location…">
+      <select class="filter-select" id="districtFilter">
+        <option value="">All Districts</option>
+      </select>
+      <select class="filter-select" id="typeFilter">
+        <option value="">All Types</option>
+        <option value="residential">Residential</option>
+        <option value="commercial">Commercial</option>
+        <option value="mixed-use">Mixed-Use</option>
+      </select>
+      <select class="filter-select" id="statusFilter">
+        <option value="">All Statuses</option>
+        <option value="listed">Listed</option>
+        <option value="under_review">Under Review</option>
+        <option value="pending">Pending</option>
+      </select>
+      <span class="filter-count" id="filterCount"></span>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="section-heading reveal">
+      Parcel Cards
+      <span id="cardSubCount" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.72rem;"></span>
+    </div>
+    <div class="cards-grid" id="cardsGrid"></div>
+
+    <div class="table-section reveal">
+      <h2 class="table-title">Full Data <em>Table</em></h2>
+      <p class="table-sub">Click any column header to sort. All figures in Rwandan Franc (RWF).</p>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="listing-table" id="summaryTable">
+            <thead>
+              <tr>
+                <th class="sortable" data-col="id">ID <span class="sort-icon">⇅</span></th>
+                <th class="sortable" data-col="name">Name <span class="sort-icon">⇅</span></th>
+                <th class="sortable" data-col="district">District <span class="sort-icon">⇅</span></th>
+                <th>Type</th>
+                <th class="sortable" data-col="size_sqm">Size (sqm) <span class="sort-icon">⇅</span></th>
+                <th class="sortable" data-col="land_price_rwf">Land Price <span class="sort-icon">⇅</span></th>
+                <th class="sortable" data-col="dev_cost_rwf">Dev Cost <span class="sort-icon">⇅</span></th>
+                <th class="sortable" data-col="units_planned">Units <span class="sort-icon">⇅</span></th>
+                <th class="sortable" data-col="price_per_sqm">Price/sqm <span class="sort-icon">⇅</span></th>
+                <th class="sortable" data-col="leverage_ratio">Leverage <span class="sort-icon">⇅</span></th>
+                <th class="sortable" data-col="avg_readiness">Readiness <span class="sort-icon">⇅</span></th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="int-footer">
+    <span>Imali.biz Internal Operations Portal &mdash; Confidential</span>
+    <span>Last updated: <span id="lastUpdated"></span></span>
+  </footer>
+</div>
+
+<script src="data.js"></script>
+<script>
+  // ─── Cursor ──────────────────────────────────────────────────────────────
+  const cursor = document.querySelector('.cursor');
+  const ring   = document.querySelector('.cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  (function loop() {
+    rx += (mx - rx - 5) * 0.15; ry += (my - ry - 5) * 0.15;
+    cursor.style.left = mx - 5 + 'px'; cursor.style.top = my - 5 + 'px';
+    ring.style.left   = rx - 18 + 'px'; ring.style.top   = ry - 18 + 'px';
+    requestAnimationFrame(loop);
+  })();
+
+  // ─── Theme ───────────────────────────────────────────────────────────────
+  function toggleTheme() {
+    const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('imali-theme', t);
+    document.querySelector('.theme-toggle').textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+  }
+  if (localStorage.getItem('imali-theme') === 'light') document.querySelector('.theme-toggle').textContent = '☾ Dark';
+
+  // ─── Scroll reveal ────────────────────────────────────────────────────────
+  const obs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }), { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────
+  function readinessColor(score) {
+    if (score >= 75) return '#4caf7d';
+    if (score >= 50) return '#d4a832';
+    return '#ef5350';
+  }
+
+  function scoreTextColor(score) {
+    if (score >= 75) return '#4caf7d';
+    if (score >= 50) return '#d4a832';
+    return '#ef5350';
+  }
+
+  // ─── Hero stats ───────────────────────────────────────────────────────────
+  const s = getSummary();
+  document.getElementById('heroStats').innerHTML = [
+    { val: s.totalParcels, lbl: 'Total Parcels' },
+    { val: fmtNum(s.totalSizeSqm) + ' sqm', lbl: 'Total Land Area' },
+    { val: fmtRWF(s.totalLandValue), lbl: 'Total Land Value' }
+  ].map(x => `<div><div class="hero-stat-val">${x.val}</div><div class="hero-stat-lbl">${x.lbl}</div></div>`).join('');
+
+  // ─── Populate district filter ─────────────────────────────────────────────
+  const districts = [...new Set(parcels.map(p => p.district))].sort();
+  const distSel = document.getElementById('districtFilter');
+  districts.forEach(d => { const o = document.createElement('option'); o.value = d; o.textContent = d; distSel.appendChild(o); });
+
+  // ─── Filter state ─────────────────────────────────────────────────────────
+  let sortCol = null, sortDir = 'asc';
+
+  function getFiltered() {
+    const q  = document.getElementById('searchInput').value.toLowerCase();
+    const di = document.getElementById('districtFilter').value;
+    const ty = document.getElementById('typeFilter').value;
+    const st = document.getElementById('statusFilter').value;
+    return parcels.filter(p =>
+      (!q  || p.name.toLowerCase().includes(q) || p.location.toLowerCase().includes(q)) &&
+      (!di || p.district === di) &&
+      (!ty || p.type === ty) &&
+      (!st || p.status === st)
+    );
+  }
+
+  function renderAll() {
+    let data = getFiltered();
+    if (sortCol) {
+      data = [...data].sort((a, b) => {
+        const av = a[sortCol], bv = b[sortCol];
+        const cmp = typeof av === 'string' ? av.localeCompare(bv) : av - bv;
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+    renderCards(data);
+    renderTable(data);
+    const n = data.length;
+    document.getElementById('filterCount').textContent = `${n} of ${parcels.length} parcels`;
+    document.getElementById('cardSubCount').textContent = `${n} parcel${n !== 1 ? 's' : ''}`;
+  }
+
+  // ─── Render cards ─────────────────────────────────────────────────────────
+  function renderCards(data) {
+    const dims = ['legal','physical','infrastructure','urban','community','tokenisation'];
+    const dimShort = ['Legal','Phys','Infra','Urban','Comm','Token'];
+    const grid = document.getElementById('cardsGrid');
+    if (!data.length) { grid.innerHTML = '<div class="no-results">No parcels match your filters.</div>'; return; }
+    grid.innerHTML = data.map(p => `
+      <div class="parcel-card reveal">
+        <div class="card-stripe stripe-${p.type}"></div>
+        <div class="card-body">
+          <div class="card-header">
+            <div>
+              <div class="card-id">${p.id}</div>
+              <div class="card-name">${p.name}</div>
+              <div class="card-location">📍 ${p.location}</div>
+            </div>
+            <span class="status-pill status-${p.status}">${statusLabel(p.status)}</span>
+          </div>
+          <div class="card-metrics">
+            <div>
+              <div class="card-metric-lbl">Land Area</div>
+              <div class="card-metric-val">${fmtNum(p.size_sqm)} sqm</div>
+            </div>
+            <div>
+              <div class="card-metric-lbl">Units Planned</div>
+              <div class="card-metric-val">${p.units_planned}</div>
+            </div>
+            <div>
+              <div class="card-metric-lbl">Land Price</div>
+              <div class="card-metric-val gold">${fmtRWF(p.land_price_rwf)}</div>
+            </div>
+            <div>
+              <div class="card-metric-lbl">Dev Cost</div>
+              <div class="card-metric-val">${fmtRWF(p.dev_cost_rwf)}</div>
+            </div>
+          </div>
+          <hr class="card-divider">
+          <div class="derived-metrics">
+            <div class="derived-item">
+              <div class="derived-val">${fmtNum(p.price_per_sqm)}</div>
+              <div class="derived-lbl">RWF/sqm</div>
+            </div>
+            <div class="derived-item">
+              <div class="derived-val">${p.leverage_ratio}×</div>
+              <div class="derived-lbl">Leverage</div>
+            </div>
+            <div class="derived-item">
+              <div class="derived-val" style="color:${scoreTextColor(p.avg_readiness)}">${p.avg_readiness}%</div>
+              <div class="derived-lbl">Readiness</div>
+            </div>
+          </div>
+          <div class="readiness-section" style="margin-top:1rem;">
+            <div class="readiness-label">
+              <span class="readiness-title">Development Readiness</span>
+              <span class="readiness-score" style="color:${scoreTextColor(p.avg_readiness)}">${p.avg_readiness}/100</span>
+            </div>
+            <div class="readiness-segments">
+              ${dims.map(d => `<div class="readiness-seg" style="background:${readinessColor(p.readiness[d])}" title="${d}: ${p.readiness[d]}/100"></div>`).join('')}
+            </div>
+            <div class="readiness-dim-labels">
+              ${dimShort.map(d => `<div class="readiness-dim-lbl">${d}</div>`).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-bar">
+          <span class="type-chip type-${p.type}">${p.type}</span>
+          <span class="txt-faint txt-xs">Added ${p.added_date}</span>
+        </div>
+      </div>
+    `).join('');
+    // Re-observe new reveals
+    document.querySelectorAll('.parcel-card.reveal').forEach(r => obs.observe(r));
+  }
+
+  // ─── Render table ─────────────────────────────────────────────────────────
+  function renderTable(data) {
+    const tbody = document.getElementById('tableBody');
+    if (!data.length) { tbody.innerHTML = '<tr><td colspan="12" class="no-results">No parcels match your filters.</td></tr>'; return; }
+    tbody.innerHTML = data.map(p => `
+      <tr>
+        <td class="txt-muted txt-sm">${p.id}</td>
+        <td>
+          <div class="txt-primary txt-w5">${p.name}</div>
+          <div class="txt-muted txt-xs">${p.sector}</div>
+        </td>
+        <td>${p.district}</td>
+        <td><span class="type-chip type-${p.type}">${p.type}</span></td>
+        <td><span style="font-family:'Syne',sans-serif;font-weight:700;">${fmtNum(p.size_sqm)}</span> sqm</td>
+        <td style="color:var(--gold);font-family:'Syne',sans-serif;font-weight:600;">${fmtRWF(p.land_price_rwf)}</td>
+        <td>${fmtRWF(p.dev_cost_rwf)}</td>
+        <td style="font-family:'Syne',sans-serif;font-weight:700;">${p.units_planned}</td>
+        <td>${fmtNum(p.price_per_sqm)} RWF</td>
+        <td style="font-family:'Syne',sans-serif;font-weight:700;">${p.leverage_ratio}×</td>
+        <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:${scoreTextColor(p.avg_readiness)}">${p.avg_readiness}%</span></td>
+        <td><span class="status-pill status-${p.status}">${statusLabel(p.status)}</span></td>
+      </tr>
+    `).join('');
+  }
+
+  // ─── Sort ─────────────────────────────────────────────────────────────────
+  document.querySelectorAll('th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      else { sortCol = col; sortDir = 'asc'; }
+      document.querySelectorAll('th.sortable').forEach(h => {
+        h.classList.remove('sort-asc','sort-desc');
+        h.querySelector('.sort-icon').textContent = '⇅';
+      });
+      th.classList.add('sort-' + sortDir);
+      th.querySelector('.sort-icon').textContent = sortDir === 'asc' ? '▲' : '▼';
+      renderAll();
+    });
+  });
+
+  // ─── Filter events ────────────────────────────────────────────────────────
+  ['searchInput','districtFilter','typeFilter','statusFilter'].forEach(id =>
+    document.getElementById(id).addEventListener('input', renderAll)
+  );
+
+  // ─── Footer date ─────────────────────────────────────────────────────────
+  document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+
+  renderAll();
+</script>
+</body>
+</html>

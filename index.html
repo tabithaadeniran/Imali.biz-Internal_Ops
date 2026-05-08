@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<script>(function(){var t=localStorage.getItem('imali-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Overview — Imali.biz Internal</title>
+<meta name="description" content="Imali.biz internal portfolio overview: land inventory, investment projections, and pipeline analytics.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* ─── Hero ────────────────────────────────────────────────────────── */
+  .hero {
+    background: #0d0d12;
+    background-image: linear-gradient(rgba(212,168,50,0.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(212,168,50,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridShift 8s linear infinite;
+    padding: 4.5rem 2.5rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-orb { position: absolute; border-radius: 50%; filter: blur(120px); animation: orbFloat 12s ease-in-out infinite; pointer-events: none; }
+  .orb-1 { width: 500px; height: 500px; background: rgba(200,82,26,0.07); top: -150px; right: -100px; }
+  .orb-2 { width: 400px; height: 400px; background: rgba(212,168,50,0.05); bottom: -160px; left: -60px; animation-delay: -5s; }
+  .hero-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; position: relative; z-index: 1; }
+  .hero-tag { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(245,240,232,0.3); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.6rem; }
+  .hero-tag::before { content: ''; display: inline-block; width: 24px; height: 1px; background: rgba(245,240,232,0.2); }
+  .hero-title { font-family: 'Syne', sans-serif; font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; margin-bottom: 1.25rem; }
+  .hero-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--terracotta); }
+  .hero-sub { font-size: 0.9rem; color: rgba(245,240,232,0.45); line-height: 1.7; max-width: 460px; }
+  .hero-sub strong { color: rgba(245,240,232,0.75); font-weight: 500; }
+  .hero-updated { font-size: 0.68rem; color: rgba(245,240,232,0.2); margin-top: 1.5rem; letter-spacing: 0.06em; }
+
+  /* ─── Hero quick-stat card ────────────────────────────────────────── */
+  .hero-card {
+    background: rgba(245,240,232,0.03);
+    border: 1px solid rgba(245,240,232,0.07);
+    border-radius: 20px;
+    padding: 2rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  }
+  .hq-stat { }
+  .hq-val { font-family: 'Syne', sans-serif; font-size: 1.9rem; font-weight: 800; line-height: 1; margin-bottom: 0.3rem; }
+  .hq-val.gold { color: var(--gold); }
+  .hq-val.terra { color: var(--terracotta); }
+  .hq-val.green { color: #4caf7d; }
+  .hq-lbl { font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,240,232,0.3); }
+  .hero-card-divider { grid-column: 1 / -1; border: none; border-top: 1px solid rgba(245,240,232,0.06); margin: 0; }
+  .hero-card-note { grid-column: 1 / -1; font-size: 0.72rem; color: rgba(245,240,232,0.3); line-height: 1.55; }
+
+  /* ─── Main ────────────────────────────────────────────────────────── */
+  .main { max-width: 1200px; margin: 0 auto; padding: 3.5rem 2.5rem; }
+
+  /* ─── KPI grid ────────────────────────────────────────────────────── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 3.5rem; }
+  .kpi-card {
+    background: rgba(245,240,232,0.03);
+    border: 1px solid rgba(245,240,232,0.07);
+    border-radius: 16px;
+    padding: 1.75rem 1.5rem;
+    transition: background 0.2s, transform 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 16px 16px 0 0; }
+  .kpi-card.k-land::before   { background: linear-gradient(90deg, var(--terracotta), transparent); }
+  .kpi-card.k-value::before  { background: linear-gradient(90deg, var(--gold), transparent); }
+  .kpi-card.k-dev::before    { background: linear-gradient(90deg, #5ecba1, transparent); }
+  .kpi-card.k-units::before  { background: linear-gradient(90deg, #7b9fd4, transparent); }
+  .kpi-card.k-buyers::before { background: linear-gradient(90deg, #b47fc4, transparent); }
+  .kpi-card.k-invest::before { background: linear-gradient(90deg, var(--gold), transparent); }
+  .kpi-card:hover { background: rgba(245,240,232,0.05); transform: translateY(-3px); }
+  .kpi-icon { font-size: 1.6rem; margin-bottom: 1rem; display: block; }
+  .kpi-val { font-family: 'Syne', sans-serif; font-size: 1.75rem; font-weight: 800; color: var(--cream); margin-bottom: 0.25rem; line-height: 1.1; }
+  .kpi-val.gold  { color: var(--gold); }
+  .kpi-val.terra { color: var(--terracotta); }
+  .kpi-val.blue  { color: #7b9fd4; }
+  .kpi-val.green { color: #4caf7d; }
+  .kpi-val.purple{ color: #b47fc4; }
+  .kpi-lbl { font-size: 0.7rem; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(245,240,232,0.35); }
+  .kpi-sub { font-size: 0.72rem; color: rgba(245,240,232,0.35); margin-top: 0.5rem; line-height: 1.4; }
+
+  /* ─── Two-col section ─────────────────────────────────────────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 3.5rem; }
+  .panel-title { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .panel-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--gold); }
+  .panel-sub { font-size: 0.78rem; color: rgba(245,240,232,0.4); margin-bottom: 1.25rem; }
+
+  /* ─── Breakdown table inside panel ───────────────────────────────── */
+  .breakdown-table { width: 100%; border-collapse: collapse; }
+  .breakdown-table th { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.25); padding: 0.5rem 0.85rem; text-align: left; border-bottom: 1px solid rgba(245,240,232,0.05); }
+  .breakdown-table td { padding: 0.75rem 0.85rem; border-bottom: 1px solid rgba(245,240,232,0.04); font-size: 0.8rem; vertical-align: middle; }
+  .breakdown-table tr:last-child td { border-bottom: none; }
+  .breakdown-table tr:hover td { background: rgba(245,240,232,0.02); }
+  .bd-swatch { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 0.4rem; vertical-align: middle; }
+
+  /* ─── Leverage chart ──────────────────────────────────────────────── */
+  .leverage-section { margin-bottom: 3.5rem; }
+  .leverage-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .leverage-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--terracotta); }
+  .leverage-sub { font-size: 0.8rem; color: rgba(245,240,232,0.4); margin-bottom: 1.5rem; line-height: 1.55; }
+  .leverage-bars { display: flex; flex-direction: column; gap: 0.85rem; }
+  .lev-row { display: grid; grid-template-columns: 180px 1fr 90px; align-items: center; gap: 1rem; }
+  .lev-name { font-size: 0.8rem; color: rgba(245,240,232,0.65); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lev-bar-track { background: rgba(245,240,232,0.05); border-radius: 4px; height: 20px; overflow: hidden; }
+  .lev-bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 0.5rem; font-size: 0.62rem; font-family: 'Syne', sans-serif; font-weight: 700; color: white; white-space: nowrap; transition: width 1s ease; min-width: 2px; }
+  .lev-ratio { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 800; color: var(--cream); text-align: right; }
+  .lev-legend { display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.7rem; color: rgba(245,240,232,0.35); }
+  .lev-legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 0.3rem; vertical-align: middle; }
+
+  /* ─── Status section ──────────────────────────────────────────────── */
+  .status-section { margin-bottom: 3.5rem; }
+  .status-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 1.5rem; }
+  .status-big-card { background: rgba(245,240,232,0.03); border: 1px solid rgba(245,240,232,0.07); border-radius: 14px; padding: 1.5rem; }
+  .sbc-count { font-family: 'Syne', sans-serif; font-size: 2.5rem; font-weight: 800; line-height: 1; margin-bottom: 0.3rem; }
+  .sbc-label { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,240,232,0.35); margin-bottom: 0.75rem; }
+  .sbc-bar { height: 4px; border-radius: 2px; margin-bottom: 0.75rem; }
+  .sbc-sqm { font-size: 0.8rem; color: rgba(245,240,232,0.4); }
+  .prop-bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; }
+  .prop-seg { height: 100%; }
+
+  /* ─── Readiness heatmap ───────────────────────────────────────────── */
+  .heatmap-section { margin-bottom: 3.5rem; }
+  .heatmap-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .heatmap-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--gold); }
+  .heatmap-sub { font-size: 0.8rem; color: rgba(245,240,232,0.4); margin-bottom: 1.5rem; }
+  .heatmap-table { width: 100%; border-collapse: separate; border-spacing: 4px; }
+  .heatmap-table th { font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,240,232,0.3); padding: 0.4rem 0.5rem; text-align: center; white-space: nowrap; }
+  .heatmap-table th:first-child { text-align: left; }
+  .heatmap-table td { padding: 0; }
+  .heatmap-table td:first-child { font-size: 0.75rem; color: rgba(245,240,232,0.6); padding: 0.4rem 0.75rem 0.4rem 0; white-space: nowrap; }
+  .hm-cell { border-radius: 6px; padding: 0.55rem 0.5rem; text-align: center; font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; color: white; }
+  .heatmap-legend { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; font-size: 0.68rem; color: rgba(245,240,232,0.35); }
+  .hm-leg-bar { display: flex; gap: 3px; }
+  .hm-leg-seg { width: 20px; height: 10px; border-radius: 2px; }
+
+  /* ─── Investor callout ────────────────────────────────────────────── */
+  .investor-callout {
+    background: linear-gradient(135deg, rgba(212,168,50,0.08), rgba(212,168,50,0.03));
+    border: 1px solid rgba(212,168,50,0.2);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 3.5rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 3rem;
+    align-items: center;
+  }
+  .ic-title { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .ic-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--gold); }
+  .ic-body { font-size: 0.85rem; color: rgba(245,240,232,0.5); line-height: 1.65; }
+  .ic-body strong { color: rgba(245,240,232,0.8); font-weight: 500; }
+  .ic-numbers { display: flex; flex-direction: column; gap: 1rem; flex-shrink: 0; }
+  .ic-num { text-align: right; }
+  .ic-num-val { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--gold); line-height: 1; }
+  .ic-num-lbl { font-size: 0.63rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,240,232,0.3); margin-top: 0.25rem; }
+  .ic-divider { border: none; border-top: 1px solid rgba(212,168,50,0.15); }
+
+  /* Light mode */
+  [data-theme="light"] .hero { background: #f0ebe0; }
+  [data-theme="light"] .hero-title { color: var(--ink); }
+  [data-theme="light"] .hero-tag { color: rgba(10,10,15,0.3); }
+  [data-theme="light"] .hero-sub { color: rgba(10,10,15,0.5); }
+  [data-theme="light"] .hero-sub strong { color: rgba(10,10,15,0.75); }
+  [data-theme="light"] .hero-updated { color: rgba(10,10,15,0.25); }
+  [data-theme="light"] .hero-card { background: white; border-color: rgba(10,10,15,0.08); box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+  [data-theme="light"] .hq-val { color: var(--ink); }
+  [data-theme="light"] .hq-lbl { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .hero-card-note { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .hero-card-divider { border-top-color: rgba(10,10,15,0.07); }
+  [data-theme="light"] .kpi-card { background: white; border-color: rgba(10,10,15,0.08); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  [data-theme="light"] .kpi-card:hover { background: white; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  [data-theme="light"] .kpi-val { color: var(--ink); }
+  [data-theme="light"] .kpi-lbl { color: rgba(10,10,15,0.4); }
+  [data-theme="light"] .kpi-sub { color: rgba(10,10,15,0.45); }
+  [data-theme="light"] .panel-title { color: var(--ink); }
+  [data-theme="light"] .panel-sub { color: rgba(10,10,15,0.45); }
+  [data-theme="light"] .breakdown-table th { color: rgba(10,10,15,0.3); border-bottom-color: rgba(10,10,15,0.07); }
+  [data-theme="light"] .breakdown-table td { border-bottom-color: rgba(10,10,15,0.05); color: rgba(10,10,15,0.7); }
+  [data-theme="light"] .leverage-title, [data-theme="light"] .status-section .panel-title,
+  [data-theme="light"] .heatmap-title, [data-theme="light"] .ic-title { color: var(--ink); }
+  [data-theme="light"] .leverage-sub, [data-theme="light"] .heatmap-sub { color: rgba(10,10,15,0.45); }
+  [data-theme="light"] .lev-name { color: rgba(10,10,15,0.6); }
+  [data-theme="light"] .lev-bar-track { background: rgba(10,10,15,0.07); }
+  [data-theme="light"] .lev-ratio { color: var(--ink); }
+  [data-theme="light"] .lev-legend { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .status-big-card { background: white; border-color: rgba(10,10,15,0.08); }
+  [data-theme="light"] .sbc-label { color: rgba(10,10,15,0.4); }
+  [data-theme="light"] .sbc-sqm { color: rgba(10,10,15,0.45); }
+  [data-theme="light"] .heatmap-table th { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .heatmap-table td:first-child { color: rgba(10,10,15,0.6); }
+  [data-theme="light"] .heatmap-legend { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .investor-callout { background: linear-gradient(135deg, rgba(212,168,50,0.06), rgba(212,168,50,0.02)); }
+  [data-theme="light"] .ic-body { color: rgba(10,10,15,0.5); }
+  [data-theme="light"] .ic-body strong { color: rgba(10,10,15,0.75); }
+  [data-theme="light"] .ic-num-lbl { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .ic-divider { border-top-color: rgba(212,168,50,0.15); }
+
+  @media (max-width: 1024px) {
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-card { max-width: 500px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .investor-callout { grid-template-columns: 1fr; }
+    .ic-numbers { flex-direction: row; justify-content: flex-start; }
+    .ic-num { text-align: left; }
+  }
+  @media (max-width: 640px) {
+    .main { padding: 2rem 1.25rem; }
+    .hero { padding: 3rem 1.25rem 2.5rem; }
+    .kpi-grid { grid-template-columns: 1fr; }
+    .status-cards { grid-template-columns: 1fr; }
+    .lev-row { grid-template-columns: 120px 1fr 70px; }
+    .heatmap-table th, .heatmap-table td:first-child { font-size: 0.55rem; }
+  }
+</style>
+</head>
+<body>
+<div class="cursor"></div>
+<div class="cursor-ring"></div>
+
+<nav class="int-nav">
+  <div class="int-nav-left">
+    <a href="index.html" class="int-nav-logo">Imali<span>.</span>biz</a>
+    <div class="int-nav-divider"></div>
+    <span class="int-nav-badge">Internal Ops</span>
+  </div>
+  <div class="int-nav-right">
+    <a href="index.html" class="int-nav-link active">Overview</a>
+    <a href="materials.html" class="int-nav-link">Materials</a>
+    <a href="inventory.html" class="int-nav-link">Inventory</a>
+    <button class="theme-toggle" onclick="toggleTheme()">☀ Light</button>
+  </div>
+</nav>
+
+<div class="page-body">
+
+  <!-- ─── Hero ──────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-orb orb-1"></div>
+    <div class="hero-orb orb-2"></div>
+    <div class="hero-inner">
+      <div>
+        <div class="hero-tag">Imali.biz — Internal Operations</div>
+        <h1 class="hero-title">Rwanda's Real Estate<br><em>Pipeline</em></h1>
+        <p class="hero-sub">
+          A real-time view of <strong id="heroParcelCount">7</strong> land parcels aggregated across the Imali.biz land bank —
+          total inventory, investment requirements, projected unit supply, and buyer demand.
+          This is our internal lens on the opportunity we are building.
+        </p>
+        <p class="hero-updated">Data as of <span id="heroDate"></span></p>
+      </div>
+      <div class="hero-card">
+        <div class="hq-stat">
+          <div class="hq-val" id="hqParcels">—</div>
+          <div class="hq-lbl">Land Parcels</div>
+        </div>
+        <div class="hq-stat">
+          <div class="hq-val gold" id="hqSqm">—</div>
+          <div class="hq-lbl">Total sqm</div>
+        </div>
+        <hr class="hero-card-divider">
+        <div class="hq-stat">
+          <div class="hq-val terra" id="hqUnits">—</div>
+          <div class="hq-lbl">Units Planned</div>
+        </div>
+        <div class="hq-stat">
+          <div class="hq-val green" id="hqValue">—</div>
+          <div class="hq-lbl">Portfolio Value</div>
+        </div>
+        <hr class="hero-card-divider">
+        <p class="hero-card-note">Portfolio value = total land price + total development cost across all parcels in the Imali.biz land bank.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Main ──────────────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- 6 KPI cards -->
+    <div class="section-heading reveal">Key Performance Indicators</div>
+    <div class="kpi-grid reveal">
+      <div class="kpi-card k-land">
+        <span class="kpi-icon">🗺</span>
+        <div class="kpi-val terra" id="kpiLand">—</div>
+        <div class="kpi-lbl">Total Land Area</div>
+        <div class="kpi-sub" id="kpiLandSub">—</div>
+      </div>
+      <div class="kpi-card k-value">
+        <span class="kpi-icon">💎</span>
+        <div class="kpi-val gold" id="kpiLandVal">—</div>
+        <div class="kpi-lbl">Total Land Value</div>
+        <div class="kpi-sub" id="kpiLandValSub">—</div>
+      </div>
+      <div class="kpi-card k-dev">
+        <span class="kpi-icon">🏗</span>
+        <div class="kpi-val green" id="kpiDev">—</div>
+        <div class="kpi-lbl">Total Dev Investment Needed</div>
+        <div class="kpi-sub">At RWF 75,000 per sqm GFA across all planned units</div>
+      </div>
+      <div class="kpi-card k-units">
+        <span class="kpi-icon">🏢</span>
+        <div class="kpi-val blue" id="kpiUnits">—</div>
+        <div class="kpi-lbl">Total Apartments Planned</div>
+        <div class="kpi-sub">Each unit ≈ 100 sqm GFA. Across <span id="kpiUnitsParcels">—</span> parcels.</div>
+      </div>
+      <div class="kpi-card k-buyers">
+        <span class="kpi-icon">🤝</span>
+        <div class="kpi-val purple" id="kpiBuyers">—</div>
+        <div class="kpi-lbl">Total Buyers Needed</div>
+        <div class="kpi-sub">1 buyer per unit — sell-before-build model</div>
+      </div>
+      <div class="kpi-card k-invest">
+        <span class="kpi-icon">📈</span>
+        <div class="kpi-val gold" id="kpiInvestors">—</div>
+        <div class="kpi-lbl">Fractional Investors Needed</div>
+        <div class="kpi-sub" id="kpiInvestorsSub">—</div>
+      </div>
+    </div>
+
+    <!-- Investor callout -->
+    <div class="investor-callout reveal">
+      <div>
+        <h3 class="ic-title">The Fractional <em>Opportunity</em></h3>
+        <p class="ic-body">
+          At the <strong>RWF 75,000 minimum stake</strong> (our fractional ownership entry point), covering the full
+          development cost of <strong id="icDevCost">—</strong> would require <strong id="icInvestors">—</strong> investors.
+          This illustrates why aggregation of demand is powerful — we can fund construction by pooling capital
+          from thousands of small investors who each own a fractional share of the completed units.
+          <br><br>
+          As the portfolio grows, each additional parcel unlocks more units, more buyers, and more fractional
+          investment slots — compounding the network effect across the platform.
+        </p>
+      </div>
+      <div class="ic-numbers">
+        <div class="ic-num">
+          <div class="ic-num-val" id="icMinStake">RWF 75K</div>
+          <div class="ic-num-lbl">Minimum Stake</div>
+        </div>
+        <hr class="ic-divider" style="width:100%;">
+        <div class="ic-num">
+          <div class="ic-num-val" id="icInvestors2">—</div>
+          <div class="ic-num-lbl">Investors to Fund Dev</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Type + District breakdown -->
+    <div class="two-col reveal">
+      <div>
+        <div class="eyebrow">Breakdown by Type</div>
+        <h3 class="panel-title">Portfolio by <em>Land Type</em></h3>
+        <p class="panel-sub">Distribution of parcels, sqm, and planned units across residential, commercial, and mixed-use categories.</p>
+        <div class="table-wrap">
+          <table class="breakdown-table">
+            <thead><tr><th>Type</th><th>Parcels</th><th>Total sqm</th><th>Land Value</th><th>Units</th></tr></thead>
+            <tbody id="typeTable"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="eyebrow">Breakdown by District</div>
+        <h3 class="panel-title">Portfolio by <em>District</em></h3>
+        <p class="panel-sub">Geographic distribution of the land bank across Rwandan districts.</p>
+        <div class="table-wrap">
+          <table class="breakdown-table">
+            <thead><tr><th>District</th><th>Parcels</th><th>Total sqm</th><th>Land Value</th><th>Units</th></tr></thead>
+            <tbody id="districtTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Investment leverage chart -->
+    <div class="leverage-section reveal">
+      <div class="eyebrow">Investment Analysis</div>
+      <h3 class="leverage-title">Development <em>Leverage</em> by Parcel</h3>
+      <p class="leverage-sub">
+        Leverage ratio = development cost ÷ land price. A ratio of 3.1× means every RWF 1 of land
+        unlocks RWF 3.10 of construction value. Higher leverage parcels generate more development value
+        per franc of land acquisition cost.
+      </p>
+      <div class="table-wrap" style="padding:1.5rem 1.75rem;">
+        <div class="leverage-bars" id="leverageBars"></div>
+        <div class="lev-legend">
+          <span><span class="lev-legend-dot" style="background:var(--terracotta)"></span>Residential</span>
+          <span><span class="lev-legend-dot" style="background:var(--gold)"></span>Commercial</span>
+          <span><span class="lev-legend-dot" style="background:#5ecba1"></span>Mixed-Use</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status summary -->
+    <div class="status-section reveal">
+      <div class="eyebrow">Pipeline Status</div>
+      <h3 class="panel-title" style="margin-bottom:0.3rem;">Parcel <em>Status</em> Summary</h3>
+      <p class="panel-sub" style="margin-bottom:1.5rem;">Current status of all parcels in the pipeline.</p>
+      <div class="status-cards" id="statusCards"></div>
+      <div class="table-wrap" style="padding:1rem 1.25rem;">
+        <div class="mini-label">Portfolio by Status (sqm proportion)</div>
+        <div class="prop-bar" id="propBar"></div>
+        <div class="prop-legend-wrap" id="propLegend"></div>
+      </div>
+    </div>
+
+    <!-- Readiness heatmap -->
+    <div class="heatmap-section reveal">
+      <div class="eyebrow">Development Readiness</div>
+      <h3 class="heatmap-title">Parcel Readiness <em>Heatmap</em></h3>
+      <p class="heatmap-sub">
+        Six dimensions scored 0–100 per parcel. Green ≥ 75 · Amber 50–74 · Red &lt; 50.
+        Legal and Tokenisation scores are critical — both must reach 100 before a parcel goes live.
+      </p>
+      <div class="table-wrap" style="padding:1.25rem 1.5rem;overflow-x:auto;">
+        <table class="heatmap-table" id="heatmapTable"></table>
+      </div>
+      <div class="heatmap-legend">
+        <div class="hm-leg-bar">
+          <div class="hm-leg-seg" style="background:#ef5350"></div>
+          <div class="hm-leg-seg" style="background:#e57c50"></div>
+          <div class="hm-leg-seg" style="background:#d4a832"></div>
+          <div class="hm-leg-seg" style="background:#8bc34a"></div>
+          <div class="hm-leg-seg" style="background:#4caf7d"></div>
+        </div>
+        <span>Red = below 50 · Amber = 50–74 · Green = 75+</span>
+        <span style="margin-left:auto;">Critical dimensions: Legal &amp; Tokenisation must reach 100</span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="int-footer">
+    <span>Imali.biz Internal Operations Portal &mdash; Confidential</span>
+    <span>Data as of <span id="footerDate"></span> &mdash; <a href="materials.html">View Materials →</a></span>
+  </footer>
+</div>
+
+<script src="data.js"></script>
+<script>
+  // ─── Cursor ──────────────────────────────────────────────────────────────
+  const cursor = document.querySelector('.cursor');
+  const ring   = document.querySelector('.cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  (function loop() {
+    rx += (mx - rx - 5) * 0.15; ry += (my - ry - 5) * 0.15;
+    cursor.style.left = mx - 5 + 'px'; cursor.style.top = my - 5 + 'px';
+    ring.style.left   = rx - 18 + 'px'; ring.style.top   = ry - 18 + 'px';
+    requestAnimationFrame(loop);
+  })();
+
+  // ─── Theme ───────────────────────────────────────────────────────────────
+  function toggleTheme() {
+    const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('imali-theme', t);
+    document.querySelector('.theme-toggle').textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+  }
+  if (localStorage.getItem('imali-theme') === 'light') document.querySelector('.theme-toggle').textContent = '☾ Dark';
+
+  // ─── Scroll reveal ────────────────────────────────────────────────────────
+  const obs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }), { threshold: 0.06 });
+  document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+
+  // ─── Counter animation ────────────────────────────────────────────────────
+  function animateNum(el, target, prefix='', suffix='', dur=1100) {
+    const start = performance.now();
+    const isFloat = !Number.isInteger(target);
+    function step(now) {
+      const p = Math.min((now - start) / dur, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      const v = ease * target;
+      el.textContent = prefix + (isFloat ? v.toFixed(1) : Math.round(v).toLocaleString()) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────
+  const typeColors = { residential: '#c8521a', commercial: '#d4a832', 'mixed-use': '#5ecba1' };
+  const statusColors = { listed: '#4caf7d', under_review: '#d4a832', pending: 'rgba(245,240,232,0.25)' };
+
+  function hmColor(score) {
+    if (score >= 75) return '#2a6e4a';
+    if (score >= 60) return '#6b7d2a';
+    if (score >= 50) return '#8a6218';
+    if (score >= 35) return '#8a3818';
+    return '#6b2020';
+  }
+  function hmTextColor(score) {
+    if (score >= 75) return '#a8efc8';
+    if (score >= 50) return '#f5d880';
+    return '#f5a0a0';
+  }
+
+  // ─── Data ────────────────────────────────────────────────────────────────
+  const s = getSummary();
+  const today = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  document.getElementById('heroDate').textContent = today;
+  document.getElementById('footerDate').textContent = today;
+  document.getElementById('heroParcelCount').textContent = s.totalParcels;
+
+  // Hero card
+  animateNum(document.getElementById('hqParcels'), s.totalParcels);
+  animateNum(document.getElementById('hqSqm'), s.totalSizeSqm, '', ' sqm');
+  animateNum(document.getElementById('hqUnits'), s.totalUnits, '', ' units');
+  document.getElementById('hqValue').textContent = fmtRWF(s.portfolioValue);
+
+  // KPIs
+  animateNum(document.getElementById('kpiLand'), s.totalSizeSqm, '', ' sqm');
+  document.getElementById('kpiLandSub').textContent = `Across ${s.totalParcels} parcels · GFA: ${fmtNum(s.totalGFA)} sqm`;
+
+  document.getElementById('kpiLandVal').textContent = fmtRWF(s.totalLandValue);
+  document.getElementById('kpiLandValSub').textContent = `Avg ${fmtNum(Math.round(s.totalLandValue / s.totalSizeSqm))} RWF/sqm`;
+
+  document.getElementById('kpiDev').textContent = fmtRWF(s.totalDevCost);
+
+  animateNum(document.getElementById('kpiUnits'), s.totalUnits, '', ' apts');
+  document.getElementById('kpiUnitsParcels').textContent = s.totalParcels;
+
+  animateNum(document.getElementById('kpiBuyers'), s.totalUnits, '', ' buyers');
+
+  animateNum(document.getElementById('kpiInvestors'), s.investorsNeeded, '~', '');
+  document.getElementById('kpiInvestorsSub').textContent = `At RWF 75K minimum · to fund ${fmtRWF(s.totalDevCost)} dev cost`;
+
+  // Investor callout
+  document.getElementById('icDevCost').textContent = fmtRWF(s.totalDevCost);
+  document.getElementById('icInvestors').textContent = fmtNum(s.investorsNeeded);
+  document.getElementById('icInvestors2').textContent = '~' + fmtNum(s.investorsNeeded);
+
+  // ─── Type table ───────────────────────────────────────────────────────────
+  const typeTotals = {};
+  ['residential','commercial','mixed-use'].forEach(t => {
+    const grp = s.byType[t] || [];
+    typeTotals[t] = {
+      count: grp.length,
+      sqm: grp.reduce((a,p) => a + p.size_sqm, 0),
+      val: grp.reduce((a,p) => a + p.land_price_rwf, 0),
+      units: grp.reduce((a,p) => a + p.units_planned, 0)
+    };
+  });
+  document.getElementById('typeTable').innerHTML = Object.entries(typeTotals).map(([t, d]) => `
+    <tr>
+      <td><span class="bd-swatch" style="background:${typeColors[t]}"></span>${t}</td>
+      <td>${d.count}</td>
+      <td>${fmtNum(d.sqm)} sqm</td>
+      <td style="color:var(--gold)">${fmtRWF(d.val)}</td>
+      <td>${d.units}</td>
+    </tr>
+  `).join('');
+
+  // ─── District table ───────────────────────────────────────────────────────
+  document.getElementById('districtTable').innerHTML = Object.entries(s.byDistrict).map(([d, grp]) => `
+    <tr>
+      <td style="font-weight:500">${d}</td>
+      <td>${grp.length}</td>
+      <td>${fmtNum(grp.reduce((a,p) => a + p.size_sqm, 0))} sqm</td>
+      <td style="color:var(--gold)">${fmtRWF(grp.reduce((a,p) => a + p.land_price_rwf, 0))}</td>
+      <td>${grp.reduce((a,p) => a + p.units_planned, 0)}</td>
+    </tr>
+  `).join('');
+
+  // ─── Leverage chart ───────────────────────────────────────────────────────
+  const maxRatio = Math.max(...parcels.map(p => p.leverage_ratio));
+  document.getElementById('leverageBars').innerHTML = [...parcels]
+    .sort((a, b) => b.leverage_ratio - a.leverage_ratio)
+    .map(p => {
+      const pct = (p.leverage_ratio / maxRatio * 100).toFixed(1);
+      const col = typeColors[p.type];
+      return `
+        <div class="lev-row">
+          <div class="lev-name" title="${p.name}">${p.name}</div>
+          <div class="lev-bar-track">
+            <div class="lev-bar-fill" style="width:${pct}%;background:${col};">${p.leverage_ratio}×</div>
+          </div>
+          <div class="lev-ratio">${p.leverage_ratio}×</div>
+        </div>
+      `;
+    }).join('');
+
+  // ─── Status cards ─────────────────────────────────────────────────────────
+  const statuses = [
+    { key: 'listed',       label: 'Listed',       color: '#4caf7d' },
+    { key: 'under_review', label: 'Under Review', color: '#d4a832' },
+    { key: 'pending',      label: 'Pending',       color: '#9e9e9e' }
+  ];
+  document.getElementById('statusCards').innerHTML = statuses.map(st => {
+    const grp = s.byStatus[st.key] || [];
+    const sqm = grp.reduce((a,p) => a + p.size_sqm, 0);
+    return `
+      <div class="status-big-card">
+        <div class="sbc-count" style="color:${st.color}">${grp.length}</div>
+        <div class="sbc-label">${st.label}</div>
+        <div class="sbc-bar" style="background:${st.color};width:${grp.length ? (grp.length / s.totalParcels * 100).toFixed(0) : 0}%;"></div>
+        <div class="sbc-sqm">${fmtNum(sqm)} sqm · ${grp.reduce((a,p) => a + p.units_planned, 0)} units</div>
+      </div>
+    `;
+  }).join('');
+
+  // Proportional bar
+  const propBar = document.getElementById('propBar');
+  const propLegend = document.getElementById('propLegend');
+  statuses.forEach(st => {
+    const grp = s.byStatus[st.key] || [];
+    const sqm = grp.reduce((a,p) => a + p.size_sqm, 0);
+    const pct = (sqm / s.totalSizeSqm * 100).toFixed(1);
+    const seg = document.createElement('div');
+    seg.className = 'prop-seg';
+    seg.style.width = pct + '%';
+    seg.style.background = st.color;
+    seg.title = `${st.label}: ${pct}%`;
+    propBar.appendChild(seg);
+
+    const li = document.createElement('span');
+    li.innerHTML = `<span style="color:${st.color};margin-right:0.3rem">■</span> ${st.label} ${pct}%`;
+    propLegend.appendChild(li);
+  });
+
+  // ─── Readiness heatmap ────────────────────────────────────────────────────
+  const dims = ['legal','physical','infrastructure','urban','community','tokenisation'];
+  const dimLabels = ['Legal','Physical','Infrastructure','Urban','Community','Tokenisation'];
+  const hm = document.getElementById('heatmapTable');
+  hm.innerHTML = `
+    <thead>
+      <tr>
+        <th>Parcel</th>
+        ${dimLabels.map(d => `<th>${d}</th>`).join('')}
+        <th>Avg</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${parcels.map(p => `
+        <tr>
+          <td>${p.name}</td>
+          ${dims.map(d => {
+            const sc = p.readiness[d];
+            return `<td><div class="hm-cell" style="background:${hmColor(sc)};color:${hmTextColor(sc)}" title="${dimLabels[dims.indexOf(d)]}: ${sc}/100">${sc}</div></td>`;
+          }).join('')}
+          <td><div class="hm-cell" style="background:${hmColor(p.avg_readiness)};color:${hmTextColor(p.avg_readiness)};font-size:0.85rem;">${p.avg_readiness}</div></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  `;
+</script>
+</body>
+</html>

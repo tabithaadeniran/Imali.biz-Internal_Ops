@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<script>(function(){var t=localStorage.getItem('imali-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Materials & Supply Chain — Imali.biz Internal</title>
+<meta name="description" content="Aggregated building material demand across all Imali.biz development projects.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* ─── Hero ────────────────────────────────────────────────────────── */
+  .hero {
+    background: #0d0d12;
+    background-image: linear-gradient(rgba(212,168,50,0.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(212,168,50,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridShift 8s linear infinite;
+    padding: 4rem 2.5rem 3.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-orb { position: absolute; border-radius: 50%; filter: blur(100px); animation: orbFloat 10s ease-in-out infinite; pointer-events: none; }
+  .orb-1 { width: 450px; height: 450px; background: rgba(26,58,42,0.25); top: -120px; right: -80px; }
+  .orb-2 { width: 350px; height: 350px; background: rgba(212,168,50,0.06); bottom: -120px; left: -40px; animation-delay: -5s; }
+  .hero-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 3rem; align-items: flex-start; position: relative; z-index: 1; }
+  .hero-title { font-family: 'Syne', sans-serif; font-size: clamp(1.9rem, 4vw, 2.9rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 0.75rem; }
+  .hero-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--terracotta); }
+  .hero-sub { font-size: 0.88rem; color: rgba(245,240,232,0.5); max-width: 540px; line-height: 1.7; }
+  .hero-sub strong { color: rgba(245,240,232,0.8); font-weight: 500; }
+  .hero-right { flex-shrink: 0; display: flex; flex-direction: column; gap: 0.85rem; padding-top: 0.5rem; }
+  .hero-kpi { background: rgba(245,240,232,0.04); border: 1px solid rgba(245,240,232,0.07); border-radius: 12px; padding: 1rem 1.5rem; text-align: right; min-width: 200px; }
+  .hero-kpi-val { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--cream); }
+  .hero-kpi-val.gold { color: var(--gold); }
+  .hero-kpi-val.terra { color: var(--terracotta); }
+  .hero-kpi-lbl { font-size: 0.63rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,240,232,0.3); margin-top: 0.2rem; }
+
+  /* ─── Sticky filter strip ─────────────────────────────────────────── */
+  .cat-strip {
+    position: sticky; top: 60px; z-index: 100;
+    background: rgba(10,10,15,0.96);
+    border-bottom: 1px solid rgba(245,240,232,0.06);
+    padding: 0.85rem 2.5rem;
+    backdrop-filter: blur(12px);
+  }
+  .cat-strip-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: space-between; }
+  .cat-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .cat-pill {
+    font-size: 0.75rem; font-weight: 500;
+    padding: 0.35rem 0.9rem;
+    border-radius: 2rem;
+    border: 1px solid rgba(245,240,232,0.1);
+    color: rgba(245,240,232,0.45);
+    cursor: none;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .cat-pill:hover { color: var(--cream); border-color: rgba(245,240,232,0.25); }
+  .cat-pill.active { background: rgba(212,168,50,0.12); border-color: rgba(212,168,50,0.3); color: var(--gold); }
+  .grand-total-badge {
+    font-size: 0.72rem; color: rgba(245,240,232,0.4);
+    display: flex; align-items: center; gap: 0.5rem;
+    white-space: nowrap;
+  }
+  .grand-total-badge strong { font-family: 'Syne', sans-serif; color: var(--gold); font-weight: 700; }
+
+  /* ─── Main ────────────────────────────────────────────────────────── */
+  .main { max-width: 1200px; margin: 0 auto; padding: 3rem 2.5rem; }
+
+  /* ─── Category section ────────────────────────────────────────────── */
+  .cat-section { margin-bottom: 3.5rem; scroll-margin-top: 110px; }
+  .cat-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1.5rem; }
+  .cat-title { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700; }
+  .cat-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--gold); }
+  .cat-desc { font-size: 0.8rem; color: rgba(245,240,232,0.4); margin-top: 0.3rem; max-width: 560px; line-height: 1.55; }
+  .cat-subtotal { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--gold); text-align: right; white-space: nowrap; }
+  .cat-subtotal-lbl { font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,240,232,0.3); text-align: right; }
+
+  /* ─── Materials table ─────────────────────────────────────────────── */
+  .mat-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+  .mat-table th { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.3); padding: 0.65rem 1rem; text-align: left; border-bottom: 1px solid rgba(245,240,232,0.06); white-space: nowrap; }
+  .mat-table th:last-child, .mat-table td:last-child { text-align: center; }
+  .mat-table td { padding: 0.8rem 1rem; border-bottom: 1px solid rgba(245,240,232,0.04); font-size: 0.82rem; vertical-align: middle; }
+  .mat-table tr:last-child td { border-bottom: none; }
+  .mat-table tr:hover td { background: rgba(245,240,232,0.02); }
+  .mat-qty { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--cream); }
+  .mat-cost { font-family: 'Syne', sans-serif; font-weight: 600; color: var(--gold); }
+  .mat-unit-price { color: rgba(245,240,232,0.45); }
+  .supplier-check { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1.5px solid rgba(245,240,232,0.15); border-radius: 5px; color: transparent; font-size: 0.75rem; transition: all 0.15s; cursor: none; }
+  .supplier-check:hover { border-color: var(--gold); color: var(--gold); background: rgba(212,168,50,0.08); }
+
+  /* ─── Grand total section ─────────────────────────────────────────── */
+  .grand-section { background: linear-gradient(135deg, rgba(26,58,42,0.4), rgba(26,58,42,0.2)); border: 1px solid rgba(212,168,50,0.15); border-radius: 20px; padding: 2.5rem; margin-bottom: 3rem; }
+  .grand-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; }
+  .grand-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .grand-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--gold); }
+  .grand-sub { font-size: 0.82rem; color: rgba(245,240,232,0.4); }
+  .grand-val { font-family: 'Syne', sans-serif; font-size: 2.4rem; font-weight: 800; color: var(--gold); line-height: 1; }
+  .grand-val-lbl { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.35); margin-top: 0.4rem; text-align: right; }
+
+  /* ─── Stacked bar ─────────────────────────────────────────────────── */
+  .stacked-bar-wrap { margin-top: 0.5rem; }
+  .stacked-bar { display: flex; height: 28px; border-radius: 6px; overflow: hidden; }
+  .stacked-seg { height: 100%; transition: opacity 0.2s; cursor: none; }
+  .stacked-seg:hover { opacity: 0.8; }
+  .bar-legend { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: 1rem; }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: rgba(245,240,232,0.55); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ─── CTA card ────────────────────────────────────────────────────── */
+  .cta-card { background: rgba(200,82,26,0.08); border: 1px solid rgba(200,82,26,0.2); border-radius: 16px; padding: 2rem 2.5rem; display: flex; align-items: center; justify-content: space-between; gap: 2rem; margin-bottom: 2rem; }
+  .cta-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .cta-sub { font-size: 0.82rem; color: rgba(245,240,232,0.5); line-height: 1.55; max-width: 500px; }
+
+  /* ─── Supplier note ───────────────────────────────────────────────── */
+  .supplier-note { background: rgba(245,240,232,0.03); border: 1px solid rgba(212,168,50,0.12); border-radius: 10px; padding: 0.85rem 1.1rem; margin-bottom: 2rem; font-size: 0.78rem; color: rgba(245,240,232,0.5); display: flex; align-items: center; gap: 0.6rem; line-height: 1.5; }
+  .supplier-note span { font-size: 1.1rem; }
+
+  /* Light mode */
+  [data-theme="light"] .hero { background: #f0ebe0; }
+  [data-theme="light"] .hero-title { color: var(--ink); }
+  [data-theme="light"] .hero-sub { color: rgba(10,10,15,0.5); }
+  [data-theme="light"] .hero-sub strong { color: rgba(10,10,15,0.75); }
+  [data-theme="light"] .hero-kpi { background: rgba(10,10,15,0.04); border-color: rgba(10,10,15,0.08); }
+  [data-theme="light"] .hero-kpi-val { color: var(--ink); }
+  [data-theme="light"] .hero-kpi-lbl { color: rgba(10,10,15,0.4); }
+  [data-theme="light"] .cat-strip { background: rgba(250,247,242,0.97); border-bottom-color: rgba(10,10,15,0.08); }
+  [data-theme="light"] .cat-pill { color: rgba(10,10,15,0.45); border-color: rgba(10,10,15,0.12); }
+  [data-theme="light"] .cat-pill:hover { color: var(--ink); border-color: rgba(10,10,15,0.25); }
+  [data-theme="light"] .grand-total-badge { color: rgba(10,10,15,0.45); }
+  [data-theme="light"] .cat-title { color: var(--ink); }
+  [data-theme="light"] .cat-desc { color: rgba(10,10,15,0.5); }
+  [data-theme="light"] .cat-subtotal-lbl { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .mat-table th { color: rgba(10,10,15,0.35); border-bottom-color: rgba(10,10,15,0.08); }
+  [data-theme="light"] .mat-table td { border-bottom-color: rgba(10,10,15,0.05); color: rgba(10,10,15,0.75); }
+  [data-theme="light"] .mat-table tr:hover td { background: rgba(10,10,15,0.02); }
+  [data-theme="light"] .mat-qty { color: var(--ink); }
+  [data-theme="light"] .mat-unit-price { color: rgba(10,10,15,0.4); }
+  [data-theme="light"] .supplier-check { border-color: rgba(10,10,15,0.2); }
+  [data-theme="light"] .grand-section { background: linear-gradient(135deg, rgba(26,58,42,0.08), rgba(26,58,42,0.04)); }
+  [data-theme="light"] .grand-title { color: var(--ink); }
+  [data-theme="light"] .grand-sub { color: rgba(10,10,15,0.45); }
+  [data-theme="light"] .grand-val-lbl { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .legend-item { color: rgba(10,10,15,0.55); }
+  [data-theme="light"] .cta-card { background: rgba(200,82,26,0.05); }
+  [data-theme="light"] .cta-title { color: var(--ink); }
+  [data-theme="light"] .cta-sub { color: rgba(10,10,15,0.5); }
+  [data-theme="light"] .supplier-note { background: rgba(10,10,15,0.03); border-color: rgba(212,168,50,0.15); color: rgba(10,10,15,0.5); }
+
+  @media (max-width: 900px) { .hero-inner { grid-template-columns: 1fr; } .hero-right { flex-direction: row; } }
+  @media (max-width: 640px) {
+    .hero { padding: 3rem 1.25rem 2.5rem; }
+    .main { padding: 2rem 1.25rem; }
+    .cat-strip { padding: 0.75rem 1.25rem; }
+    .grand-section { padding: 1.5rem; }
+    .grand-header { flex-direction: column; gap: 1rem; }
+    .cta-card { flex-direction: column; }
+    .hero-right { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="cursor"></div>
+<div class="cursor-ring"></div>
+
+<nav class="int-nav">
+  <div class="int-nav-left">
+    <a href="index.html" class="int-nav-logo">Imali<span>.</span>biz</a>
+    <div class="int-nav-divider"></div>
+    <span class="int-nav-badge">Internal Ops</span>
+  </div>
+  <div class="int-nav-right">
+    <a href="index.html" class="int-nav-link">Overview</a>
+    <a href="materials.html" class="int-nav-link active">Materials</a>
+    <a href="inventory.html" class="int-nav-link">Inventory</a>
+    <button class="theme-toggle" onclick="toggleTheme()">☀ Light</button>
+  </div>
+</nav>
+
+<div class="page-body">
+
+  <section class="hero">
+    <div class="hero-orb orb-1"></div>
+    <div class="hero-orb orb-2"></div>
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">Supply Chain Intelligence</div>
+        <h1 class="hero-title">Aggregated Material <em>Demand</em></h1>
+        <p class="hero-sub">
+          This page aggregates construction material requirements across all <strong id="heroParcelCount">7</strong> land parcels
+          in the Imali.biz portfolio. Quantities are calculated from a total gross floor area (GFA) of
+          <strong id="heroGFA">—</strong> sqm across <strong id="heroUnits">—</strong> planned units.
+          <br><br>
+          Imali.biz's model is <strong>aggregation of demand</strong> — we centralise construction needs across multiple
+          projects so suppliers can fulfil at scale rather than parcel by parcel.
+        </p>
+      </div>
+      <div class="hero-right">
+        <div class="hero-kpi">
+          <div class="hero-kpi-val" id="kpiGFA">—</div>
+          <div class="hero-kpi-lbl">Total GFA (sqm)</div>
+        </div>
+        <div class="hero-kpi">
+          <div class="hero-kpi-val" id="kpiUnits">—</div>
+          <div class="hero-kpi-lbl">Total Units</div>
+        </div>
+        <div class="hero-kpi">
+          <div class="hero-kpi-val gold" id="kpiMatCost">—</div>
+          <div class="hero-kpi-lbl">Est. Total Material Cost</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cat-strip">
+    <div class="cat-strip-inner">
+      <div class="cat-pills">
+        <a href="#structure" class="cat-pill active" onclick="setActive(this)">🏗 Structure</a>
+        <a href="#roofing"   class="cat-pill" onclick="setActive(this)">🏠 Roofing</a>
+        <a href="#finishes"  class="cat-pill" onclick="setActive(this)">🎨 Finishes</a>
+        <a href="#openings"  class="cat-pill" onclick="setActive(this)">🚪 Openings</a>
+        <a href="#mep"       class="cat-pill" onclick="setActive(this)">⚡ MEP</a>
+      </div>
+      <div class="grand-total-badge">Total: <strong id="grandTotalBadge">—</strong></div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <div class="supplier-note reveal">
+      <span>💡</span>
+      <span>
+        <strong>For Suppliers:</strong> The checkbox column (✓) in each table indicates a material you can tick off
+        as something you supply. Review the full quantity required and contact us to register your supply capacity.
+        Quantities are estimates based on industry-standard ratios and are subject to final project specifications.
+      </span>
+    </div>
+
+    <!-- Structure -->
+    <section class="cat-section reveal" id="structure">
+      <div class="cat-header">
+        <div>
+          <div class="eyebrow">Category 01</div>
+          <h2 class="cat-title">🏗 <em>Structure</em></h2>
+          <p class="cat-desc">Structural materials calculated based on total GFA using industry-standard ratios for reinforced concrete block construction typical of Kigali mid-rise residential development.</p>
+        </div>
+        <div>
+          <div class="cat-subtotal-lbl">Category Subtotal</div>
+          <div class="cat-subtotal" id="subtotal-Structure">—</div>
+        </div>
+      </div>
+      <div class="table-wrap"><div class="table-scroll" id="table-Structure"></div></div>
+    </section>
+
+    <!-- Roofing -->
+    <section class="cat-section reveal" id="roofing">
+      <div class="cat-header">
+        <div>
+          <div class="eyebrow">Category 02</div>
+          <h2 class="cat-title">🏠 <em>Roofing</em></h2>
+          <p class="cat-desc">Pitched roof materials sized at 1.2× the total GFA footprint to account for overhangs and slope. Based on standard 0.8m × 3.6m box-profile iron sheets.</p>
+        </div>
+        <div>
+          <div class="cat-subtotal-lbl">Category Subtotal</div>
+          <div class="cat-subtotal" id="subtotal-Roofing">—</div>
+        </div>
+      </div>
+      <div class="table-wrap"><div class="table-scroll" id="table-Roofing"></div></div>
+    </section>
+
+    <!-- Finishes -->
+    <section class="cat-section reveal" id="finishes">
+      <div class="cat-header">
+        <div>
+          <div class="eyebrow">Category 03</div>
+          <h2 class="cat-title">🎨 <em>Finishes</em></h2>
+          <p class="cat-desc">Interior and exterior finishing materials. Floor tiles include 5% waste allowance. Wall tiles calculated per unit for bathroom and kitchen wet areas.</p>
+        </div>
+        <div>
+          <div class="cat-subtotal-lbl">Category Subtotal</div>
+          <div class="cat-subtotal" id="subtotal-Finishes">—</div>
+        </div>
+      </div>
+      <div class="table-wrap"><div class="table-scroll" id="table-Finishes"></div></div>
+    </section>
+
+    <!-- Openings -->
+    <section class="cat-section reveal" id="openings">
+      <div class="cat-header">
+        <div>
+          <div class="eyebrow">Category 04</div>
+          <h2 class="cat-title">🚪 <em>Openings</em></h2>
+          <p class="cat-desc">Doors and windows per unit. Each apartment is planned with 1 main entrance door, 3 interior doors (bedrooms + bathroom), and 4 standard windows.</p>
+        </div>
+        <div>
+          <div class="cat-subtotal-lbl">Category Subtotal</div>
+          <div class="cat-subtotal" id="subtotal-Openings">—</div>
+        </div>
+      </div>
+      <div class="table-wrap"><div class="table-scroll" id="table-Openings"></div></div>
+    </section>
+
+    <!-- MEP -->
+    <section class="cat-section reveal" id="mep">
+      <div class="cat-header">
+        <div>
+          <div class="eyebrow">Category 05</div>
+          <h2 class="cat-title">⚡ <em>Mechanical, Electrical & Plumbing</em></h2>
+          <p class="cat-desc">MEP quantities per unit and per GFA sqm. Each unit includes a full electrical distribution panel, 8 sockets, 10 light points, and complete plumbing fixtures. Shared water tanks sized at 1 per 8 units.</p>
+        </div>
+        <div>
+          <div class="cat-subtotal-lbl">Category Subtotal</div>
+          <div class="cat-subtotal" id="subtotal-MEP">—</div>
+        </div>
+      </div>
+      <div class="table-wrap"><div class="table-scroll" id="table-MEP"></div></div>
+    </section>
+
+    <!-- Grand total -->
+    <section class="grand-section reveal">
+      <div class="grand-header">
+        <div>
+          <h2 class="grand-title">Grand Total Material <em>Spend</em></h2>
+          <p class="grand-sub">Estimated across all 5 categories and <span id="grandParcelCount">7</span> parcels. Figures are indicative — final BOQ subject to detailed architectural drawings.</p>
+        </div>
+        <div>
+          <div class="grand-val" id="grandTotalVal">—</div>
+          <div class="grand-val-lbl">Total Est. Material Cost</div>
+        </div>
+      </div>
+      <div class="stacked-bar-wrap">
+        <div class="section-heading" style="margin-bottom:0.75rem;">Spend by Category</div>
+        <div class="stacked-bar" id="stackedBar"></div>
+        <div class="bar-legend" id="barLegend"></div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="cta-card reveal">
+      <div>
+        <div class="cta-title">Are you a supplier?</div>
+        <p class="cta-sub">Register your supply capacity with Imali.biz and get matched to active projects. Tell us which materials you supply, in what quantities, and at what lead time — we'll connect you to the right projects at scale.</p>
+      </div>
+      <a href="mailto:supply@imali.biz" class="btn-primary" style="white-space:nowrap;">Contact Supply Team →</a>
+    </div>
+
+  </div>
+
+  <footer class="int-footer">
+    <span>Imali.biz Internal Operations Portal &mdash; Confidential</span>
+    <span>Quantities are estimates. Final BOQ subject to architectural specifications.</span>
+  </footer>
+</div>
+
+<script src="data.js"></script>
+<script>
+  // ─── Cursor ──────────────────────────────────────────────────────────────
+  const cursor = document.querySelector('.cursor');
+  const ring   = document.querySelector('.cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  (function loop() {
+    rx += (mx - rx - 5) * 0.15; ry += (my - ry - 5) * 0.15;
+    cursor.style.left = mx - 5 + 'px'; cursor.style.top = my - 5 + 'px';
+    ring.style.left   = rx - 18 + 'px'; ring.style.top   = ry - 18 + 'px';
+    requestAnimationFrame(loop);
+  })();
+
+  // ─── Theme ───────────────────────────────────────────────────────────────
+  function toggleTheme() {
+    const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('imali-theme', t);
+    document.querySelector('.theme-toggle').textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+  }
+  if (localStorage.getItem('imali-theme') === 'light') document.querySelector('.theme-toggle').textContent = '☾ Dark';
+
+  // ─── Scroll reveal ────────────────────────────────────────────────────────
+  const obs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }), { threshold: 0.06 });
+  document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+
+  // ─── Category pill active state ───────────────────────────────────────────
+  function setActive(el) {
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // ─── Build materials table HTML ───────────────────────────────────────────
+  function buildTable(items) {
+    const rows = items.map(m => `
+      <tr>
+        <td>${m.name}</td>
+        <td>${m.unit}</td>
+        <td><span class="mat-qty">${fmtNum(m.qty)}</span></td>
+        <td><span class="mat-unit-price">${fmtNum(m.unit_price)} RWF</span></td>
+        <td><span class="mat-cost">${fmtRWF(m.total_cost)}</span></td>
+        <td><div class="supplier-check" title="Tick if you can supply this">✓</div></td>
+      </tr>
+    `).join('');
+    return `
+      <table class="mat-table">
+        <thead>
+          <tr>
+            <th>Material</th>
+            <th>Unit</th>
+            <th>Total Qty</th>
+            <th>Unit Price (RWF)</th>
+            <th>Total Cost</th>
+            <th>Supplier ✓</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  // ─── Render ───────────────────────────────────────────────────────────────
+  const s = getSummary();
+  const materials = getMaterials(s.totalGFA, s.totalUnits);
+
+  // Hero
+  document.getElementById('heroParcelCount').textContent = s.totalParcels;
+  document.getElementById('heroGFA').textContent = fmtNum(s.totalGFA);
+  document.getElementById('heroUnits').textContent = fmtNum(s.totalUnits);
+  document.getElementById('kpiGFA').textContent = fmtNum(s.totalGFA);
+  document.getElementById('kpiUnits').textContent = fmtNum(s.totalUnits);
+  document.getElementById('grandParcelCount').textContent = s.totalParcels;
+
+  const cats = ['Structure','Roofing','Finishes','Openings','MEP'];
+  const catColors = {
+    Structure: '#c8521a',
+    Roofing:   '#d4a832',
+    Finishes:  '#5ecba1',
+    Openings:  '#7b9fd4',
+    MEP:       '#b47fc4'
+  };
+
+  let grandTotal = 0;
+  const catTotals = {};
+
+  cats.forEach(cat => {
+    const items = materials.filter(m => m.category === cat);
+    const subtotal = items.reduce((s, m) => s + m.total_cost, 0);
+    catTotals[cat] = subtotal;
+    grandTotal += subtotal;
+    document.getElementById('table-' + cat).innerHTML = buildTable(items);
+    document.getElementById('subtotal-' + cat).textContent = fmtRWF(subtotal);
+  });
+
+  document.getElementById('kpiMatCost').textContent = fmtRWF(grandTotal);
+  document.getElementById('grandTotalVal').textContent = fmtRWF(grandTotal);
+  document.getElementById('grandTotalBadge').textContent = fmtRWF(grandTotal);
+
+  // Stacked bar
+  const barEl = document.getElementById('stackedBar');
+  const legendEl = document.getElementById('barLegend');
+  cats.forEach(cat => {
+    const pct = ((catTotals[cat] / grandTotal) * 100).toFixed(1);
+    const seg = document.createElement('div');
+    seg.className = 'stacked-seg';
+    seg.style.width = pct + '%';
+    seg.style.background = catColors[cat];
+    seg.title = cat + ': ' + fmtRWF(catTotals[cat]) + ' (' + pct + '%)';
+    barEl.appendChild(seg);
+
+    const li = document.createElement('div');
+    li.className = 'legend-item';
+    li.innerHTML = `<div class="legend-dot" style="background:${catColors[cat]}"></div>${cat}: ${fmtRWF(catTotals[cat])} (${pct}%)`;
+    legendEl.appendChild(li);
+  });
+</script>
+</body>
+</html>
