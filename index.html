@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
-<script>(function(){var t=localStorage.getItem('imali-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+<script>(function(){var t=localStorage.getItem('imali-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portfolio Overview — Imali.biz Internal</title>
@@ -458,7 +458,7 @@
     localStorage.setItem('imali-theme', t);
     document.querySelector('.theme-toggle').textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
   }
-  if (localStorage.getItem('imali-theme') === 'light') document.querySelector('.theme-toggle').textContent = '☾ Dark';
+  document.querySelector('.theme-toggle').textContent = localStorage.getItem('imali-theme') === 'dark' ? '☀ Light' : '☾ Dark';
 
   // ─── Scroll reveal ────────────────────────────────────────────────────────
   const obs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }), { threshold: 0.06 });
@@ -584,7 +584,7 @@
   const statuses = [
     { key: 'listed',       label: 'Listed',       color: '#4caf7d' },
     { key: 'under_review', label: 'Under Review', color: '#d4a832' },
-    { key: 'pending',      label: 'Pending',       color: '#9e9e9e' }
+    { key: 'pending',      label: 'Pending',       color: '#ffb74d' }
   ];
   document.getElementById('statusCards').innerHTML = statuses.map(st => {
     const grp = s.byStatus[st.key] || [];

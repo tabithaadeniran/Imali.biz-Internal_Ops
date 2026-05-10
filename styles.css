@@ -256,7 +256,7 @@ body:has(button:hover) .cursor-ring {
 .status-pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 .status-listed { background: rgba(76,175,125,0.12); color: #4caf7d; border: 1px solid rgba(76,175,125,0.2); }
 .status-under_review { background: rgba(212,168,50,0.1); color: var(--gold); border: 1px solid rgba(212,168,50,0.2); }
-.status-pending { background: rgba(245,240,232,0.05); color: rgba(245,240,232,0.5); border: 1px solid rgba(245,240,232,0.1); }
+.status-pending { background: rgba(251,140,0,0.18); color: #ffb74d; border: 1px solid rgba(251,140,0,0.4); }
 
 /* ─── Type chips ────────────────────────────────────────────────────────── */
 .type-chip {
@@ -335,7 +335,7 @@ body:has(button:hover) .cursor-ring {
 [data-theme="light"] .int-footer a       { color: rgba(10,10,15,0.4); }
 [data-theme="light"] .eyebrow            { color: #a07820; }
 [data-theme="light"] .eyebrow::before    { background: #a07820; }
-[data-theme="light"] .status-pending     { color: rgba(10,10,15,0.4); border-color: rgba(10,10,15,0.12); background: rgba(10,10,15,0.04); }
+[data-theme="light"] .status-pending     { color: #b85c00; border-color: rgba(184,92,0,0.35); background: rgba(184,92,0,0.1); }
 
 /* ─── Theme-adaptive text utilities (used in JS-generated HTML) ─────────── */
 .txt-primary { color: var(--cream); }

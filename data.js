@@ -16,6 +16,7 @@ const parcels = [
     type: 'residential',
     status: 'listed',
     added_date: '2025-01-15',
+    image: 'images/pexels-bala-5120876.jpg',
     readiness: { legal: 90, physical: 75, infrastructure: 80, urban: 85, community: 70, tokenisation: 60 }
   },
   {
@@ -29,6 +30,7 @@ const parcels = [
     type: 'mixed-use',
     status: 'listed',
     added_date: '2025-02-03',
+    image: 'images/pexels-marquez-6372033.jpg',
     readiness: { legal: 85, physical: 60, infrastructure: 70, urban: 80, community: 75, tokenisation: 55 }
   },
   {
@@ -42,6 +44,7 @@ const parcels = [
     type: 'residential',
     status: 'listed',
     added_date: '2025-02-18',
+    image: 'images/pexels-nguyendesigner-16419876.jpg',
     readiness: { legal: 95, physical: 80, infrastructure: 85, urban: 90, community: 80, tokenisation: 70 }
   },
   {
@@ -55,6 +58,7 @@ const parcels = [
     type: 'commercial',
     status: 'under_review',
     added_date: '2025-03-07',
+    image: 'images/payam-moin-afshari-QRkbb0ZFW9s-unsplash.jpg',
     readiness: { legal: 70, physical: 65, infrastructure: 60, urban: 75, community: 55, tokenisation: 45 }
   },
   {
@@ -68,6 +72,7 @@ const parcels = [
     type: 'residential',
     status: 'pending',
     added_date: '2025-03-22',
+    image: 'images/pexels-droneafrica-37386894.jpg',
     readiness: { legal: 60, physical: 70, infrastructure: 45, urban: 65, community: 60, tokenisation: 40 }
   },
   {
@@ -81,6 +86,7 @@ const parcels = [
     type: 'mixed-use',
     status: 'under_review',
     added_date: '2025-04-10',
+    image: 'images/pexels-ana-kenk-2159501753-36477481.jpg',
     readiness: { legal: 80, physical: 55, infrastructure: 75, urban: 80, community: 65, tokenisation: 50 }
   },
   {
@@ -94,6 +100,7 @@ const parcels = [
     type: 'commercial',
     status: 'listed',
     added_date: '2025-04-28',
+    image: 'images/pexels-hoang-vu-257779885-15770452.jpg',
     readiness: { legal: 95, physical: 85, infrastructure: 90, urban: 95, community: 80, tokenisation: 75 }
   }
 ];
