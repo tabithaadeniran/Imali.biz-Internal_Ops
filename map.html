@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<script>(function(){var t=localStorage.getItem('imali-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opportunity Map — Imali.biz Internal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="styles.css">
+<style>
+
+/* ── Page layout ── */
+html, body { height: 100%; overflow: hidden; }
+.map-page-wrap { display: flex; flex-direction: column; height: 100vh; padding-top: var(--nav-h); }
+
+/* ── Header strip ── */
+.map-header {
+  flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+  padding: 0.65rem 2rem; border-bottom: 1px solid rgba(245,240,232,0.06);
+  background: rgba(10,10,15,0.72); backdrop-filter: blur(12px); gap: 1.5rem; z-index: 10;
+}
+[data-theme="light"] .map-header { background: rgba(250,247,242,0.92); border-bottom-color: rgba(10,10,15,0.08); }
+.map-title-group { display: flex; align-items: center; gap: 1rem; flex-shrink: 0; }
+.map-eyebrow { font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 0.1rem; }
+[data-theme="light"] .map-eyebrow { color: #a07820; }
+.map-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--cream); line-height: 1.15; }
+[data-theme="light"] .map-title { color: var(--ink); }
+.map-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--terracotta); }
+.map-live-badge { display: flex; align-items: center; gap: 0.4rem; background: rgba(212,168,50,0.07); border: 1px solid rgba(212,168,50,0.18); border-radius: 2rem; padding: 0.28rem 0.75rem; font-size: 0.67rem; color: var(--gold); white-space: nowrap; }
+[data-theme="light"] .map-live-badge { color: #a07820; border-color: rgba(160,120,32,0.22); background: rgba(160,120,32,0.07); }
+.live-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: blink 2s ease-in-out infinite; }
+.map-meta { display: flex; align-items: center; gap: 1.25rem; font-size: 0.7rem; color: rgba(245,240,232,0.3); }
+[data-theme="light"] .map-meta { color: rgba(10,10,15,0.35); }
+.map-meta-item { display: flex; align-items: center; gap: 0.35rem; }
+.map-zoom-pill { background: rgba(245,240,232,0.04); border: 1px solid rgba(245,240,232,0.08); border-radius: 2rem; padding: 0.22rem 0.65rem; font-size: 0.67rem; color: rgba(245,240,232,0.35); min-width: 52px; text-align: center; }
+[data-theme="light"] .map-zoom-pill { background: rgba(10,10,15,0.04); border-color: rgba(10,10,15,0.08); color: rgba(10,10,15,0.4); }
+
+/* ── Leaflet map ── */
+#map { flex: 1; width: 100%; min-height: 0; }
+.leaflet-container { font-family: 'DM Sans', sans-serif; }
+.leaflet-control-zoom { border: none !important; box-shadow: none !important; margin-top: 1rem !important; margin-right: 1rem !important; }
+.leaflet-control-zoom a { font-family: 'Syne', sans-serif !important; font-weight: 700 !important; width: 34px !important; height: 34px !important; line-height: 34px !important; font-size: 1rem !important; border-radius: 10px !important; display: flex !important; align-items: center !important; justify-content: center !important; margin-bottom: 4px !important; transition: background 0.18s, color 0.18s !important; }
+[data-theme="dark"]  .leaflet-control-zoom a { background: rgba(10,10,15,0.88) !important; border: 1px solid rgba(245,240,232,0.1) !important; color: rgba(245,240,232,0.6) !important; }
+[data-theme="dark"]  .leaflet-control-zoom a:hover { background: rgba(200,82,26,0.18) !important; color: #ff7043 !important; border-color: rgba(200,82,26,0.3) !important; }
+[data-theme="light"] .leaflet-control-zoom a { background: rgba(250,247,242,0.96) !important; border: 1px solid rgba(10,10,15,0.1) !important; color: rgba(10,10,15,0.6) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important; }
+[data-theme="light"] .leaflet-control-zoom a:hover { background: rgba(200,82,26,0.1) !important; color: var(--terracotta) !important; }
+.leaflet-control-attribution { font-size: 0.6rem !important; border-top-left-radius: 6px !important; }
+[data-theme="dark"]  .leaflet-control-attribution { background: rgba(10,10,15,0.6) !important; color: rgba(245,240,232,0.3) !important; }
+[data-theme="dark"]  .leaflet-control-attribution a { color: rgba(245,240,232,0.4) !important; }
+[data-theme="light"] .leaflet-control-attribution { background: rgba(250,247,242,0.82) !important; color: rgba(10,10,15,0.35) !important; }
+
+/* Leaflet tooltips */
+.leaflet-tooltip { font-family: 'DM Sans', sans-serif !important; font-size: 0.73rem !important; border-radius: 8px !important; padding: 0.3rem 0.65rem !important; box-shadow: 0 4px 16px rgba(0,0,0,0.18) !important; white-space: nowrap !important; }
+.leaflet-tooltip::before { display: none !important; }
+[data-theme="dark"]  .leaflet-tooltip { background: rgba(10,10,15,0.92) !important; color: rgba(245,240,232,0.82) !important; border: 1px solid rgba(245,240,232,0.1) !important; }
+[data-theme="light"] .leaflet-tooltip { background: rgba(250,247,242,0.97) !important; color: rgba(10,10,15,0.78) !important; border: 1px solid rgba(10,10,15,0.09) !important; }
+
+/* ── Coordinate pill ── */
+.coord-pill { position: fixed; bottom: 1.5rem; right: 1.25rem; z-index: 150; background: rgba(10,10,15,0.78); border: 1px solid rgba(245,240,232,0.07); border-radius: 2rem; padding: 0.32rem 0.9rem; font-size: 0.67rem; color: rgba(245,240,232,0.38); backdrop-filter: blur(10px); pointer-events: none; }
+[data-theme="light"] .coord-pill { background: rgba(250,247,242,0.92); border-color: rgba(10,10,15,0.09); color: rgba(10,10,15,0.4); box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+
+/* ══════════════════════════════════════════════════════════
+   LAYER PANEL
+══════════════════════════════════════════════════════════ */
+
+.layers-panel {
+  position: fixed;
+  top: 130px;
+  left: 14px;
+  /* High z-index + translateZ forces its own GPU compositing layer,
+     preventing the panel from disappearing behind Leaflet's paint layers */
+  z-index: 1000;
+  transform: translateZ(0);
+  width: 274px;
+  max-height: calc(100vh - 146px);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.22s ease;
+}
+.layers-panel.collapsed { width: 42px; }
+
+.lp-card {
+  background: rgba(10,10,15,0.9);
+  border: 1px solid rgba(245,240,232,0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 146px);
+}
+[data-theme="light"] .lp-card { background: rgba(250,247,242,0.97); border-color: rgba(10,10,15,0.09); box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+
+/* Panel head */
+.lp-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 0.85rem 0.65rem;
+  border-bottom: 1px solid rgba(245,240,232,0.06);
+  flex-shrink: 0;
+}
+[data-theme="light"] .lp-head { border-bottom-color: rgba(10,10,15,0.07); }
+.lp-head-left { display: flex; align-items: center; gap: 0.55rem; }
+.lp-head-title { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+[data-theme="light"] .lp-head-title { color: #a07820; }
+.lp-active-badge { font-size: 0.58rem; background: rgba(212,168,50,0.09); border: 1px solid rgba(212,168,50,0.18); color: var(--gold); padding: 0.1rem 0.45rem; border-radius: 1rem; }
+[data-theme="light"] .lp-active-badge { color: #a07820; border-color: rgba(160,120,32,0.2); background: rgba(160,120,32,0.07); }
+.lp-collapse-btn {
+  background: none; border: none; color: rgba(245,240,232,0.3);
+  font-size: 1rem; cursor: none; padding: 0 0.15rem;
+  transition: color 0.18s; line-height: 1; flex-shrink: 0;
+}
+.lp-collapse-btn:hover { color: rgba(245,240,232,0.7); }
+[data-theme="light"] .lp-collapse-btn { color: rgba(10,10,15,0.3); }
+[data-theme="light"] .lp-collapse-btn:hover { color: rgba(10,10,15,0.65); }
+
+/* Collapsed state */
+.layers-panel.collapsed .lp-body { display: none; }
+.layers-panel.collapsed .lp-head { border-bottom: none; padding: 0.75rem 0; justify-content: center; }
+.layers-panel.collapsed .lp-head-left { display: none; }
+
+/* Panel body */
+.lp-body { overflow-y: auto; flex: 1; padding: 0 0 0.5rem; }
+.lp-body::-webkit-scrollbar { width: 3px; }
+.lp-body::-webkit-scrollbar-track { background: transparent; }
+.lp-body::-webkit-scrollbar-thumb { background: rgba(245,240,232,0.1); border-radius: 2px; }
+[data-theme="light"] .lp-body::-webkit-scrollbar-thumb { background: rgba(10,10,15,0.1); }
+
+/* Search */
+.lp-search-row { padding: 0.6rem 0.75rem 0.45rem; }
+.lp-search-inner { display: flex; align-items: center; gap: 0.4rem; background: rgba(245,240,232,0.04); border: 1px solid rgba(245,240,232,0.08); border-radius: 8px; padding: 0.3rem 0.6rem; }
+[data-theme="light"] .lp-search-inner { background: rgba(10,10,15,0.04); border-color: rgba(10,10,15,0.09); }
+.lp-search-icon { font-size: 0.7rem; color: rgba(245,240,232,0.25); flex-shrink: 0; }
+[data-theme="light"] .lp-search-icon { color: rgba(10,10,15,0.3); }
+.lp-search-input { background: none; border: none; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.73rem; color: var(--cream); flex: 1; min-width: 0; }
+[data-theme="light"] .lp-search-input { color: var(--ink); }
+.lp-search-input::placeholder { color: rgba(245,240,232,0.22); }
+[data-theme="light"] .lp-search-input::placeholder { color: rgba(10,10,15,0.28); }
+.lp-search-clear { background: none; border: none; cursor: none; color: rgba(245,240,232,0.3); font-size: 0.85rem; padding: 0; line-height: 1; transition: color 0.15s; }
+.lp-search-clear:hover { color: rgba(245,240,232,0.6); }
+[data-theme="light"] .lp-search-clear { color: rgba(10,10,15,0.3); }
+
+.lp-no-results { padding: 0.75rem 0.85rem; font-size: 0.72rem; color: rgba(245,240,232,0.3); text-align: center; }
+[data-theme="light"] .lp-no-results { color: rgba(10,10,15,0.3); }
+
+/* ── Custom checkbox ── */
+.lp-check-wrap { position: relative; display: inline-flex; align-items: center; cursor: none; flex-shrink: 0; }
+.lp-check-wrap input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+.lp-check {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 3px;
+  border: 1.5px solid rgba(245,240,232,0.18);
+  background: transparent; transition: background 0.15s, border-color 0.15s;
+}
+[data-theme="light"] .lp-check { border-color: rgba(10,10,15,0.18); }
+.lp-check-wrap:hover .lp-check { border-color: rgba(200,82,26,0.5); }
+.lp-check-wrap input:checked + .lp-check { background: var(--terracotta); border-color: var(--terracotta); }
+.lp-check-wrap input:checked + .lp-check::after { content: ''; display: block; width: 7px; height: 3.5px; border-left: 1.5px solid #fff; border-bottom: 1.5px solid #fff; transform: rotate(-45deg) translateY(-1px); }
+.lp-check-wrap input:indeterminate + .lp-check { background: rgba(200,82,26,0.16); border-color: rgba(200,82,26,0.55); }
+.lp-check-wrap input:indeterminate + .lp-check::after { content: ''; display: block; width: 7px; height: 1.5px; background: var(--terracotta); border-radius: 1px; }
+
+/* ── Groups ── */
+.lp-groups { padding: 0 0 0.25rem; }
+
+.lp-group { border-bottom: 1px solid rgba(245,240,232,0.04); }
+[data-theme="light"] .lp-group { border-bottom-color: rgba(10,10,15,0.05); }
+.lp-group:last-child { border-bottom: none; }
+
+/* Group header */
+.lp-group-head {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.6rem 0.85rem 0.55rem;
+  cursor: none;
+}
+.lp-group-head:hover { background: rgba(245,240,232,0.02); }
+[data-theme="light"] .lp-group-head:hover { background: rgba(10,10,15,0.025); }
+
+.grp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.grp-label { font-size: 0.74rem; font-weight: 500; color: var(--cream); flex: 1; }
+[data-theme="light"] .grp-label { color: var(--ink); }
+.grp-count { font-size: 0.6rem; color: rgba(245,240,232,0.3); margin-left: auto; white-space: nowrap; }
+[data-theme="light"] .grp-count { color: rgba(10,10,15,0.35); }
+.grp-count.has-active { color: var(--terracotta); }
+
+/* Chevron */
+.lp-chevron { background: none; border: none; padding: 0; cursor: none; color: rgba(245,240,232,0.25); display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0; transition: transform 0.2s, color 0.15s; }
+.lp-chevron svg { width: 9px; height: 9px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lp-chevron.open { transform: rotate(90deg); color: rgba(245,240,232,0.5); }
+[data-theme="light"] .lp-chevron { color: rgba(10,10,15,0.25); }
+[data-theme="light"] .lp-chevron.open { color: rgba(10,10,15,0.5); }
+.lp-chevron-spacer { width: 16px; flex-shrink: 0; }
+
+/* Group body */
+.lp-group-body { display: none; }
+.lp-group-body.open { display: block; }
+
+/* ── Layer item ── */
+.lp-layer {
+  padding: 0 0.75rem 0 0.85rem;
+  border-bottom: 1px solid rgba(245,240,232,0.03);
+  transition: background 0.15s;
+}
+[data-theme="light"] .lp-layer { border-bottom-color: rgba(10,10,15,0.04); }
+.lp-layer:last-child { border-bottom: none; }
+.lp-layer.drag-over { background: rgba(200,82,26,0.07); border-radius: 6px; }
+.lp-layer.dragging { opacity: 0.4; }
+
+.lp-layer-row {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 0 0.25rem;
+  min-height: 36px;
+}
+
+.drag-handle { color: rgba(245,240,232,0.15); cursor: grab; flex-shrink: 0; display: flex; align-items: center; font-size: 0.75rem; user-select: none; transition: color 0.15s; }
+.drag-handle:hover { color: rgba(245,240,232,0.4); }
+.drag-handle:active { cursor: grabbing; }
+[data-theme="light"] .drag-handle { color: rgba(10,10,15,0.15); }
+[data-theme="light"] .drag-handle:hover { color: rgba(10,10,15,0.4); }
+
+.lyr-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; opacity: 0.9; }
+.lp-layer-text { flex: 1; min-width: 0; }
+.lyr-name { display: block; font-size: 0.73rem; color: rgba(245,240,232,0.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.15s; }
+[data-theme="light"] .lyr-name { color: rgba(10,10,15,0.72); }
+.lp-layer input:checked ~ .lp-layer-text .lyr-name,
+.lyr-name.active { color: var(--cream); }
+[data-theme="light"] .lyr-name.active { color: var(--ink); }
+.lyr-desc { display: block; font-size: 0.62rem; color: rgba(245,240,232,0.28); margin-top: 0.08rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.15s; }
+[data-theme="light"] .lyr-desc { color: rgba(10,10,15,0.32); }
+/* Hover — let the full description wrap into view */
+.lp-layer-text:hover .lyr-desc { white-space: normal; overflow: visible; text-overflow: clip; color: rgba(245,240,232,0.58); }
+[data-theme="light"] .lp-layer-text:hover .lyr-desc { color: rgba(10,10,15,0.56); }
+
+/* Solo / eye button */
+.lp-eye-btn {
+  background: none; border: none; cursor: none; padding: 0;
+  color: rgba(245,240,232,0.2); display: flex; align-items: center;
+  width: 20px; height: 20px; justify-content: center;
+  border-radius: 4px; flex-shrink: 0; transition: color 0.15s, background 0.15s;
+}
+.lp-eye-btn svg { width: 13px; height: 13px; fill: currentColor; }
+.lp-eye-btn:hover { color: rgba(245,240,232,0.6); background: rgba(245,240,232,0.06); }
+.lp-eye-btn.soloed { color: var(--gold); background: rgba(212,168,50,0.12); }
+[data-theme="light"] .lp-eye-btn { color: rgba(10,10,15,0.22); }
+[data-theme="light"] .lp-eye-btn:hover { color: rgba(10,10,15,0.55); background: rgba(10,10,15,0.05); }
+[data-theme="light"] .lp-eye-btn.soloed { color: #a07820; background: rgba(160,120,32,0.1); }
+
+/* Opacity slider row */
+.lp-opacity-row { display: flex; align-items: center; gap: 0.5rem; padding: 0 0 0.5rem 1.45rem; }
+.lp-slider {
+  -webkit-appearance: none; appearance: none;
+  flex: 1; height: 3px; border-radius: 2px; outline: none; cursor: pointer;
+  background: linear-gradient(to right, var(--terracotta) 80%, rgba(245,240,232,0.12) 80%);
+}
+.lp-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%; background: var(--cream); border: 2px solid var(--terracotta); cursor: pointer; transition: transform 0.12s; }
+.lp-slider::-webkit-slider-thumb:hover { transform: scale(1.25); }
+[data-theme="light"] .lp-slider::-webkit-slider-thumb { background: white; }
+.lp-opacity-val { font-size: 0.6rem; color: rgba(245,240,232,0.3); width: 26px; text-align: right; flex-shrink: 0; }
+[data-theme="light"] .lp-opacity-val { color: rgba(10,10,15,0.35); }
+
+/* Child layers (nested under Construction Intelligence) */
+.lp-children { display: none; border-left: 1px solid rgba(245,240,232,0.06); margin-left: 1.45rem; padding-left: 0.5rem; margin-bottom: 0.25rem; }
+[data-theme="light"] .lp-children { border-left-color: rgba(10,10,15,0.07); }
+.lp-children.open { display: block; }
+.lp-child .drag-handle { display: none; }
+.lp-child .lp-layer-row { padding-top: 0.4rem; }
+.lp-child .lp-opacity-row { padding-left: 1.1rem; }
+
+/* ══════════════════════════════════════════════════════════════
+   ACTIVE LEGEND PANEL
+══════════════════════════════════════════════════════════════ */
+.lp-legend-section {
+  border-top: 1px solid rgba(245,240,232,0.07);
+  margin-top: 0.15rem;
+}
+[data-theme="light"] .lp-legend-section { border-top-color: rgba(10,10,15,0.07); }
+
+.lp-legend-head {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.55rem 0.85rem 0.45rem;
+}
+.lp-legend-label { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+[data-theme="light"] .lp-legend-label { color: #a07820; }
+.lp-legend-src { font-size: 0.57rem; color: rgba(245,240,232,0.25); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+[data-theme="light"] .lp-legend-src { color: rgba(10,10,15,0.28); }
+
+.lp-legend-body { display: none; }
+.lp-legend-body.open { display: block; padding: 0 0.7rem 0.6rem 0.85rem; }
+
+.lp-legend-group { margin-bottom: 0.8rem; }
+.lp-legend-group:last-child { margin-bottom: 0; }
+
+.lp-legend-grp-name {
+  font-size: 0.63rem; font-weight: 500;
+  color: rgba(245,240,232,0.5); margin-bottom: 0.28rem;
+  padding-bottom: 0.18rem;
+  border-bottom: 1px solid rgba(245,240,232,0.05);
+}
+[data-theme="light"] .lp-legend-grp-name { color: rgba(10,10,15,0.5); border-bottom-color: rgba(10,10,15,0.06); }
+
+.lp-legend-item {
+  display: flex; align-items: center; gap: 0.45rem;
+  padding: 0.12rem 0;
+}
+.lp-legend-swatch {
+  width: 18px; height: 18px; flex-shrink: 0; display: block;
+  border-radius: 2px; image-rendering: pixelated;
+}
+.lp-legend-lbl {
+  font-size: 0.63rem; color: rgba(245,240,232,0.62); line-height: 1.35;
+}
+[data-theme="light"] .lp-legend-lbl { color: rgba(10,10,15,0.62); }
+
+.lp-legend-msg {
+  font-size: 0.67rem; color: rgba(245,240,232,0.28); padding: 0.35rem 0;
+  text-align: center;
+}
+[data-theme="light"] .lp-legend-msg { color: rgba(10,10,15,0.3); }
+
+/* ══════════════════════════════════════════════════════════════
+   HOVER IDENTIFY TOOLTIP (master plan layers)
+══════════════════════════════════════════════════════════════ */
+.mp-id-tip {
+  position: fixed;
+  z-index: 2100;
+  pointer-events: none;
+  max-width: 240px;
+  min-width: 130px;
+  background: rgba(10,10,15,0.93);
+  border: 1px solid rgba(245,240,232,0.1);
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.1s;
+}
+[data-theme="light"] .mp-id-tip {
+  background: rgba(250,247,242,0.97);
+  border-color: rgba(10,10,15,0.1);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.mp-id-entry + .mp-id-entry {
+  margin-top: 0.5rem; padding-top: 0.5rem;
+  border-top: 1px solid rgba(245,240,232,0.07);
+}
+[data-theme="light"] .mp-id-entry + .mp-id-entry { border-top-color: rgba(10,10,15,0.06); }
+.mp-id-lyr {
+  font-size: 0.57rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gold); font-weight: 500; margin-bottom: 0.22rem;
+}
+[data-theme="light"] .mp-id-lyr { color: #a07820; }
+.mp-id-row { display: flex; align-items: flex-start; gap: 0.45rem; }
+.mp-id-swatch {
+  width: 18px; height: 18px; flex-shrink: 0; border-radius: 2px; display: block;
+  margin-top: 1px; image-rendering: pixelated;
+}
+.mp-id-val {
+  font-size: 0.72rem; color: rgba(245,240,232,0.88); line-height: 1.35;
+}
+[data-theme="light"] .mp-id-val { color: rgba(10,10,15,0.82); }
+.mp-id-raw {
+  font-size: 0.62rem; color: rgba(245,240,232,0.38); margin-top: 0.1rem;
+}
+[data-theme="light"] .mp-id-raw { color: rgba(10,10,15,0.4); }
+.mp-id-tip-loading {
+  font-size: 0.67rem; color: rgba(245,240,232,0.35); text-align: center;
+}
+[data-theme="light"] .mp-id-tip-loading { color: rgba(10,10,15,0.35); }
+
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav class="int-nav">
+  <div class="int-nav-left">
+    <a href="index.html" class="int-nav-logo">Imali<span>.</span>biz</a>
+    <div class="int-nav-divider"></div>
+    <span class="int-nav-badge">Internal Ops</span>
+  </div>
+  <div class="int-nav-right">
+    <a href="index.html" class="int-nav-link">Overview</a>
+    <a href="inventory.html" class="int-nav-link">Inventory</a>
+    <a href="materials.html" class="int-nav-link">Materials</a>
+    <a href="map.html" class="int-nav-link active">Opportunity Map</a>
+    <button class="theme-toggle" onclick="toggleTheme()">☾ Dark</button>
+  </div>
+</nav>
+
+<div class="map-page-wrap">
+  <div class="map-header">
+    <div class="map-title-group">
+      <div>
+        <div class="map-eyebrow">GIS · Rwanda</div>
+        <div class="map-title">Opportunity <em>Map</em></div>
+      </div>
+      <div class="map-live-badge"><span class="live-dot"></span> Rwanda</div>
+    </div>
+    <div class="map-meta">
+      <div class="map-meta-item">🗺 All 5 provinces</div>
+      <div class="map-meta-item">Zoom <span class="map-zoom-pill" id="zoomPill">8</span></div>
+      <div class="map-meta-item" id="headerLayerCount">0 layers active</div>
+    </div>
+  </div>
+  <div id="map"></div>
+</div>
+
+<!-- ── Layers Panel ── -->
+<div class="layers-panel" id="layersPanel">
+  <div class="lp-card">
+
+    <div class="lp-head">
+      <div class="lp-head-left">
+        <span class="lp-head-title">Map Layers</span>
+        <span class="lp-active-badge" id="activeCount">0 active</span>
+      </div>
+      <button class="lp-collapse-btn" id="lpCollapseBtn" title="Collapse panel">‹</button>
+    </div>
+
+    <div class="lp-body" id="lpBody">
+      <div class="lp-search-row">
+        <div class="lp-search-inner">
+          <span class="lp-search-icon">⌕</span>
+          <input type="text" class="lp-search-input" id="layerSearch" placeholder="Search layers…" autocomplete="off">
+          <button class="lp-search-clear" id="searchClear" style="display:none">×</button>
+        </div>
+      </div>
+      <div class="lp-no-results" id="lpNoResults" style="display:none">No layers match.</div>
+      <div class="lp-groups" id="lpGroups"></div>
+
+      <!-- Active legend — visible only when ≥1 master plan layer is on -->
+      <div class="lp-legend-section" id="lpLegendSection" style="display:none">
+        <div class="lp-legend-head">
+          <button class="lp-chevron open" id="legChevron" data-target="lpLegendBody">
+            <svg viewBox="0 0 10 10"><path d="M3.5 2l3.5 3-3.5 3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="lp-legend-label">Legend</span>
+          <span class="lp-legend-src" id="lpLegendSrc">Kigali City Master Plan 2020</span>
+        </div>
+        <div class="lp-legend-body open" id="lpLegendBody">
+          <div class="lp-legend-msg" id="lpLegendMsg">Loading…</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div class="coord-pill" id="coordPill">Hover map for coordinates</div>
+
+<!-- Hover identify tooltip — shown when cursor is over a master plan feature -->
+<div class="mp-id-tip" id="mpIdTip" style="display:none">
+  <div id="mpIdTipInner"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- esri-leaflet: bridges Leaflet to ArcGIS REST services (dynamicMapLayer, featureLayer, etc.) -->
+<script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
+<script>
+'use strict';
+
+// ── Cursor ────────────────────────────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.transform=`translate(${mx-5}px,${my-5}px)`; });
+(function ar(){rx+=(mx-rx-18)*.12;ry+=(my-ry-18)*.12;ring.style.transform=`translate(${rx}px,${ry}px)`;requestAnimationFrame(ar);})();
+
+// ── Tiles ─────────────────────────────────────────────────────────────────────
+const TILES = {
+  light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    { attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>', subdomains:'abcd', maxZoom:20 }),
+  dark:  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    { attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>', subdomains:'abcd', maxZoom:20 })
+};
+
+// ── Kigali City Master Plan server (ArcGIS REST) ──────────────────────────────
+const MP_URL = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Masterplan2020/Masterplan2020_24June2024/MapServer';
+
+// Maps each internal layer id → the ArcGIS sub-layer ids it renders.
+// Used to pull the right legend entries when that layer is active.
+const MP_LAYERS_MAP = {
+  kigali_zoning:    [117],
+  existing_landuse: [116],
+  admin_boundaries: [4, 5],
+  planning_overlays:[82, 88, 89, 91, 92, 94, 95, 96],
+};
+
+// Legend cache — null = not yet fetched; {} = fetched (indexed by arcLayerId)
+let _mpLegend = null;
+
+async function getMPLegend() {
+  if (_mpLegend !== null) return _mpLegend;
+  _mpLegend = {};
+  try {
+    const r = await fetch(`${MP_URL}/legend?f=json`);
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    for (const lyr of (data.layers || [])) {
+      _mpLegend[lyr.layerId] = { name: lyr.layerName, items: lyr.legend || [] };
+    }
+  } catch(e) {
+    console.warn('Could not fetch Master Plan legend:', e);
+  }
+  return _mpLegend;
+}
+
+async function updateLegendPanel() {
+  const section = document.getElementById('lpLegendSection');
+  const body    = document.getElementById('lpLegendBody');
+  if (!section || !body) return;
+
+  // Which MP layers are currently visible?
+  const active = Object.entries(MP_LAYERS_MAP).filter(([id]) => {
+    const f = findLayer(id); return f && f.layer.visible;
+  });
+
+  if (active.length === 0) { section.style.display = 'none'; return; }
+
+  section.style.display = '';
+  body.innerHTML = '<div class="lp-legend-msg">Loading legend…</div>';
+
+  const legend = await getMPLegend();
+  if (!legend || Object.keys(legend).length === 0) {
+    body.innerHTML = '<div class="lp-legend-msg">Legend data unavailable</div>';
+    return;
+  }
+
+  let html = '';
+  for (const [, arcIds] of active) {
+    for (const arcId of arcIds) {
+      const lyr = legend[arcId]; if (!lyr) continue;
+      const validItems = lyr.items.filter(it => it.imageData);
+      if (!validItems.length) continue;
+      html += `<div class="lp-legend-group">`;
+      html += `<div class="lp-legend-grp-name">${lyr.name}</div>`;
+      for (const it of validItems) {
+        const ct = it.contentType || 'image/png';
+        html += `<div class="lp-legend-item">
+          <img class="lp-legend-swatch" src="data:${ct};base64,${it.imageData}" alt="">
+          <span class="lp-legend-lbl">${it.label || '—'}</span>
+        </div>`;
+      }
+      html += `</div>`;
+    }
+  }
+
+  body.innerHTML = html || '<div class="lp-legend-msg">No legend entries for active layers</div>';
+}
+
+// ── Map init ──────────────────────────────────────────────────────────────────
+const initialTheme = document.documentElement.getAttribute('data-theme') || 'light';
+const RWANDA_BOUNDS = L.latLngBounds(L.latLng(-2.84,28.86), L.latLng(-1.05,30.90));
+
+const map = L.map('map', {
+  center:[-1.9403,29.8739], zoom:8, zoomControl:false, attributionControl:true,
+  layers:[TILES[initialTheme]],
+  maxBounds:RWANDA_BOUNDS, maxBoundsViscosity:1.0, minZoom:8, maxZoom:20
+});
+L.control.zoom({ position:'topright' }).addTo(map);
+map.fitBounds(RWANDA_BOUNDS, { padding:[52,52] });
+
+// Custom pane for border — always on top of data layers
+map.createPane('borderPane');
+map.getPane('borderPane').style.zIndex = 450;
+
+// ── Rwanda border ─────────────────────────────────────────────────────────────
+const BORDER_STYLE = {
+  dark:  { glow:{color:'#d4a832',weight:8, opacity:0.18}, line:{color:'#d4a832',weight:2.5,opacity:0.9}  },
+  light: { glow:{color:'#c8521a',weight:8, opacity:0.15}, line:{color:'#c8521a',weight:2.5,opacity:0.85} }
+};
+let borderGlow=null, borderLine=null;
+
+function applyBorderStyle(theme) {
+  if (!borderGlow||!borderLine) return;
+  const s=BORDER_STYLE[theme];
+  borderGlow.setStyle({color:s.glow.color,weight:s.glow.weight,opacity:s.glow.opacity,fillOpacity:0});
+  borderLine.setStyle({color:s.line.color,weight:s.line.weight,opacity:s.line.opacity,fillOpacity:0});
+}
+function drawBorder(geo) {
+  const s=BORDER_STYLE[document.documentElement.getAttribute('data-theme')||'light'];
+  borderGlow=L.geoJSON(geo,{pane:'borderPane',style:{color:s.glow.color,weight:s.glow.weight,opacity:s.glow.opacity,fill:false}}).addTo(map);
+  borderLine=L.geoJSON(geo,{pane:'borderPane',style:{color:s.line.color,weight:s.line.weight,opacity:s.line.opacity,fill:false}}).addTo(map);
+}
+fetch('https://raw.githubusercontent.com/wmgeolab/geoBoundaries/main/releaseData/gbOpen/RWA/ADM0/geoBoundaries-RWA-ADM0.geojson')
+  .then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(drawBorder)
+  .catch(()=>fetch('https://nominatim.openstreetmap.org/search?q=Rwanda&polygon_geojson=1&format=geojson&limit=1')
+    .then(r=>r.json()).then(drawBorder).catch(()=>{}));
+
+// ════════════════════════════════════════════════════════════════════════════
+// LAYER SYSTEM
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Demo geo-data ─────────────────────────────────────────────────────────────
+
+const GEO = {
+  existingInfra: [
+    {ll:[-1.9686,30.1395], name:'Kigali International Airport', sub:'Airport'},
+    {ll:[-1.9441,30.0619], name:'Kigali City Centre',           sub:'Urban centre'},
+    {ll:[-1.9496,30.0634], name:'Kigali Convention Centre',     sub:'Major facility'},
+    {ll:[-1.4982,29.6330], name:'Musanze',                      sub:'Provincial hub'},
+    {ll:[-2.5986,29.7399], name:'Huye',                         sub:'Provincial hub'},
+    {ll:[-2.4857,28.9057], name:'Rusizi',                       sub:'Provincial hub'},
+    {ll:[-1.3016,30.3272], name:'Nyagatare',                    sub:'Provincial hub'},
+    {ll:[-1.6795,29.2543], name:'Rubavu / Gisenyi',             sub:'Provincial hub'},
+    {ll:[-2.0598,29.3465], name:'Karongi / Kibuye',             sub:'Provincial hub'},
+    {ll:[-2.0786,29.7536], name:'Muhanga / Gitarama',           sub:'Provincial hub'},
+    {ll:[-1.9484,30.4346], name:'Rwamagana',                    sub:'Provincial hub'},
+    {ll:[-1.5753,30.0614], name:'Gicumbi / Byumba',             sub:'Provincial hub'},
+    {ll:[-2.1508,30.5456], name:'Ngoma / Kibungo',              sub:'Provincial hub'},
+  ],
+  plannedInfra: [
+    {ll:[-2.2299,30.1397], name:'Bugesera International Airport', sub:'Under construction · est. 2026'},
+    {ll:[-1.9213,30.0247], name:'Kigali Innovation City',         sub:'Phase 1 in progress'},
+    {ll:[-1.9281,30.0487], name:'Nyabugogo Integrated Hub',       sub:'Marshland redevelopment'},
+    {ll:[-1.9100,30.0750], name:'Bumbogo Industrial Park',        sub:'Planned SEZ'},
+    {ll:[-2.0300,30.1200], name:'Kigali–Bugesera Expressway',     sub:'Road corridor · planned'},
+    {ll:[-1.7500,30.2200], name:'Northern Economic Corridor',     sub:'Infrastructure programme'},
+  ],
+  roads: [
+    {name:'RN1 — Kigali › Musanze',   color:'#ffb74d', weight:2.5, coords:[[-1.944,30.062],[-1.83,29.97],[-1.71,29.87],[-1.60,29.77],[-1.498,29.633]]},
+    {name:'RN2 — Kigali › Huye',      color:'#ffb74d', weight:2.5, coords:[[-1.944,30.062],[-2.05,29.93],[-2.20,29.83],[-2.38,29.77],[-2.599,29.740]]},
+    {name:'RN3 — Kigali › Rusizi',    color:'#ffb74d', weight:2,   coords:[[-1.944,30.062],[-2.00,29.82],[-2.06,29.55],[-2.20,29.35],[-2.36,29.15],[-2.486,28.906]]},
+    {name:'RN4 — Kigali › Nyagatare', color:'#ffb74d', weight:2.5, coords:[[-1.944,30.062],[-1.87,30.18],[-1.72,30.27],[-1.55,30.31],[-1.302,30.327]]},
+    {name:'RN5 — Kigali › Rusumo',    color:'#ffb74d', weight:2,   coords:[[-1.944,30.062],[-1.99,30.25],[-2.08,30.42],[-2.151,30.546],[-2.34,30.77]]},
+    {name:'Kigali Ring Road',          color:'#ffe082', weight:1.8, coords:[[-1.904,30.022],[-1.887,30.058],[-1.895,30.101],[-1.929,30.120],[-1.965,30.112],[-1.980,30.077],[-1.965,30.040],[-1.935,30.024],[-1.904,30.022]]},
+  ],
+  hospitalityGaps: [
+    {ll:[-2.20,30.13], name:'Bugesera Corridor', sub:'High construction activity · 0 hotels within 5km'},
+    {ll:[-2.148,30.104],name:'Nyamata Growth Zone', sub:'Rapidly expanding · hospitality gap identified'},
+    {ll:[-1.55,30.06], name:'Gicumbi North Corridor', sub:'New road link · no hotel supply'},
+    {ll:[-1.80,29.60], name:'Musanze Outer Ring', sub:'Tourism overflow zone · underserved'},
+  ],
+  residentialSat: [
+    {ll:[-1.920,30.080], name:'Kacyiru / Gasabo',    sub:'Apartment oversupply · low absorption rate'},
+    {ll:[-1.935,30.104], name:'Kimironko',            sub:'High-density residential · market saturated'},
+    {ll:[-1.980,30.089], name:'Kicukiro Central',     sub:'Condo supply exceeds demand'},
+    {ll:[-1.957,30.058], name:'Nyamirambo',           sub:'Dense residential · limited new opportunity'},
+  ],
+  missingLinks: [
+    {ll:[-1.975,30.050], name:'Rebero Hill',          sub:'2,000+ units · nearest school 3.2km away'},
+    {ll:[-1.850,30.130], name:'Rusororo',             sub:'New suburb · no clinic within 4km'},
+    {ll:[-1.963,30.122], name:'Kanombe East',         sub:'Residential expansion · no retail anchor'},
+    {ll:[-2.060,30.005], name:'Kagarama South',       sub:'Growing estate · community centre gap'},
+  ],
+
+  // ── Geography & Environment ─────────────────────────────────────────────────
+  lakes: [
+    {ll:[-1.680, 29.080], name:'Lake Kivu',    sub:'2,370 km² · Borders DRC',                   r:20},
+    {ll:[-1.843, 30.377], name:'Lake Muhazi',  sub:'Eastern Province · 33 km long',              r: 8},
+    {ll:[-1.368, 29.825], name:'Lake Burera',  sub:'Northern Province · volcanic origin',        r: 9},
+    {ll:[-1.421, 29.775], name:'Lake Ruhondo', sub:'Northern Province · twin to Burera',         r: 8},
+    {ll:[-2.102, 30.645], name:'Lake Ihema',   sub:'Akagera National Park · largest eastern lake', r:10},
+    {ll:[-2.387, 30.674], name:'Lake Cyohoha', sub:'Southern Eastern Rwanda',                    r: 6},
+    {ll:[-2.389, 30.589], name:'Lake Rweru',   sub:'Southern Eastern Rwanda',                    r: 5},
+  ],
+  volcanoes: [
+    {ll:[-1.508, 29.448], name:'Mount Karisimbi', sub:'4,507 m · Highest peak in Virunga Massif',   r:10},
+    {ll:[-1.468, 29.488], name:'Mount Bisoke',    sub:'3,711 m · Active crater lake at summit',     r: 8},
+    {ll:[-1.380, 29.600], name:'Mount Muhabura',  sub:'4,127 m · "The guide" in Kinyarwanda',       r: 8},
+    {ll:[-1.402, 29.621], name:'Mount Gahinga',   sub:'3,474 m · Virunga Massif',                   r: 7},
+    {ll:[-1.382, 29.585], name:'Mount Sabyinyo',  sub:'3,634 m · "Old man\'s teeth"',               r: 7},
+  ],
+  rivers: [
+    {name:'Nyabarongo River',      color:'#4fc3f7', weight:2.5, coords:[[-2.47,29.42],[-2.30,29.50],[-2.10,29.58],[-1.90,29.65],[-1.75,29.80],[-1.60,29.92],[-1.55,30.08],[-1.50,30.17]]},
+    {name:'Akagera River (Kagera)',color:'#4fc3f7', weight:2.2, coords:[[-1.30,30.45],[-1.52,30.60],[-1.82,30.69],[-2.10,30.74],[-2.35,30.78],[-2.60,30.72]]},
+    {name:'Ruzizi River',          color:'#4fc3f7', weight:1.8, coords:[[-2.20,29.00],[-2.35,28.95],[-2.48,28.90]]},
+  ],
+  minerals: [
+    {ll:[-1.562, 30.398], name:'Rutongo Cassiterite Mine',    sub:'Tin ore · major Eastern Province producer'},
+    {ll:[-1.700, 30.312], name:'Gatumba Coltan Zone',         sub:'Coltan & cassiterite deposits'},
+    {ll:[-1.430, 29.950], name:'Gifurwe Tungsten Mine',       sub:'Wolfram ore extraction · Northern Province'},
+    {ll:[-1.302, 30.327], name:'Nyagatare Mineral Corridor',  sub:'Emerging mineral exploration zone'},
+    {ll:[-2.102, 29.048], name:'Lake Kivu Methane Reserve',   sub:'~650 billion m³ dissolved methane · KivuWatt project'},
+    {ll:[-2.487, 28.906], name:'Rusizi Hydropower Corridor',  sub:'Ruzizi I, II & III · 230 MW combined capacity'},
+  ],
+  factories: [
+    {ll:[-2.487, 28.906], name:'CIMERWA Cement Plant',             sub:'Main national cement producer · ~600,000 t/yr',  color:'#bcaaa4'},
+    {ll:[-1.944, 30.062], name:'Kigali Cement Distribution Hub',   sub:'Primary supply centre for the capital region',    color:'#bcaaa4'},
+    {ll:[-1.870, 30.020], name:'Kigali SEZ Steel Fabrication',     sub:'Structural steel · Kigali Special Economic Zone', color:'#ef9a9a'},
+    {ll:[-1.980, 30.082], name:'Gikondo Industrial Brick Factory', sub:'Clay brick production · Kigali South',            color:'#d7ccc8'},
+    {ll:[-2.076, 29.754], name:'Muhanga Building Materials Hub',   sub:'Regional supply centre · Central Province',       color:'#bcaaa4'},
+    {ll:[-1.498, 29.633], name:'Musanze Volcanic Stone Quarry',    sub:'Basalt & pumice · Northern Province construction', color:'#d7ccc8'},
+  ],
+
+  // ── Socio-Economic: population density by district (illustrative) ───────────
+  // density = people per km²  |  hhSize = avg household size
+  districtDensity: [
+    // Kigali City — urban, very high density
+    {ll:[-1.944, 30.047], name:'Nyarugenge', province:'Kigali City',     density:2200, income:'High',   hhSize:3.8},
+    {ll:[-1.895, 30.112], name:'Gasabo',     province:'Kigali City',     density:1800, income:'Medium', hhSize:4.0},
+    {ll:[-1.980, 30.082], name:'Kicukiro',   province:'Kigali City',     density:1950, income:'Medium', hhSize:4.1},
+    // Eastern Province
+    {ll:[-2.200, 30.200], name:'Bugesera',   province:'Eastern Province', density:160,  income:'Low',    hhSize:4.8},
+    {ll:[-1.850, 30.600], name:'Kayonza',    province:'Eastern Province', density:140,  income:'Low',    hhSize:4.9},
+    {ll:[-1.302, 30.327], name:'Nyagatare',  province:'Eastern Province', density:90,   income:'Low',    hhSize:5.0},
+    {ll:[-1.950, 30.435], name:'Rwamagana',  province:'Eastern Province', density:220,  income:'Low',    hhSize:4.7},
+    {ll:[-2.150, 30.560], name:'Ngoma',      province:'Eastern Province', density:200,  income:'Low',    hhSize:4.8},
+    {ll:[-2.200, 30.680], name:'Kirehe',     province:'Eastern Province', density:180,  income:'Low',    hhSize:5.0},
+    // Northern Province
+    {ll:[-1.380, 29.835], name:'Burera',     province:'Northern Province', density:350,  income:'Low',    hhSize:4.6},
+    {ll:[-1.570, 30.130], name:'Gicumbi',    province:'Northern Province', density:380,  income:'Low',    hhSize:4.5},
+    {ll:[-1.498, 29.633], name:'Musanze',    province:'Northern Province', density:450,  income:'Medium', hhSize:4.4},
+    {ll:[-1.640, 29.780], name:'Gakenke',    province:'Northern Province', density:400,  income:'Low',    hhSize:4.6},
+    {ll:[-1.720, 29.980], name:'Rulindo',    province:'Northern Province', density:350,  income:'Low',    hhSize:4.7},
+    // Southern Province
+    {ll:[-2.599, 29.740], name:'Huye',       province:'Southern Province', density:400,  income:'Medium', hhSize:4.2},
+    {ll:[-2.076, 29.754], name:'Muhanga',    province:'Southern Province', density:370,  income:'Low',    hhSize:4.5},
+    {ll:[-2.350, 29.745], name:'Nyanza',     province:'Southern Province', density:340,  income:'Low',    hhSize:4.6},
+    {ll:[-2.230, 29.780], name:'Ruhango',    province:'Southern Province', density:350,  income:'Low',    hhSize:4.6},
+    {ll:[-2.050, 29.850], name:'Kamonyi',    province:'Southern Province', density:360,  income:'Low',    hhSize:4.5},
+    {ll:[-2.630, 29.830], name:'Gisagara',   province:'Southern Province', density:300,  income:'Low',    hhSize:4.7},
+    {ll:[-2.450, 29.510], name:'Nyamagabe',  province:'Southern Province', density:280,  income:'Low',    hhSize:4.8},
+    // Western Province
+    {ll:[-1.680, 29.260], name:'Rubavu',     province:'Western Province',  density:480,  income:'Medium', hhSize:4.3},
+    {ll:[-2.487, 28.906], name:'Rusizi',     province:'Western Province',  density:300,  income:'Medium', hhSize:4.4},
+    {ll:[-2.060, 29.465], name:'Karongi',    province:'Western Province',  density:250,  income:'Low',    hhSize:4.7},
+    {ll:[-1.860, 29.570], name:'Ngororero',  province:'Western Province',  density:300,  income:'Low',    hhSize:4.7},
+    {ll:[-1.600, 29.530], name:'Nyabihu',    province:'Western Province',  density:320,  income:'Low',    hhSize:4.6},
+    {ll:[-2.290, 29.220], name:'Nyamasheke', province:'Western Province',  density:320,  income:'Low',    hhSize:4.7},
+    {ll:[-1.930, 29.430], name:'Rutsiro',    province:'Western Province',  density:280,  income:'Low',    hhSize:4.8},
+  ],
+};
+
+// ── Layer builders ────────────────────────────────────────────────────────────
+function mkCircle(ll, color, r, tooltip) {
+  return L.circleMarker(ll, { radius:r, fillColor:color, color:'#fff', weight:1.5, opacity:1, fillOpacity:0.85 })
+          .bindTooltip(tooltip, { sticky:false, direction:'top', offset:[0,-6] });
+}
+
+const BUILDERS = {
+  existing_infra: () => L.layerGroup(GEO.existingInfra.map(d =>
+    mkCircle(d.ll, '#42a5f5', 6, `<strong>${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
+  )),
+  planned_infra: () => L.layerGroup(GEO.plannedInfra.map(d =>
+    L.circleMarker(d.ll, { radius:7, fillColor:'#90caf9', color:'#90caf9', weight:2, opacity:0.9, fillOpacity:0.35,
+      dashArray:'4 3' })
+    .bindTooltip(`<strong>${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`, { sticky:false, direction:'top', offset:[0,-6] })
+  )),
+  road_networks: () => L.layerGroup(GEO.roads.map(d =>
+    L.polyline(d.coords, { color:d.color, weight:d.weight, opacity:0.8 })
+    .bindTooltip(d.name, { sticky:true, direction:'top' })
+  )),
+  construction_intel: () => L.layerGroup(), // parent — children render separately
+  hospitality_gaps: () => L.layerGroup(GEO.hospitalityGaps.map(d =>
+    mkCircle(d.ll, '#ffd54f', 8, `<strong>⚑ ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
+  )),
+  residential_sat: () => L.layerGroup(GEO.residentialSat.map(d =>
+    mkCircle(d.ll, '#ff7043', 8, `<strong>⊗ ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
+  )),
+  missing_links: () => L.layerGroup(GEO.missingLinks.map(d =>
+    mkCircle(d.ll, '#66bb6a', 8, `<strong>⊕ ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
+  )),
+
+  // ── Geography & Environment ─────────────────────────────────────────────────
+  topography: () => L.layerGroup([
+    // Lakes — filled blue circles, size proportional to lake area
+    ...GEO.lakes.map(d =>
+      L.circleMarker(d.ll, { radius:d.r, fillColor:'#4fc3f7', color:'#0288d1', weight:1.5, opacity:0.85, fillOpacity:0.45 })
+       .bindTooltip(`<strong>🏞 ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`, {sticky:false,direction:'top',offset:[0,-4]})
+    ),
+    // Volcanoes — warm orange markers
+    ...GEO.volcanoes.map(d =>
+      L.circleMarker(d.ll, { radius:d.r, fillColor:'#ff8a65', color:'#e64a19', weight:1.5, opacity:0.9, fillOpacity:0.75 })
+       .bindTooltip(`<strong>🌋 ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`, {sticky:false,direction:'top',offset:[0,-4]})
+    ),
+    // Rivers — dashed blue polylines
+    ...GEO.rivers.map(d =>
+      L.polyline(d.coords, { color:d.color, weight:d.weight, opacity:0.65, dashArray:'8 4' })
+       .bindTooltip(d.name, {sticky:true,direction:'top'})
+    ),
+  ]),
+
+  natural_resources: () => L.layerGroup(GEO.minerals.map(d =>
+    mkCircle(d.ll, '#ce93d8', 9, `<strong>⬡ ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
+  )),
+
+  material_factories: () => L.layerGroup(GEO.factories.map(d =>
+    L.circleMarker(d.ll, { radius:9, fillColor:d.color, color:'#fff', weight:1.5, opacity:0.9, fillOpacity:0.88 })
+     .bindTooltip(`<strong>🏭 ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`, {sticky:false,direction:'top',offset:[0,-6]})
+  )),
+
+  // ── Socio-Economic & Zoning — live Kigali Master Plan data ──────────────────
+  // L.esri.dynamicMapLayer renders server-side images from the ArcGIS REST export
+  // endpoint; opacity is controlled via dynamicMapLayer.setOpacity() directly.
+
+  kigali_zoning: () => L.esri.dynamicMapLayer({
+    url: MP_URL, layers: [117], opacity: 0.80,
+    f: 'image', format: 'png32', transparent: true
+  }),
+
+  existing_landuse: () => L.esri.dynamicMapLayer({
+    url: MP_URL, layers: [116], opacity: 0.75,
+    f: 'image', format: 'png32', transparent: true
+  }),
+
+  admin_boundaries: () => L.esri.dynamicMapLayer({
+    url: MP_URL, layers: [4, 5], opacity: 0.85,
+    f: 'image', format: 'png32', transparent: true
+  }),
+
+  // Wetland buffer · Slope overlay · Disaster risk · Urban design overlay ·
+  // Incentive Zoning A & B · Tourism Promotion overlay
+  planning_overlays: () => L.esri.dynamicMapLayer({
+    url: MP_URL, layers: [82, 88, 91, 92, 94, 95, 96], opacity: 0.70,
+    f: 'image', format: 'png32', transparent: true
+  }),
+
+  pop_density: () => {
+    function densityColor(d) {
+      if (d >= 1500) return '#b71c1c';
+      if (d >= 800)  return '#e53935';
+      if (d >= 400)  return '#f44336';
+      if (d >= 300)  return '#ff7043';
+      if (d >= 200)  return '#ff9800';
+      if (d >= 100)  return '#ffc107';
+      return '#66bb6a';
+    }
+    return L.layerGroup(GEO.districtDensity.map(d => {
+      const r = Math.max(8, Math.min(28, Math.sqrt(d.density) * 0.5));
+      const col = densityColor(d.density);
+      return L.circleMarker(d.ll, { radius:r, fillColor:col, color:'#fff', weight:1, opacity:0.85, fillOpacity:0.55 })
+        .bindTooltip(
+          `<strong>${d.name}</strong> <span style="opacity:.5">· ${d.province}</span><br>` +
+          `<span style="opacity:.7">~${d.density.toLocaleString()} people/km² · ${d.income} income · avg ${d.hhSize} per household</span>`,
+          {sticky:false, direction:'top', offset:[0,-4]}
+        );
+    }));
+  },
+};
+
+// ── Layer groups data model ───────────────────────────────────────────────────
+const LAYER_GROUPS = [
+  {
+    id: 'infrastructure', label: 'Infrastructure & Development', color: '#64b5f6', expanded: false,
+    layers: [
+      { id:'existing_infra',    label:'Existing Infrastructure',    desc:'Airports, facilities, urban centres',           color:'#42a5f5', opacity:80, visible:false, leaflet:null },
+      { id:'planned_infra',     label:'Planned Infrastructure',     desc:'Bugesera Airport, corridors, new hubs',         color:'#90caf9', opacity:80, visible:false, leaflet:null },
+      { id:'road_networks',     label:'Road Networks',              desc:'National and provincial transport routes',      color:'#ffb74d', opacity:80, visible:false, leaflet:null },
+      { id:'construction_intel',label:'Construction Intelligence',  desc:'Opportunity gaps & predictive hotspots',        color:'#ef9a9a', opacity:80, visible:false, leaflet:null,
+        expanded: false,
+        children: [
+          { id:'hospitality_gaps', label:'Hospitality Gaps',         desc:'New roads near construction · no hotels nearby', color:'#ffd54f', opacity:80, visible:false, leaflet:null },
+          { id:'residential_sat',  label:'Residential Saturation',   desc:'Oversupplied apartment zones',                  color:'#ff7043', opacity:80, visible:false, leaflet:null },
+          { id:'missing_links',    label:'Missing Community Links',  desc:'Residential areas lacking schools or clinics',  color:'#66bb6a', opacity:80, visible:false, leaflet:null },
+        ]
+      }
+    ]
+  },
+
+  // ── Geography & Environment ─────────────────────────────────────────────────
+  {
+    id: 'geography', label: 'Geography & Environment', color: '#81c784', expanded: false,
+    layers: [
+      { id:'topography',         label:'Topography',                  desc:'Lakes, volcanoes & rivers — Rwanda\'s "Thousand Hills"',    color:'#4fc3f7', opacity:80, visible:false, leaflet:null },
+      { id:'natural_resources',  label:'Natural Resources',           desc:'Minerals, methane reserves & hydropower corridors',         color:'#ce93d8', opacity:80, visible:false, leaflet:null },
+      { id:'material_factories', label:'Building Material Factories', desc:'Cement, brick & steel plants — logistics & cost mapping',   color:'#bcaaa4', opacity:80, visible:false, leaflet:null },
+    ]
+  },
+
+  // ── Socio-Economic & Zoning ──────────────────────────────────────────────────
+  {
+    id: 'socioeconomic', label: 'Socio-Economic & Zoning', color: '#ffb74d', expanded: false,
+    layers: [
+      { id:'kigali_zoning',    label:'Kigali Master Plan — Zoning',  desc:'Official proposed zoning plan · Kigali City 2020 Master Plan', color:'#ff9800', opacity:80, visible:false, leaflet:null },
+      { id:'existing_landuse', label:'Existing Land Use',            desc:'Current land-use classification across Kigali City',          color:'#8bc34a', opacity:75, visible:false, leaflet:null },
+      { id:'admin_boundaries', label:'Administrative Boundaries',    desc:'District & sector boundaries · official Kigali City data',    color:'#90a4ae', opacity:85, visible:false, leaflet:null },
+      { id:'planning_overlays',label:'Planning Overlays',            desc:'Wetlands, slopes, disaster risk, incentive & tourism zones',  color:'#ab47bc', opacity:70, visible:false, leaflet:null },
+      { id:'pop_density',      label:'Population & Demographics',    desc:'District density, income level & household size (illustrative)', color:'#ef5350', opacity:75, visible:false, leaflet:null },
+    ]
+  }
+];
+
+// ── Layer lookup helpers ──────────────────────────────────────────────────────
+function allLeafLayers(grp) {
+  const out=[];
+  grp.layers.forEach(l => {
+    if (l.children) l.children.forEach(c => out.push(c));
+    else out.push(l);
+  });
+  return out;
+}
+function findLayer(id) {
+  for (const g of LAYER_GROUPS) {
+    for (const l of g.layers) {
+      if (l.id===id) return {layer:l, group:g};
+      if (l.children) { const c=l.children.find(c=>c.id===id); if(c) return {layer:c, group:g, parent:l}; }
+    }
+  }
+  return null;
+}
+
+// ── Leaflet layer management ──────────────────────────────────────────────────
+function ensureBuilt(layer) {
+  if (!layer.leaflet && BUILDERS[layer.id]) {
+    layer.leaflet = BUILDERS[layer.id]();
+  }
+}
+function setVisible(layer, vis) {
+  layer.visible = vis;
+  ensureBuilt(layer);
+  if (layer.leaflet) {
+    if (vis) map.addLayer(layer.leaflet);
+    else     map.removeLayer(layer.leaflet);
+  }
+}
+function setOpacity(layer, pct) {
+  layer.opacity = pct;
+  if (!layer.leaflet) return;
+  const op = pct / 100;
+  if (layer.leaflet.eachLayer) {
+    // L.layerGroup — iterate sub-layers
+    layer.leaflet.eachLayer(l => {
+      if (l.setStyle) l.setStyle({ opacity:op, fillOpacity: op * 0.85 });
+      if (l.setOpacity) l.setOpacity(op);
+    });
+  } else if (layer.leaflet.setOpacity) {
+    // L.esri.dynamicMapLayer and other single-layer types
+    layer.leaflet.setOpacity(op);
+  }
+}
+
+// ── Active count ──────────────────────────────────────────────────────────────
+function updateActiveCounts() {
+  let total=0;
+  LAYER_GROUPS.forEach(g => {
+    const leaves=allLeafLayers(g);
+    const n=leaves.filter(l=>l.visible).length;
+    total+=n;
+    const el=document.getElementById(`gc-count-${g.id}`);
+    if(el){ el.textContent=`${n}/${leaves.length}`; el.className='grp-count'+(n>0?' has-active':''); }
+  });
+  document.getElementById('activeCount').textContent=`${total} active`;
+  document.getElementById('headerLayerCount').textContent=`${total} layer${total!==1?'s':''} active`;
+  updateLegendPanel();
+}
+
+// ── Group checkbox state (checked / indeterminate / unchecked) ────────────────
+function syncGroupCb(grpId) {
+  const grp=LAYER_GROUPS.find(g=>g.id===grpId); if(!grp) return;
+  const leaves=allLeafLayers(grp);
+  const n=leaves.filter(l=>l.visible).length;
+  const cb=document.getElementById(`gcb-${grpId}`); if(!cb) return;
+  if(n===0){ cb.checked=false; cb.indeterminate=false; }
+  else if(n===leaves.length){ cb.checked=true; cb.indeterminate=false; }
+  else{ cb.checked=false; cb.indeterminate=true; }
+}
+function syncParentCb(parentId) {
+  const found=LAYER_GROUPS.flatMap(g=>g.layers).find(l=>l.id===parentId); if(!found||!found.children) return;
+  const n=found.children.filter(c=>c.visible).length;
+  const cb=document.getElementById(`lcb-${parentId}`); if(!cb) return;
+  if(n===0){ cb.checked=false; cb.indeterminate=false; }
+  else if(n===found.children.length){ cb.checked=true; cb.indeterminate=false; }
+  else{ cb.checked=false; cb.indeterminate=true; }
+}
+
+// ── Solo mode ─────────────────────────────────────────────────────────────────
+let soloedId=null;
+function applySolo(id) {
+  const wasThisOne=(soloedId===id);
+  soloedId=wasThisOne?null:id;
+  // Show/hide all leaf layers based on solo state
+  LAYER_GROUPS.forEach(g=>{
+    allLeafLayers(g).forEach(l=>{
+      if(!l.leaflet) return;
+      if(soloedId===null) {
+        // restore visibility to data model
+        if(l.visible) map.addLayer(l.leaflet); else map.removeLayer(l.leaflet);
+      } else {
+        if(l.id===soloedId) map.addLayer(l.leaflet);
+        else                map.removeLayer(l.leaflet);
+      }
+    });
+  });
+  // Update eye button appearances
+  document.querySelectorAll('.lp-eye-btn').forEach(btn=>{
+    btn.classList.toggle('soloed', btn.dataset.layer===soloedId);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PANEL RENDERING
+// ══════════════════════════════════════════════════════════════════════════════
+
+const SVG_CHEVRON = `<svg viewBox="0 0 10 10"><path d="M3.5 2l3.5 3-3.5 3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const SVG_EYE     = `<svg viewBox="0 0 16 16"><path d="M8 3C4.5 3 1.7 5.5 1 8c.7 2.5 3.5 5 7 5s6.3-2.5 7-5c-.7-2.5-3.5-5-7-5zm0 8.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7zm0-5.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>`;
+const SVG_DRAG    = `<svg viewBox="0 0 6 10" width="6" height="10" fill="currentColor"><circle cx="1.5" cy="2" r="1"/><circle cx="4.5" cy="2" r="1"/><circle cx="1.5" cy="5" r="1"/><circle cx="4.5" cy="5" r="1"/><circle cx="1.5" cy="8" r="1"/><circle cx="4.5" cy="8" r="1"/></svg>`;
+
+function renderLayer(lyr, grpId, isChild=false) {
+  const hasCh = lyr.children && lyr.children.length>0;
+  return `
+  <div class="lp-layer${isChild?' lp-child':''}" id="lyd-${lyr.id}" data-layer="${lyr.id}" data-grp="${grpId}"${!isChild?' draggable="true"':''}>
+    <div class="lp-layer-row">
+      <span class="drag-handle" title="Drag to reorder">${SVG_DRAG}</span>
+      ${hasCh ? `<button class="lp-chevron${lyr.expanded?' open':''}" id="lch-${lyr.id}" data-target="lchildren-${lyr.id}">${SVG_CHEVRON}</button>`
+              : `<span class="lp-chevron-spacer"></span>`}
+      <label class="lp-check-wrap">
+        <input type="checkbox" id="lcb-${lyr.id}" data-layer="${lyr.id}" data-grp="${grpId}"${hasCh?' data-haschl="1"':''}>
+        <span class="lp-check"></span>
+      </label>
+      <span class="lyr-dot" style="background:${lyr.color};"></span>
+      <div class="lp-layer-text">
+        <span class="lyr-name">${lyr.label}</span>
+        <span class="lyr-desc" title="${lyr.desc}">${lyr.desc}</span>
+      </div>
+      <button class="lp-eye-btn" data-layer="${lyr.id}" title="Solo this layer">${SVG_EYE}</button>
+    </div>
+    <div class="lp-opacity-row">
+      <input type="range" class="lp-slider" min="0" max="100" value="${lyr.opacity}" data-layer="${lyr.id}"
+             style="background:linear-gradient(to right,var(--terracotta) ${lyr.opacity}%,rgba(245,240,232,0.12) ${lyr.opacity}%)">
+      <span class="lp-opacity-val" id="opv-${lyr.id}">${lyr.opacity}%</span>
+    </div>
+    ${hasCh ? `<div class="lp-children${lyr.expanded?' open':''}" id="lchildren-${lyr.id}">
+      ${lyr.children.map(c=>renderLayer(c,grpId,true)).join('')}
+    </div>` : ''}
+  </div>`;
+}
+
+function renderGroup(grp) {
+  const leaves=allLeafLayers(grp);
+  return `
+  <div class="lp-group" id="grpd-${grp.id}">
+    <div class="lp-group-head" id="ghead-${grp.id}">
+      <button class="lp-chevron${grp.expanded?' open':''}" id="gch-${grp.id}" data-target="gbody-${grp.id}">${SVG_CHEVRON}</button>
+      <label class="lp-check-wrap">
+        <input type="checkbox" id="gcb-${grp.id}" data-grp="${grp.id}" data-isgrp="1">
+        <span class="lp-check"></span>
+      </label>
+      <span class="grp-dot" style="background:${grp.color};"></span>
+      <span class="grp-label">${grp.label}</span>
+      <span class="grp-count" id="gc-count-${grp.id}">0/${leaves.length}</span>
+    </div>
+    <div class="lp-group-body${grp.expanded?' open':''}" id="gbody-${grp.id}">
+      ${grp.layers.map(l=>renderLayer(l,grp.id)).join('')}
+    </div>
+  </div>`;
+}
+
+function renderPanel() {
+  document.getElementById('lpGroups').innerHTML = LAYER_GROUPS.map(renderGroup).join('');
+  attachPanelListeners();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EVENT LISTENERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function attachPanelListeners() {
+
+  // ── Chevrons (accordion) ──
+  document.querySelectorAll('.lp-chevron[data-target]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      if (!target) return;
+      const open = target.classList.toggle('open');
+      btn.classList.toggle('open', open);
+      // sync data model
+      if (btn.id.startsWith('gch-')) {
+        const g=LAYER_GROUPS.find(g=>btn.id===`gch-${g.id}`); if(g) g.expanded=open;
+      } else if (btn.id.startsWith('lch-')) {
+        const id=btn.id.replace('lch-','');
+        LAYER_GROUPS.forEach(g=>g.layers.forEach(l=>{ if(l.id===id) l.expanded=open; }));
+      }
+    });
+  });
+
+  // ── Group checkbox ──
+  document.querySelectorAll('input[data-isgrp]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const grp=LAYER_GROUPS.find(g=>g.id===cb.dataset.grp); if(!grp) return;
+      allLeafLayers(grp).forEach(l => {
+        l.visible=cb.checked;
+        setVisible(l, cb.checked);
+        const lc=document.getElementById(`lcb-${l.id}`); if(lc){ lc.checked=cb.checked; lc.indeterminate=false; }
+      });
+      // sync parent checkboxes for layers-with-children
+      grp.layers.filter(l=>l.children).forEach(l=>syncParentCb(l.id));
+      syncGroupCb(grp.id);
+      updateActiveCounts();
+    });
+  });
+
+  // ── Layer checkbox ──
+  document.querySelectorAll('input[type="checkbox"][data-layer]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const id=cb.dataset.layer;
+      const found=findLayer(id); if(!found) return;
+      const {layer, group, parent}=found;
+
+      if (layer.children) {
+        // Parent-of-children: toggle all sub-layers
+        layer.children.forEach(c=>{
+          c.visible=cb.checked;
+          setVisible(c, cb.checked);
+          const lc=document.getElementById(`lcb-${c.id}`); if(lc){ lc.checked=cb.checked; lc.indeterminate=false; }
+        });
+      } else {
+        setVisible(layer, cb.checked);
+      }
+
+      // Sync parent checkbox if this is a child
+      if (parent) syncParentCb(parent.id);
+      syncGroupCb(group.id);
+      updateActiveCounts();
+    });
+  });
+
+  // ── Opacity sliders ──
+  document.querySelectorAll('.lp-slider').forEach(slider => {
+    const update = () => {
+      const pct=+slider.value;
+      slider.style.background=`linear-gradient(to right,var(--terracotta) ${pct}%,rgba(245,240,232,0.12) ${pct}%)`;
+      const valEl=document.getElementById(`opv-${slider.dataset.layer}`); if(valEl) valEl.textContent=`${pct}%`;
+      const found=findLayer(slider.dataset.layer); if(found) setOpacity(found.layer, pct);
+    };
+    slider.addEventListener('input', update);
+  });
+
+  // ── Solo (eye) buttons ──
+  document.querySelectorAll('.lp-eye-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id=btn.dataset.layer;
+      const found=findLayer(id); if(!found) return;
+      // Ensure the layer is built & added before soloing
+      ensureBuilt(found.layer);
+      if (!found.layer.visible && !found.layer.leaflet) return;
+      if (!found.layer.visible) { found.layer.visible=true; setVisible(found.layer,true); }
+      applySolo(id);
+    });
+  });
+
+  // ── Search ──
+  const searchInput=document.getElementById('layerSearch');
+  const searchClear=document.getElementById('searchClear');
+  const noResults=document.getElementById('lpNoResults');
+
+  searchInput.addEventListener('input', () => {
+    const q=searchInput.value.trim().toLowerCase();
+    searchClear.style.display=q?'block':'none';
+    let anyVisible=false;
+    document.querySelectorAll('.lp-layer').forEach(el=>{
+      const name=el.querySelector('.lyr-name')?.textContent.toLowerCase()||'';
+      const desc=el.querySelector('.lyr-desc')?.textContent.toLowerCase()||'';
+      const match=!q||name.includes(q)||desc.includes(q);
+      el.style.display=match?'':'none';
+      if(match) anyVisible=true;
+    });
+    // Show group headers if any child visible
+    document.querySelectorAll('.lp-group').forEach(grpEl=>{
+      const visible=[...grpEl.querySelectorAll('.lp-layer')].some(l=>l.style.display!=='none');
+      grpEl.style.display=visible?'':'none';
+      // Auto-expand groups during search
+      if (q && visible) {
+        grpEl.querySelector('.lp-group-body')?.classList.add('open');
+        grpEl.querySelector('.lp-chevron[data-target]')?.classList.add('open');
+      }
+    });
+    noResults.style.display=(!anyVisible&&q)?'block':'none';
+  });
+  searchClear.addEventListener('click', () => {
+    searchInput.value=''; searchClear.style.display='none'; noResults.style.display='none';
+    document.querySelectorAll('.lp-layer,.lp-group').forEach(el=>el.style.display='');
+  });
+
+  // ── Drag to reorder ───────────────────────────────────────────────────────
+  let dragSrc=null;
+  document.querySelectorAll('.lp-layer:not(.lp-child)').forEach(el=>attachDrag(el));
+
+  function attachDrag(el) {
+    el.addEventListener('dragstart', e => {
+      dragSrc=el; el.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+    });
+    el.addEventListener('dragend', () => {
+      dragSrc=null; el.classList.remove('dragging');
+      document.querySelectorAll('.lp-layer').forEach(l=>l.classList.remove('drag-over'));
+      reorderLeafletLayers();
+    });
+    el.addEventListener('dragover', e => {
+      e.preventDefault(); e.dataTransfer.dropEffect='move';
+      if (dragSrc&&dragSrc!==el&&el.parentNode===dragSrc.parentNode) {
+        document.querySelectorAll('.lp-layer').forEach(l=>l.classList.remove('drag-over'));
+        el.classList.add('drag-over');
+        const body=el.parentNode;
+        const all=[...body.querySelectorAll(':scope>.lp-layer:not(.lp-child)')];
+        const idx=all.indexOf(el);
+        const srcIdx=all.indexOf(dragSrc);
+        if(srcIdx<idx) body.insertBefore(dragSrc, el.nextSibling);
+        else body.insertBefore(dragSrc, el);
+      }
+    });
+    el.addEventListener('drop', e=>e.preventDefault());
+  }
+
+  function reorderLeafletLayers() {
+    // Bring visible layers to front in DOM order (bottom of list = on top of map)
+    document.querySelectorAll('.lp-group-body').forEach(body=>{
+      [...body.querySelectorAll(':scope>.lp-layer:not(.lp-child)')].forEach(el=>{
+        const found=findLayer(el.dataset.layer);
+        if(!found||!found.layer.leaflet) return;
+        if(found.layer.visible) found.layer.leaflet.bringToFront();
+      });
+    });
+  }
+}
+
+// ── Panel collapse toggle ─────────────────────────────────────────────────────
+document.getElementById('lpCollapseBtn').addEventListener('click', () => {
+  const panel=document.getElementById('layersPanel');
+  const collapsed=panel.classList.toggle('collapsed');
+  document.getElementById('lpCollapseBtn').textContent = collapsed ? '›' : '‹';
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// THEME / TILES / MISC
+// ══════════════════════════════════════════════════════════════════════════════
+let activeTile=TILES[initialTheme];
+function swapTiles(theme) { map.removeLayer(activeTile); activeTile=TILES[theme]; activeTile.addTo(map); }
+
+function toggleTheme() {
+  const html=document.documentElement;
+  const next=html.getAttribute('data-theme')==='dark'?'light':'dark';
+  html.setAttribute('data-theme',next);
+  localStorage.setItem('imali-theme',next);
+  document.querySelector('.theme-toggle').textContent=next==='dark'?'☀ Light':'☾ Dark';
+  swapTiles(next); applyBorderStyle(next);
+}
+
+const coordPill=document.getElementById('coordPill');
+map.on('mousemove', e => {
+  // Coordinate pill
+  coordPill.textContent = `${e.latlng.lat.toFixed(5)}°, ${e.latlng.lng.toFixed(5)}°`;
+  // Identify debounce — fire 200ms after cursor stops moving
+  clearTimeout(_idTimer);
+  const cx = e.originalEvent.clientX, cy = e.originalEvent.clientY;
+  _idTimer = setTimeout(() => doIdentify(e.latlng, cx, cy), 200);
+});
+map.on('mouseout', () => {
+  coordPill.textContent = 'Hover map for coordinates';
+  clearTimeout(_idTimer);
+  hideMPTip();
+});
+
+const zoomPill=document.getElementById('zoomPill');
+map.on('zoomend',()=>zoomPill.textContent=map.getZoom());
+
+document.querySelector('.theme-toggle').textContent=initialTheme==='dark'?'☀ Light':'☾ Dark';
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MASTER PLAN HOVER IDENTIFY
+// ══════════════════════════════════════════════════════════════════════════════
+
+function getActiveMPLayerIds() {
+  const ids = [];
+  for (const [bid, arcIds] of Object.entries(MP_LAYERS_MAP)) {
+    const f = findLayer(bid);
+    if (f && f.layer.visible) ids.push(...arcIds);
+  }
+  return ids;
+}
+
+function hideMPTip() {
+  document.getElementById('mpIdTip').style.display = 'none';
+}
+
+let _idTimer  = null;
+let _idAbort  = null;
+
+async function doIdentify(latlng, clientX, clientY) {
+  const arcIds = getActiveMPLayerIds();
+  if (!arcIds.length) { hideMPTip(); return; }
+
+  // Cancel any in-flight request
+  if (_idAbort) { try { _idAbort.abort(); } catch(e) {} }
+  _idAbort = new AbortController();
+
+  const bounds = map.getBounds();
+  const size   = map.getSize();
+  const params = new URLSearchParams({
+    geometry:       `${latlng.lng},${latlng.lat}`,
+    geometryType:   'esriGeometryPoint',
+    sr:             '4326',
+    layers:         `all:${arcIds.join(',')}`,
+    tolerance:      '3',
+    mapExtent:      `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`,
+    imageDisplay:   `${size.x},${size.y},96`,
+    returnGeometry: 'false',
+    f:              'json',
+  });
+
+  try {
+    const r = await fetch(`${MP_URL}/identify?${params}`, { signal: _idAbort.signal });
+    if (!r.ok) { hideMPTip(); return; }
+    const data = await r.json();
+    const results = (data.results || []).filter(res =>
+      res.value && res.value.trim() !== '' && res.value !== 'N/A' && res.value !== 'Null'
+    );
+    if (!results.length) { hideMPTip(); return; }
+    renderMPTip(clientX, clientY, results);
+  } catch(e) {
+    if (e.name !== 'AbortError') hideMPTip();
+  }
+}
+
+function renderMPTip(clientX, clientY, results) {
+  const legend = _mpLegend || {};
+  let html = '';
+
+  for (const res of results) {
+    const lyrLegend = legend[res.layerId];
+    const rawVal    = (res.value || '').trim();
+    const layerNm   = res.layerName || '';
+
+    // Best-effort match: rawVal against legend labels
+    let matched = null;
+    if (lyrLegend?.items?.length) {
+      const v = rawVal.toUpperCase();
+      matched = lyrLegend.items.find(it => {
+        if (!it.label) return false;
+        const l = it.label.toUpperCase();
+        return (
+          l === v ||
+          l.startsWith(v + ' ') || l.startsWith(v + '-') || l.startsWith(v + ',') ||
+          v.startsWith(l + ' ') || v.startsWith(l + '-') ||
+          l.includes(' ' + v)   || l.includes('-' + v)
+        );
+      });
+      // Looser fallback: label contains value or value contains label
+      if (!matched) {
+        matched = lyrLegend.items.find(it => {
+          const l = it.label?.toUpperCase() || '';
+          return l.includes(v) || v.includes(l);
+        });
+      }
+    }
+
+    html += `<div class="mp-id-entry">`;
+    html += `<div class="mp-id-lyr">${layerNm}</div>`;
+    html += `<div class="mp-id-row">`;
+    if (matched?.imageData) {
+      const ct = matched.contentType || 'image/png';
+      html += `<img class="mp-id-swatch" src="data:${ct};base64,${matched.imageData}" alt="">`;
+    }
+    const displayLabel = matched?.label || rawVal;
+    html += `<span class="mp-id-val">${displayLabel}</span>`;
+    html += `</div>`;
+    // Show raw attribute code if it differs from the matched label (e.g. show "R1" under "R1 — Low Density Residential")
+    if (matched && matched.label && matched.label !== rawVal) {
+      html += `<div class="mp-id-raw">${rawVal}</div>`;
+    }
+    html += `</div>`;
+  }
+
+  const tip   = document.getElementById('mpIdTip');
+  const inner = document.getElementById('mpIdTipInner');
+  inner.innerHTML = html;
+  tip.style.display = 'block';
+
+  // Position near cursor — flip left/up when near viewport edges
+  const W = window.innerWidth, H = window.innerHeight;
+  tip.style.left = '-9999px'; // measure before placing
+  tip.style.top  = '-9999px';
+  const tw = tip.offsetWidth  || 230;
+  const th = tip.offsetHeight || 80;
+  const ox = 16, oy = -10;
+  let left = clientX + ox;
+  let top  = clientY + oy;
+  if (left + tw > W - 10) left = clientX - tw - ox;
+  if (top  + th > H - 10) top  = clientY - th - 4;
+  tip.style.left = `${Math.max(6, left)}px`;
+  tip.style.top  = `${Math.max(6, top)}px`;
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+renderPanel();
+updateActiveCounts();
+
+// Wire legend-section chevron
+document.getElementById('legChevron').addEventListener('click', function() {
+  const body = document.getElementById('lpLegendBody');
+  const open = body.classList.toggle('open');
+  this.classList.toggle('open', open);
+});
+
+</script>
+</body>
+</html>
