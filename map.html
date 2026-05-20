@@ -61,6 +61,23 @@ html, body { height: 100%; overflow: hidden; }
 .coord-pill { position: fixed; bottom: 1.5rem; right: 1.25rem; z-index: 150; background: rgba(10,10,15,0.78); border: 1px solid rgba(245,240,232,0.07); border-radius: 2rem; padding: 0.32rem 0.9rem; font-size: 0.67rem; color: rgba(245,240,232,0.38); backdrop-filter: blur(10px); pointer-events: none; }
 [data-theme="light"] .coord-pill { background: rgba(250,247,242,0.92); border-color: rgba(10,10,15,0.09); color: rgba(10,10,15,0.4); box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
 
+/* ── Province name labels ── */
+.prov-label {
+  background: none !important; border: none !important;
+  white-space: nowrap; pointer-events: none; user-select: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem; font-weight: 600;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: rgba(10,10,15,0.42);
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.9), -1px -1px 0 rgba(255,255,255,0.9),
+               1px -1px 0 rgba(255,255,255,0.9), -1px 1px 0 rgba(255,255,255,0.9);
+}
+[data-theme="dark"] .prov-label {
+  color: rgba(245,240,232,0.38);
+  text-shadow: 1px 1px 0 rgba(10,10,15,0.9), -1px -1px 0 rgba(10,10,15,0.9),
+               1px -1px 0 rgba(10,10,15,0.9), -1px 1px 0 rgba(10,10,15,0.9);
+}
+
 /* ══════════════════════════════════════════════════════════
    LAYER PANEL
 ══════════════════════════════════════════════════════════ */
@@ -267,6 +284,13 @@ html, body { height: 100%; overflow: hidden; }
 .lp-child .lp-layer-row { padding-top: 0.4rem; }
 .lp-child .lp-opacity-row { padding-left: 1.1rem; }
 
+/* Grandchild layers (3rd level — district under province under proposed_zoning) */
+.lp-grandchild .drag-handle { display: none; }
+.lp-grandchild .lp-layer-row { padding-top: 0.32rem; min-height: 30px; }
+.lp-grandchild .lp-opacity-row { padding-left: 0.6rem; }
+.lp-grandchild .lyr-name { font-size: 0.69rem; }
+.lp-grandchild .lyr-desc { font-size: 0.6rem; }
+
 /* ══════════════════════════════════════════════════════════════
    ACTIVE LEGEND PANEL
 ══════════════════════════════════════════════════════════════ */
@@ -388,6 +412,7 @@ html, body { height: 100%; overflow: hidden; }
     <a href="inventory.html" class="int-nav-link">Inventory</a>
     <a href="materials.html" class="int-nav-link">Materials</a>
     <a href="map.html" class="int-nav-link active">Opportunity Map</a>
+    <a href="design-engine.html" class="int-nav-link">Design Engine</a>
     <button class="theme-toggle" onclick="toggleTheme()">☾ Dark</button>
   </div>
 </nav>
@@ -481,18 +506,136 @@ const TILES = {
 };
 
 // ── Kigali City Master Plan server (ArcGIS REST) ──────────────────────────────
-const MP_URL = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Masterplan2020/Masterplan2020_24June2024/MapServer';
+const MP_URL   = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Masterplan2020/Masterplan2020_24June2024/MapServer';
+const NSDI_MP  = 'https://geodata.rw/server/rest/services/masterplan'; // district DLUPs + national plan
+
+// ── Zoning colour palette (applied to all FeatureServer DLUP layers) ──────────
+// Follows standard urban-planning conventions so colours read consistently
+// across the national plan and every district DLUP.
+function zoningColor(zoning) {
+  const c = (zoning || '').toUpperCase().trim();
+  if (c.startsWith('R1'))                      return '#fff9c4'; // Low-density residential — pale yellow
+  if (c.startsWith('R2'))                      return '#fff176'; // Medium-density residential
+  if (c.startsWith('R3'))                      return '#ffee58'; // High-density residential
+  if (c.startsWith('R4') || c.startsWith('R5'))return '#fdd835'; // Very high / mixed residential
+  if (c.startsWith('R'))                       return '#fffde7'; // Other residential
+  if (c.startsWith('C1'))                      return '#ffe0b2'; // Local commercial centre
+  if (c.startsWith('C2'))                      return '#ffcc80'; // District commercial centre
+  if (c.startsWith('C3') || c.startsWith('C4'))return '#ffa726'; // Town / city centre
+  if (c.startsWith('C'))                       return '#fff3e0'; // Other commercial
+  if (c.startsWith('MU') || c.startsWith('M1') || c.startsWith('M2')) return '#ce93d8'; // Mixed use — purple
+  if (c.startsWith('I1') || c.startsWith('IN'))return '#b0bec5'; // Industrial — steel blue-grey
+  if (c.startsWith('I'))                       return '#cfd8dc'; // Other industrial
+  if (c.startsWith('A1'))                      return '#c8e6c9'; // Agriculture (prime)
+  if (c.startsWith('A2'))                      return '#a5d6a7'; // Agriculture (secondary)
+  if (c.startsWith('A'))                       return '#81c784'; // Other agricultural
+  if (c.startsWith('OS') || c.startsWith('GR'))return '#dcedc8'; // Open space / green
+  if (c.startsWith('PF') || c.startsWith('P1') || c.startsWith('P2')) return '#d1c4e9'; // Public facility
+  if (c.startsWith('ED') || c.startsWith('E1'))return '#e1bee7'; // Education
+  if (c.startsWith('T') && !c.startsWith('TR'))return '#b2ebf2'; // Tourism
+  if (c.startsWith('TR') || c.startsWith('RD'))return '#eceff1'; // Transport / roads
+  if (c.startsWith('W') || c.startsWith('WL')) return '#81d4fa'; // Water / wetland
+  if (c.startsWith('NR') || c.startsWith('BU'))return '#dce775'; // Nature / buffer
+  return '#e0e0e0';                                              // Unknown / unclassified
+}
+
+// Factory: per-district DLUP using the district's own MapServer service.
+// Each district has its own MapServer at geodata.rw — server renders GIS styling
+// (matching the colours you see on the actual NSDI GIS website), visible at all
+// zoom levels, and no layerDefs filter so tile caching stays active → fast load.
+function mkDistrictZoning(mapServerUrl) {
+  return L.esri.dynamicMapLayer({
+    url: mapServerUrl,
+    opacity: 0.8,
+    f: 'image', format: 'png8', transparent: true
+  });
+}
+
+// ── Provincial-data URL bases ───────────────────────────────────────────────
+// National topographic admin boundaries (province + district lines, all Rwanda)
+const ADM_URL  = 'https://geodata.rw/server/rest/services/TopographicMap_Administrative_Boundaries_1k/MapServer';
+// Land use / land cover 2017–2022, village polygons with province field
+const LULC_URL = 'https://geodata.rw/server/rest/services/land_use_land_cover_20172022/MapServer';
+
+// Factory: NLUDMP2050 MapServer — server-rendered GIS styling, no per-province
+// filter. layerDefs filtering disables the server's tile cache and forces a
+// full re-render on every request, which is why filtered layers are slow.
+// Without filtering the server uses cached tiles → same speed as Kigali layer.
+// png8 format cuts image size ~70% vs png32 with no visible quality difference.
+// The user navigates the map to the province of interest; the zoom handles it.
+function mkProvZoning() {
+  return L.esri.dynamicMapLayer({
+    url: `${NSDI_MP}/NLUDMP2050_FS/MapServer`,
+    opacity: 0.8,
+    f: 'image', format: 'png8', transparent: true
+  });
+}
+
+// Factory: national admin boundaries filtered to a province via layerDefs
+// Shows province boundary area + district area polygons from topographic map
+function mkProvAdmin(prov) {
+  return L.esri.dynamicMapLayer({
+    url: ADM_URL,
+    layers: [6, 7, 14, 15],
+    layerDefs: { '14': `pareaname = '${prov}'`, '15': `pareaname = '${prov}'` },
+    opacity: 0.8,
+    f: 'image', format: 'png32', transparent: true
+  });
+}
+
+// Factory: topographic land use map — vegetation, cultivation, open space, water.
+// The LULC village-boundary dataset has no land-use classification fields so we
+// use the national topographic land use map instead. Province filtering is not
+// available on this MapServer; zoom into the province of interest to see detail.
+function mkProvLULC(districts) {
+  return L.esri.dynamicMapLayer({
+    url: 'https://geodata.rw/server/rest/services/TopographicMap_Land_use_1k/MapServer',
+    layers: [88],
+    opacity: 0.7,
+    f: 'image', format: 'png32', transparent: true
+  });
+}
 
 // Maps each internal layer id → the ArcGIS sub-layer ids it renders.
 // Used to pull the right legend entries when that layer is active.
 const MP_LAYERS_MAP = {
   kigali_zoning:    [117],
-  existing_landuse: [116],
-  admin_boundaries: [4, 5],
+  kigali_landuse:   [116],
+  kigali_admin:     [4, 5],
   planning_overlays:[82, 88, 89, 91, 92, 94, 95, 96],
 };
 
-// Legend cache — null = not yet fetched; {} = fetched (indexed by arcLayerId)
+// Identify URLs for district DLUP MapServer layers (queried on hover alongside MP_URL)
+const DLUP_IDENTIFY = {
+  burera_dlup:    `${NSDI_MP}/Burera_DLUP/MapServer`,
+  gakenke_dlup:   `${NSDI_MP}/Gakenke_DLUP/MapServer`,
+  gicumbi_dlup:   `${NSDI_MP}/Gicumbi_DLUP/MapServer`,
+  musanze_dlup:   `${NSDI_MP}/Musanze_DLUP/MapServer`,
+  rulindo_dlup:   `${NSDI_MP}/Rulindo_DLUP/MapServer`,
+  gisagara_dlup:  `${NSDI_MP}/Gisagara_DLUP/MapServer`,
+  huye_dlup:      `${NSDI_MP}/Huye_DLUP/MapServer`,
+  muhanga_dlup:   `${NSDI_MP}/Muhanga_DLUP/MapServer`,
+  nyamagabe_dlup: `${NSDI_MP}/Nyamagabe_DLUP/MapServer`,
+  nyanza_dlup:    `${NSDI_MP}/Nyanza_DLUP/MapServer`,
+  nyaruguru_dlup: `${NSDI_MP}/Nyaruguru_DLUP/MapServer`,
+  ruhango_dlup:   `${NSDI_MP}/Ruhango_DLUP/MapServer`,
+  bugesera_dlup:  `${NSDI_MP}/Bugesera_DLUP/MapServer`,
+  gatsibo_dlup:   `${NSDI_MP}/Gatsibo_DLUP/MapServer`,
+  kayonza_dlup:   `${NSDI_MP}/Kayonza_DLUP/MapServer`,
+  kirehe_dlup:    `${NSDI_MP}/Kirehe_DLUP/MapServer`,
+  ngoma_dlup:     `${NSDI_MP}/Ngoma_DLUP/MapServer`,
+  nyagatare_dlup: `${NSDI_MP}/Nyagatare_DLUP/MapServer`,
+  rwamagana_dlup: `${NSDI_MP}/Rwamagana_DLUP/MapServer`,
+  karongi_dlup:   `${NSDI_MP}/Karongi_DLUP/MapServer`,
+  ngororero_dlup: `${NSDI_MP}/Ngororero_DLUP/MapServer`,
+  nyabihu_dlup:   `${NSDI_MP}/Nyabihu_DLUP/MapServer`,
+  nyamasheke_dlup:`${NSDI_MP}/Nyamasheke_DLUP/MapServer`,
+  rubavu_dlup:    `${NSDI_MP}/Rubavu_DLUP/MapServer`,
+  rutsiro_dlup:   `${NSDI_MP}/Rutsiro_DLUP/MapServer`,
+  rusizi_dlup:    `${NSDI_MP}/Rusizi_DLUP/MapServer`,
+};
+
+// Kigali City master plan legend cache
 let _mpLegend = null;
 
 async function getMPLegend() {
@@ -509,6 +652,25 @@ async function getMPLegend() {
     console.warn('Could not fetch Master Plan legend:', e);
   }
   return _mpLegend;
+}
+
+// Per-district DLUP legend cache: { mapServerUrl → { layerId → { name, items } } }
+// Fetched lazily on first identify hover over a DLUP layer — independent of the
+// AbortController so the cache survives identify cancellations.
+const _dlupLegends = {};
+async function getDLUPLegend(url) {
+  if (_dlupLegends[url] != null) return _dlupLegends[url];
+  _dlupLegends[url] = {};
+  try {
+    const r = await fetch(`${url}/legend?f=json`);
+    if (r.ok) {
+      const d = await r.json();
+      for (const l of (d.layers || [])) {
+        _dlupLegends[url][l.layerId] = { name: l.layerName, items: l.legend || [] };
+      }
+    }
+  } catch(e) { /* silently ignore — tooltip will just show the raw zone code */ }
+  return _dlupLegends[url];
 }
 
 async function updateLegendPanel() {
@@ -593,6 +755,30 @@ fetch('https://raw.githubusercontent.com/wmgeolab/geoBoundaries/main/releaseData
   .catch(()=>fetch('https://nominatim.openstreetmap.org/search?q=Rwanda&polygon_geojson=1&format=geojson&limit=1')
     .then(r=>r.json()).then(drawBorder).catch(()=>{}));
 
+// ── Province name labels (matching basemap "KIGALI" style) ───────────────────
+// Permanent divIcon markers placed over each province's geographic centre.
+// iconSize width must be wide enough for the text — iconAnchor centres it.
+(function addProvinceLabels() {
+  const provinces = [
+    { name:'NORTHERN',  ll:[-1.45, 29.82] },
+    { name:'SOUTHERN',  ll:[-2.48, 29.65] },
+    { name:'EASTERN',   ll:[-1.75, 30.72] },
+    { name:'WESTERN',   ll:[-2.10, 29.08] },
+  ];
+  provinces.forEach(p => {
+    L.marker(p.ll, {
+      icon: L.divIcon({
+        className: 'prov-label',
+        html: p.name,
+        iconSize:   [160, 20],
+        iconAnchor: [80, 10],
+      }),
+      interactive: false,
+      zIndexOffset: -1000,
+    }).addTo(map);
+  });
+})();
+
 // ════════════════════════════════════════════════════════════════════════════
 // LAYER SYSTEM
 // ════════════════════════════════════════════════════════════════════════════
@@ -622,14 +808,24 @@ const GEO = {
     {ll:[-1.9100,30.0750], name:'Bumbogo Industrial Park',        sub:'Planned SEZ'},
     {ll:[-2.0300,30.1200], name:'Kigali–Bugesera Expressway',     sub:'Road corridor · planned'},
     {ll:[-1.7500,30.2200], name:'Northern Economic Corridor',     sub:'Infrastructure programme'},
+    // ── Kivu Belt Project ──────────────────────────────────────────────────────
+    // 208 km western corridor · RTDA / AfDB / Netherlands / TradeMark East Africa
+    {ll:[-1.7150,29.2480], name:'Kivu Belt — Port Nyamiyumba',    sub:'New lake port · Rubavu District · 1.5M passengers/yr projected'},
+    {ll:[-1.9450,29.4150], name:'Kivu Belt — Port Nkora',         sub:'New lake port · Rutsiro District · 270,000–580,000 t cargo capacity'},
+    {ll:[-2.0220,29.4350], name:'Kivu Belt — Port Bwishyura & Shipyard', sub:'Main shipyard · ship-building plant · marine transport training centre · Karongi District'},
+    {ll:[-2.0350,29.4550], name:'Kivu Belt — Water Supply Hub',   sub:'13,000 m³/day treatment plant · 96.5 km pipeline · 354,000 beneficiaries · 60% complete (2025)'},
+    {ll:[-2.4720,28.9180], name:'Kivu Belt — Port Bugiki',        sub:'New lake port · Rusizi / Kamembe · southern terminus of Kivu Belt corridor'},
   ],
   roads: [
-    {name:'RN1 — Kigali › Musanze',   color:'#ffb74d', weight:2.5, coords:[[-1.944,30.062],[-1.83,29.97],[-1.71,29.87],[-1.60,29.77],[-1.498,29.633]]},
-    {name:'RN2 — Kigali › Huye',      color:'#ffb74d', weight:2.5, coords:[[-1.944,30.062],[-2.05,29.93],[-2.20,29.83],[-2.38,29.77],[-2.599,29.740]]},
-    {name:'RN3 — Kigali › Rusizi',    color:'#ffb74d', weight:2,   coords:[[-1.944,30.062],[-2.00,29.82],[-2.06,29.55],[-2.20,29.35],[-2.36,29.15],[-2.486,28.906]]},
-    {name:'RN4 — Kigali › Nyagatare', color:'#ffb74d', weight:2.5, coords:[[-1.944,30.062],[-1.87,30.18],[-1.72,30.27],[-1.55,30.31],[-1.302,30.327]]},
-    {name:'RN5 — Kigali › Rusumo',    color:'#ffb74d', weight:2,   coords:[[-1.944,30.062],[-1.99,30.25],[-2.08,30.42],[-2.151,30.546],[-2.34,30.77]]},
+    {name:'RN1 — Kigali › Musanze',   color:'#ff8f00', weight:2.5, coords:[[-1.944,30.062],[-1.83,29.97],[-1.71,29.87],[-1.60,29.77],[-1.498,29.633]]},
+    {name:'RN2 — Kigali › Huye',      color:'#ff8f00', weight:2.5, coords:[[-1.944,30.062],[-2.05,29.93],[-2.20,29.83],[-2.38,29.77],[-2.599,29.740]]},
+    {name:'RN3 — Kigali › Rusizi',    color:'#ff8f00', weight:2,   coords:[[-1.944,30.062],[-2.00,29.82],[-2.06,29.55],[-2.20,29.35],[-2.36,29.15],[-2.486,28.906]]},
+    {name:'RN4 — Kigali › Nyagatare', color:'#ff8f00', weight:2.5, coords:[[-1.944,30.062],[-1.87,30.18],[-1.72,30.27],[-1.55,30.31],[-1.302,30.327]]},
+    {name:'RN5 — Kigali › Rusumo',    color:'#ff8f00', weight:2,   coords:[[-1.944,30.062],[-1.99,30.25],[-2.08,30.42],[-2.151,30.546],[-2.34,30.77]]},
     {name:'Kigali Ring Road',          color:'#ffe082', weight:1.8, coords:[[-1.904,30.022],[-1.887,30.058],[-1.895,30.101],[-1.929,30.120],[-1.965,30.112],[-1.980,30.077],[-1.965,30.040],[-1.935,30.024],[-1.904,30.022]]},
+    // Kivu Belt Road — 208 km · Rubavu › Rutsiro › Karongi › Nyamasheke › Rusizi
+    {name:'Kivu Belt Road (208 km)', color:'#80cbc4', weight:2.5,
+     coords:[[-1.680,29.260],[-1.715,29.255],[-1.780,29.275],[-1.870,29.330],[-1.945,29.415],[-2.000,29.450],[-2.025,29.445],[-2.060,29.465],[-2.120,29.410],[-2.180,29.330],[-2.230,29.240],[-2.290,29.220],[-2.360,29.120],[-2.420,29.010],[-2.472,28.918]]},
   ],
   hospitalityGaps: [
     {ll:[-2.20,30.13], name:'Bugesera Corridor', sub:'High construction activity · 0 hotels within 5km'},
@@ -668,9 +864,9 @@ const GEO = {
     {ll:[-1.382, 29.585], name:'Mount Sabyinyo',  sub:'3,634 m · "Old man\'s teeth"',               r: 7},
   ],
   rivers: [
-    {name:'Nyabarongo River',      color:'#4fc3f7', weight:2.5, coords:[[-2.47,29.42],[-2.30,29.50],[-2.10,29.58],[-1.90,29.65],[-1.75,29.80],[-1.60,29.92],[-1.55,30.08],[-1.50,30.17]]},
-    {name:'Akagera River (Kagera)',color:'#4fc3f7', weight:2.2, coords:[[-1.30,30.45],[-1.52,30.60],[-1.82,30.69],[-2.10,30.74],[-2.35,30.78],[-2.60,30.72]]},
-    {name:'Ruzizi River',          color:'#4fc3f7', weight:1.8, coords:[[-2.20,29.00],[-2.35,28.95],[-2.48,28.90]]},
+    {name:'Nyabarongo River',      color:'#26c6da', weight:2.5, coords:[[-2.47,29.42],[-2.30,29.50],[-2.10,29.58],[-1.90,29.65],[-1.75,29.80],[-1.60,29.92],[-1.55,30.08],[-1.50,30.17]]},
+    {name:'Akagera River (Kagera)',color:'#26c6da', weight:2.2, coords:[[-1.30,30.45],[-1.52,30.60],[-1.82,30.69],[-2.10,30.74],[-2.35,30.78],[-2.60,30.72]]},
+    {name:'Ruzizi River',          color:'#26c6da', weight:1.8, coords:[[-2.20,29.00],[-2.35,28.95],[-2.48,28.90]]},
   ],
   minerals: [
     {ll:[-1.562, 30.398], name:'Rutongo Cassiterite Mine',    sub:'Tin ore · major Eastern Province producer'},
@@ -681,12 +877,12 @@ const GEO = {
     {ll:[-2.487, 28.906], name:'Rusizi Hydropower Corridor',  sub:'Ruzizi I, II & III · 230 MW combined capacity'},
   ],
   factories: [
-    {ll:[-2.487, 28.906], name:'CIMERWA Cement Plant',             sub:'Main national cement producer · ~600,000 t/yr',  color:'#bcaaa4'},
-    {ll:[-1.944, 30.062], name:'Kigali Cement Distribution Hub',   sub:'Primary supply centre for the capital region',    color:'#bcaaa4'},
-    {ll:[-1.870, 30.020], name:'Kigali SEZ Steel Fabrication',     sub:'Structural steel · Kigali Special Economic Zone', color:'#ef9a9a'},
-    {ll:[-1.980, 30.082], name:'Gikondo Industrial Brick Factory', sub:'Clay brick production · Kigali South',            color:'#d7ccc8'},
-    {ll:[-2.076, 29.754], name:'Muhanga Building Materials Hub',   sub:'Regional supply centre · Central Province',       color:'#bcaaa4'},
-    {ll:[-1.498, 29.633], name:'Musanze Volcanic Stone Quarry',    sub:'Basalt & pumice · Northern Province construction', color:'#d7ccc8'},
+    {ll:[-2.487, 28.906], name:'CIMERWA Cement Plant',             sub:'Main national cement producer · ~600,000 t/yr',  color:'#a1887f'},
+    {ll:[-1.944, 30.062], name:'Kigali Cement Distribution Hub',   sub:'Primary supply centre for the capital region',    color:'#a1887f'},
+    {ll:[-1.870, 30.020], name:'Kigali SEZ Steel Fabrication',     sub:'Structural steel · Kigali Special Economic Zone', color:'#78909c'},
+    {ll:[-1.980, 30.082], name:'Gikondo Industrial Brick Factory', sub:'Clay brick production · Kigali South',            color:'#ff7043'},
+    {ll:[-2.076, 29.754], name:'Muhanga Building Materials Hub',   sub:'Regional supply centre · Central Province',       color:'#a1887f'},
+    {ll:[-1.498, 29.633], name:'Musanze Volcanic Stone Quarry',    sub:'Basalt & pumice · Northern Province construction', color:'#ff7043'},
   ],
 
   // ── Socio-Economic: population density by district (illustrative) ───────────
@@ -734,12 +930,17 @@ function mkCircle(ll, color, r, tooltip) {
           .bindTooltip(tooltip, { sticky:false, direction:'top', offset:[0,-6] });
 }
 
+// Shared Canvas renderer for all FeatureServer polygon layers.
+// A single <canvas> element replaces thousands of SVG <path> nodes,
+// eliminating the main cause of freeze/lag when zoning layers are enabled.
+const CANVAS_RENDERER = L.canvas({ tolerance: 2 });
+
 const BUILDERS = {
   existing_infra: () => L.layerGroup(GEO.existingInfra.map(d =>
-    mkCircle(d.ll, '#42a5f5', 6, `<strong>${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
+    mkCircle(d.ll, '#1565c0', 6, `<strong>${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
   )),
   planned_infra: () => L.layerGroup(GEO.plannedInfra.map(d =>
-    L.circleMarker(d.ll, { radius:7, fillColor:'#90caf9', color:'#90caf9', weight:2, opacity:0.9, fillOpacity:0.35,
+    L.circleMarker(d.ll, { radius:7, fillColor:'#00acc1', color:'#00acc1', weight:2, opacity:0.9, fillOpacity:0.35,
       dashArray:'4 3' })
     .bindTooltip(`<strong>${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`, { sticky:false, direction:'top', offset:[0,-6] })
   )),
@@ -749,20 +950,20 @@ const BUILDERS = {
   )),
   construction_intel: () => L.layerGroup(), // parent — children render separately
   hospitality_gaps: () => L.layerGroup(GEO.hospitalityGaps.map(d =>
-    mkCircle(d.ll, '#ffd54f', 8, `<strong>⚑ ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
+    mkCircle(d.ll, '#fdd835', 8, `<strong>⚑ ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
   )),
   residential_sat: () => L.layerGroup(GEO.residentialSat.map(d =>
-    mkCircle(d.ll, '#ff7043', 8, `<strong>⊗ ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
+    mkCircle(d.ll, '#b71c1c', 8, `<strong>⊗ ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
   )),
   missing_links: () => L.layerGroup(GEO.missingLinks.map(d =>
-    mkCircle(d.ll, '#66bb6a', 8, `<strong>⊕ ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
+    mkCircle(d.ll, '#2e7d32', 8, `<strong>⊕ ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
   )),
 
   // ── Geography & Environment ─────────────────────────────────────────────────
   topography: () => L.layerGroup([
     // Lakes — filled blue circles, size proportional to lake area
     ...GEO.lakes.map(d =>
-      L.circleMarker(d.ll, { radius:d.r, fillColor:'#4fc3f7', color:'#0288d1', weight:1.5, opacity:0.85, fillOpacity:0.45 })
+      L.circleMarker(d.ll, { radius:d.r, fillColor:'#29b6f6', color:'#0277bd', weight:1.5, opacity:0.85, fillOpacity:0.45 })
        .bindTooltip(`<strong>🏞 ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`, {sticky:false,direction:'top',offset:[0,-4]})
     ),
     // Volcanoes — warm orange markers
@@ -778,7 +979,7 @@ const BUILDERS = {
   ]),
 
   natural_resources: () => L.layerGroup(GEO.minerals.map(d =>
-    mkCircle(d.ll, '#ce93d8', 9, `<strong>⬡ ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
+    mkCircle(d.ll, '#6a1b9a', 9, `<strong>⬡ ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
   )),
 
   material_factories: () => L.layerGroup(GEO.factories.map(d =>
@@ -795,12 +996,12 @@ const BUILDERS = {
     f: 'image', format: 'png32', transparent: true
   }),
 
-  existing_landuse: () => L.esri.dynamicMapLayer({
+  kigali_landuse: () => L.esri.dynamicMapLayer({
     url: MP_URL, layers: [116], opacity: 0.75,
     f: 'image', format: 'png32', transparent: true
   }),
 
-  admin_boundaries: () => L.esri.dynamicMapLayer({
+  kigali_admin: () => L.esri.dynamicMapLayer({
     url: MP_URL, layers: [4, 5], opacity: 0.85,
     f: 'image', format: 'png32', transparent: true
   }),
@@ -811,6 +1012,70 @@ const BUILDERS = {
     url: MP_URL, layers: [82, 88, 91, 92, 94, 95, 96], opacity: 0.70,
     f: 'image', format: 'png32', transparent: true
   }),
+
+  // ── Zoning & Master Plans — MapServer layers (server-rendered, no minZoom) ──
+  // National Land Use & Development Master Plan 2050 — all Rwanda, no filter
+  national_lu_2050: () => L.esri.dynamicMapLayer({
+    url: `${NSDI_MP}/NLUDMP2050_FS/MapServer`,
+    opacity: 0.7,
+    f: 'image', format: 'png8', transparent: true
+  }),
+
+  // ── Proposed Zoning container + province plan containers ───────────────────
+  proposed_zoning: () => L.layerGroup(),
+  kigali_plans:    () => L.layerGroup(),
+  northern_plans:  () => L.layerGroup(),
+  southern_plans:  () => L.layerGroup(),
+  eastern_plans:   () => L.layerGroup(),
+  western_plans:   () => L.layerGroup(),
+
+  // ── District DLUPs — each district's own MapServer (server GIS styling) ──
+  // Kigali City (not shown in panel — kigali_zoning covers it — kept for completeness)
+  kigali_dlup:    () => mkDistrictZoning(`${NSDI_MP}/Kigali_DLUP/MapServer`),
+  // Northern Province
+  burera_dlup:    () => mkDistrictZoning(`${NSDI_MP}/Burera_DLUP/MapServer`),
+  gakenke_dlup:   () => mkDistrictZoning(`${NSDI_MP}/Gakenke_DLUP/MapServer`),
+  gicumbi_dlup:   () => mkDistrictZoning(`${NSDI_MP}/Gicumbi_DLUP/MapServer`),
+  musanze_dlup:   () => mkDistrictZoning(`${NSDI_MP}/Musanze_DLUP/MapServer`),
+  rulindo_dlup:   () => mkDistrictZoning(`${NSDI_MP}/Rulindo_DLUP/MapServer`),
+  // Southern Province
+  gisagara_dlup:  () => mkDistrictZoning(`${NSDI_MP}/Gisagara_DLUP/MapServer`),
+  huye_dlup:      () => mkDistrictZoning(`${NSDI_MP}/Huye_DLUP/MapServer`),
+  muhanga_dlup:   () => mkDistrictZoning(`${NSDI_MP}/Muhanga_DLUP/MapServer`),
+  nyamagabe_dlup: () => mkDistrictZoning(`${NSDI_MP}/Nyamagabe_DLUP/MapServer`),
+  nyanza_dlup:    () => mkDistrictZoning(`${NSDI_MP}/Nyanza_DLUP/MapServer`),
+  nyaruguru_dlup: () => mkDistrictZoning(`${NSDI_MP}/Nyaruguru_DLUP/MapServer`),
+  ruhango_dlup:   () => mkDistrictZoning(`${NSDI_MP}/Ruhango_DLUP/MapServer`),
+  // Eastern Province
+  bugesera_dlup:  () => mkDistrictZoning(`${NSDI_MP}/Bugesera_DLUP/MapServer`),
+  gatsibo_dlup:   () => mkDistrictZoning(`${NSDI_MP}/Gatsibo_DLUP/MapServer`),
+  kayonza_dlup:   () => mkDistrictZoning(`${NSDI_MP}/Kayonza_DLUP/MapServer`),
+  kirehe_dlup:    () => mkDistrictZoning(`${NSDI_MP}/Kirehe_DLUP/MapServer`),
+  ngoma_dlup:     () => mkDistrictZoning(`${NSDI_MP}/Ngoma_DLUP/MapServer`),
+  nyagatare_dlup: () => mkDistrictZoning(`${NSDI_MP}/Nyagatare_DLUP/MapServer`),
+  rwamagana_dlup: () => mkDistrictZoning(`${NSDI_MP}/Rwamagana_DLUP/MapServer`),
+  // Western Province
+  karongi_dlup:   () => mkDistrictZoning(`${NSDI_MP}/Karongi_DLUP/MapServer`),
+  ngororero_dlup: () => mkDistrictZoning(`${NSDI_MP}/Ngororero_DLUP/MapServer`),
+  nyabihu_dlup:   () => mkDistrictZoning(`${NSDI_MP}/Nyabihu_DLUP/MapServer`),
+  nyamasheke_dlup:() => mkDistrictZoning(`${NSDI_MP}/Nyamasheke_DLUP/MapServer`),
+  rubavu_dlup:    () => mkDistrictZoning(`${NSDI_MP}/Rubavu_DLUP/MapServer`),
+  rutsiro_dlup:   () => mkDistrictZoning(`${NSDI_MP}/Rutsiro_DLUP/MapServer`),
+  rusizi_dlup:    () => mkDistrictZoning(`${NSDI_MP}/Rusizi_DLUP/MapServer`),
+
+  // ── Administrative Boundaries — parent + per-province ─────────────────────
+  admin_bounds: () => L.layerGroup(),
+  northern_admin: () => mkProvAdmin('Northern Province'),
+  southern_admin: () => mkProvAdmin('Southern Province'),
+  eastern_admin:  () => mkProvAdmin('Eastern Province'),
+  western_admin:  () => mkProvAdmin('Western Province'),
+
+  // ── Existing Land Use — parent + per-province ──────────────────────────────
+  existing_lu:    () => L.layerGroup(),
+  northern_lulc:  () => mkProvLULC('Northern Province'),
+  southern_lulc:  () => mkProvLULC('Southern Province'),
+  eastern_lulc:   () => mkProvLULC('Eastern Province'),
+  western_lulc:   () => mkProvLULC('Western Province'),
 
   pop_density: () => {
     function densityColor(d) {
@@ -838,17 +1103,17 @@ const BUILDERS = {
 // ── Layer groups data model ───────────────────────────────────────────────────
 const LAYER_GROUPS = [
   {
-    id: 'infrastructure', label: 'Infrastructure & Development', color: '#64b5f6', expanded: false,
+    id: 'infrastructure', label: 'Infrastructure & Development', color: '#5c9bd6', expanded: false,
     layers: [
-      { id:'existing_infra',    label:'Existing Infrastructure',    desc:'Airports, facilities, urban centres',           color:'#42a5f5', opacity:80, visible:false, leaflet:null },
-      { id:'planned_infra',     label:'Planned Infrastructure',     desc:'Bugesera Airport, corridors, new hubs',         color:'#90caf9', opacity:80, visible:false, leaflet:null },
-      { id:'road_networks',     label:'Road Networks',              desc:'National and provincial transport routes',      color:'#ffb74d', opacity:80, visible:false, leaflet:null },
-      { id:'construction_intel',label:'Construction Intelligence',  desc:'Opportunity gaps & predictive hotspots',        color:'#ef9a9a', opacity:80, visible:false, leaflet:null,
+      { id:'existing_infra',    label:'Existing Infrastructure',    desc:'Airports, facilities, urban centres',           color:'#1565c0', opacity:80, visible:false, leaflet:null },
+      { id:'planned_infra',     label:'Planned Infrastructure',     desc:'Bugesera Airport, corridors, new hubs',         color:'#00acc1', opacity:80, visible:false, leaflet:null },
+      { id:'road_networks',     label:'Road Networks',              desc:'National and provincial transport routes',      color:'#ff8f00', opacity:80, visible:false, leaflet:null },
+      { id:'construction_intel',label:'Construction Intelligence',  desc:'Opportunity gaps & predictive hotspots',        color:'#78909c', opacity:80, visible:false, leaflet:null,
         expanded: false,
         children: [
-          { id:'hospitality_gaps', label:'Hospitality Gaps',         desc:'New roads near construction · no hotels nearby', color:'#ffd54f', opacity:80, visible:false, leaflet:null },
-          { id:'residential_sat',  label:'Residential Saturation',   desc:'Oversupplied apartment zones',                  color:'#ff7043', opacity:80, visible:false, leaflet:null },
-          { id:'missing_links',    label:'Missing Community Links',  desc:'Residential areas lacking schools or clinics',  color:'#66bb6a', opacity:80, visible:false, leaflet:null },
+          { id:'hospitality_gaps', label:'Hospitality Gaps',         desc:'New roads near construction · no hotels nearby', color:'#fdd835', opacity:80, visible:false, leaflet:null },
+          { id:'residential_sat',  label:'Residential Saturation',   desc:'Oversupplied apartment zones',                  color:'#b71c1c', opacity:80, visible:false, leaflet:null },
+          { id:'missing_links',    label:'Missing Community Links',  desc:'Residential areas lacking schools or clinics',  color:'#2e7d32', opacity:80, visible:false, leaflet:null },
         ]
       }
     ]
@@ -856,23 +1121,121 @@ const LAYER_GROUPS = [
 
   // ── Geography & Environment ─────────────────────────────────────────────────
   {
-    id: 'geography', label: 'Geography & Environment', color: '#81c784', expanded: false,
+    id: 'geography', label: 'Geography & Environment', color: '#4db6ac', expanded: false,
     layers: [
-      { id:'topography',         label:'Topography',                  desc:'Lakes, volcanoes & rivers — Rwanda\'s "Thousand Hills"',    color:'#4fc3f7', opacity:80, visible:false, leaflet:null },
-      { id:'natural_resources',  label:'Natural Resources',           desc:'Minerals, methane reserves & hydropower corridors',         color:'#ce93d8', opacity:80, visible:false, leaflet:null },
-      { id:'material_factories', label:'Building Material Factories', desc:'Cement, brick & steel plants — logistics & cost mapping',   color:'#bcaaa4', opacity:80, visible:false, leaflet:null },
+      { id:'topography',         label:'Topography',                  desc:'Lakes, volcanoes & rivers — Rwanda\'s "Thousand Hills"',    color:'#006064', opacity:80, visible:false, leaflet:null },
+      { id:'natural_resources',  label:'Natural Resources',           desc:'Minerals, methane reserves & hydropower corridors',         color:'#6a1b9a', opacity:80, visible:false, leaflet:null },
+      { id:'material_factories', label:'Building Material Factories', desc:'Cement, brick & steel plants — logistics & cost mapping',   color:'#4e342e', opacity:80, visible:false, leaflet:null },
     ]
   },
 
-  // ── Socio-Economic & Zoning ──────────────────────────────────────────────────
+  // ── Zoning & Master Plans ─────────────────────────────────────────────────────
   {
-    id: 'socioeconomic', label: 'Socio-Economic & Zoning', color: '#ffb74d', expanded: false,
+    id: 'zoning', label: 'Zoning & Master Plans', color: '#00897b', expanded: false,
     layers: [
-      { id:'kigali_zoning',    label:'Kigali Master Plan — Zoning',  desc:'Official proposed zoning plan · Kigali City 2020 Master Plan', color:'#ff9800', opacity:80, visible:false, leaflet:null },
-      { id:'existing_landuse', label:'Existing Land Use',            desc:'Current land-use classification across Kigali City',          color:'#8bc34a', opacity:75, visible:false, leaflet:null },
-      { id:'admin_boundaries', label:'Administrative Boundaries',    desc:'District & sector boundaries · official Kigali City data',    color:'#90a4ae', opacity:85, visible:false, leaflet:null },
-      { id:'planning_overlays',label:'Planning Overlays',            desc:'Wetlands, slopes, disaster risk, incentive & tourism zones',  color:'#ab47bc', opacity:70, visible:false, leaflet:null },
-      { id:'pop_density',      label:'Population & Demographics',    desc:'District density, income level & household size (illustrative)', color:'#ef5350', opacity:75, visible:false, leaflet:null },
+
+      // ── National overview ────────────────────────────────────────────────
+      { id:'national_lu_2050', label:'National Land Use Plan 2050', desc:'All-Rwanda strategic zoning · NLUDMP2050 · broad categories', color:'#00897b', opacity:70, visible:false, leaflet:null },
+
+      // ── Proposed Zoning — 3-level: container → province → district ───────
+      { id:'proposed_zoning', label:'Proposed Zoning', desc:'District Land Use Plans per province · NSDI geodata.rw + Kigali City Master Plan', color:'#26a69a', opacity:70, visible:false, leaflet:null,
+        expanded: false,
+        children: [
+
+          // Kigali is a single city (no sub-districts needed)
+          { id:'kigali_zoning', label:'Kigali City', desc:'Official proposed zoning · Kigali City 2020 Master Plan', color:'#e91e63', opacity:80, visible:false, leaflet:null },
+
+          // ── Northern Province ───────────────────────────────────────────
+          { id:'northern_plans', label:'Northern Province', desc:'Burera · Gakenke · Gicumbi · Musanze · Rulindo · DLUP', color:'#26a69a', opacity:70, visible:false, leaflet:null,
+            expanded: false,
+            children: [
+              { id:'burera_dlup',  label:'Burera',  desc:'Northern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'gakenke_dlup', label:'Gakenke', desc:'Northern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'gicumbi_dlup', label:'Gicumbi', desc:'Northern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'musanze_dlup', label:'Musanze', desc:'Northern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'rulindo_dlup', label:'Rulindo', desc:'Northern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+            ]
+          },
+
+          // ── Southern Province ───────────────────────────────────────────
+          { id:'southern_plans', label:'Southern Province', desc:'Gisagara · Huye · Muhanga · Nyamagabe · Nyanza · Nyaruguru · Ruhango · DLUP', color:'#26a69a', opacity:70, visible:false, leaflet:null,
+            expanded: false,
+            children: [
+              { id:'gisagara_dlup',  label:'Gisagara',  desc:'Southern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'huye_dlup',      label:'Huye',      desc:'Southern Province · DLUP · Butare area', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'muhanga_dlup',   label:'Muhanga',   desc:'Southern Province · DLUP · Gitarama',    color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'nyamagabe_dlup', label:'Nyamagabe', desc:'Southern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'nyanza_dlup',    label:'Nyanza',    desc:'Southern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'nyaruguru_dlup', label:'Nyaruguru', desc:'Southern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'ruhango_dlup',   label:'Ruhango',   desc:'Southern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+            ]
+          },
+
+          // ── Eastern Province ────────────────────────────────────────────
+          { id:'eastern_plans', label:'Eastern Province', desc:'Bugesera · Gatsibo · Kayonza · Kirehe · Ngoma · Nyagatare · Rwamagana · DLUP', color:'#26a69a', opacity:70, visible:false, leaflet:null,
+            expanded: false,
+            children: [
+              { id:'bugesera_dlup',  label:'Bugesera',  desc:'Eastern Province · DLUP · near Bugesera Airport', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'gatsibo_dlup',   label:'Gatsibo',   desc:'Eastern Province · DLUP · geodata.rw',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'kayonza_dlup',   label:'Kayonza',   desc:'Eastern Province · DLUP · geodata.rw',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'kirehe_dlup',    label:'Kirehe',    desc:'Eastern Province · DLUP · geodata.rw',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'ngoma_dlup',     label:'Ngoma',     desc:'Eastern Province · DLUP · geodata.rw',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'nyagatare_dlup', label:'Nyagatare', desc:'Eastern Province · DLUP · geodata.rw',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'rwamagana_dlup', label:'Rwamagana', desc:'Eastern Province · DLUP · geodata.rw',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+            ]
+          },
+
+          // ── Western Province ────────────────────────────────────────────
+          { id:'western_plans', label:'Western Province', desc:'Karongi · Ngororero · Nyabihu · Nyamasheke · Rubavu · Rutsiro · Rusizi · DLUP', color:'#26a69a', opacity:70, visible:false, leaflet:null,
+            expanded: false,
+            children: [
+              { id:'karongi_dlup',    label:'Karongi',    desc:'Western Province · DLUP · Lake Kivu',          color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'ngororero_dlup',  label:'Ngororero',  desc:'Western Province · DLUP · geodata.rw',          color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'nyabihu_dlup',    label:'Nyabihu',    desc:'Western Province · DLUP · geodata.rw',          color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'nyamasheke_dlup', label:'Nyamasheke', desc:'Western Province · DLUP · Lake Kivu',           color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'rubavu_dlup',     label:'Rubavu',     desc:'Western Province · DLUP · Gisenyi / Lake Kivu', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'rutsiro_dlup',    label:'Rutsiro',    desc:'Western Province · DLUP · Kivu Belt',           color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'rusizi_dlup',     label:'Rusizi',     desc:'Western Province · DLUP · Kivu Belt south',     color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+            ]
+          },
+
+        ]
+      },
+
+      // ── Administrative Boundaries (per province) ──────────────────────────
+      { id:'admin_bounds', label:'Administrative Boundaries', desc:'Province & district boundaries · national topographic map', color:'#455a64', opacity:85, visible:false, leaflet:null,
+        expanded: false,
+        children: [
+          { id:'kigali_admin',    label:'Kigali City',       desc:'Official district & sector boundaries · Kigali City Master Plan',  color:'#455a64', opacity:85, visible:false, leaflet:null },
+          { id:'northern_admin',  label:'Northern Province', desc:'District boundaries · Burera, Gakenke, Gicumbi, Musanze, Rulindo', color:'#546e7a', opacity:80, visible:false, leaflet:null },
+          { id:'southern_admin',  label:'Southern Province', desc:'District boundaries · 8 southern districts',                       color:'#546e7a', opacity:80, visible:false, leaflet:null },
+          { id:'eastern_admin',   label:'Eastern Province',  desc:'District boundaries · 7 eastern districts',                        color:'#546e7a', opacity:80, visible:false, leaflet:null },
+          { id:'western_admin',   label:'Western Province',  desc:'District boundaries · 7 western districts',                        color:'#546e7a', opacity:80, visible:false, leaflet:null },
+        ]
+      },
+
+      // ── Existing Land Use (per province) ──────────────────────────────────
+      { id:'existing_lu', label:'Existing Land Use', desc:'Topographic land use — vegetation, cultivation, water · geodata.rw', color:'#558b2f', opacity:75, visible:false, leaflet:null,
+        expanded: false,
+        children: [
+          { id:'northern_lulc',   label:'Northern Province', desc:'Topographic land use · vegetation, cultivation, open space · zoom in for detail', color:'#689f38', opacity:70, visible:false, leaflet:null },
+          { id:'southern_lulc',   label:'Southern Province', desc:'Topographic land use · vegetation, cultivation, open space · zoom in for detail', color:'#689f38', opacity:70, visible:false, leaflet:null },
+          { id:'eastern_lulc',    label:'Eastern Province',  desc:'Topographic land use · vegetation, cultivation, open space · zoom in for detail', color:'#689f38', opacity:70, visible:false, leaflet:null },
+          { id:'western_lulc',    label:'Western Province',  desc:'Topographic land use · vegetation, cultivation, open space · zoom in for detail', color:'#689f38', opacity:70, visible:false, leaflet:null },
+          // Kigali last so it renders on top of the topographic layer
+          { id:'kigali_landuse',  label:'Kigali City',       desc:'Current land-use classification · Kigali City 2020 Master Plan (detailed)',       color:'#558b2f', opacity:75, visible:false, leaflet:null },
+        ]
+      },
+
+    ]
+  },
+
+  // ── Socio-Economic & Demographics ────────────────────────────────────────────
+  {
+    id: 'socioeconomic', label: 'Socio-Economic & Demographics', color: '#fb8c00', expanded: false,
+    layers: [
+      { id:'planning_overlays', label:'Planning Overlays',         desc:'Wetlands, slopes, disaster risk, incentive & tourism zones',    color:'#b0bec5', opacity:70, visible:false, leaflet:null },
+      { id:'pop_density',       label:'Population & Demographics', desc:'District density, income level & household size (illustrative)', color:'#ef5350', opacity:75, visible:false, leaflet:null },
     ]
   }
 ];
@@ -880,20 +1243,48 @@ const LAYER_GROUPS = [
 // ── Layer lookup helpers ──────────────────────────────────────────────────────
 function allLeafLayers(grp) {
   const out=[];
-  grp.layers.forEach(l => {
-    if (l.children) l.children.forEach(c => out.push(c));
-    else out.push(l);
-  });
+  function collect(layer) {
+    if (layer.children && layer.children.length>0) layer.children.forEach(collect);
+    else out.push(layer);
+  }
+  grp.layers.forEach(collect);
   return out;
 }
 function findLayer(id) {
   for (const g of LAYER_GROUPS) {
     for (const l of g.layers) {
       if (l.id===id) return {layer:l, group:g};
-      if (l.children) { const c=l.children.find(c=>c.id===id); if(c) return {layer:c, group:g, parent:l}; }
+      if (l.children) {
+        for (const c of l.children) {
+          if (c.id===id) return {layer:c, group:g, parent:l};
+          if (c.children) {
+            const gc=c.children.find(x=>x.id===id);
+            if (gc) return {layer:gc, group:g, parent:c, grandparent:l};
+          }
+        }
+      }
     }
   }
   return null;
+}
+
+// Find any layer node by id searching the full tree (used by syncParentCb)
+function findNode(id) {
+  function search(layers) {
+    for (const l of layers) {
+      if (l.id===id) return l;
+      if (l.children) { const f=search(l.children); if(f) return f; }
+    }
+    return null;
+  }
+  for (const g of LAYER_GROUPS) { const f=search(g.layers); if(f) return f; }
+  return null;
+}
+
+// Collect all leaf layers under a node (recursive)
+function collectLeaves(layer) {
+  if (!layer.children || layer.children.length===0) return [layer];
+  return layer.children.flatMap(collectLeaves);
 }
 
 // ── Leaflet layer management ──────────────────────────────────────────────────
@@ -923,6 +1314,9 @@ function setOpacity(layer, pct) {
   } else if (layer.leaflet.setOpacity) {
     // L.esri.dynamicMapLayer and other single-layer types
     layer.leaflet.setOpacity(op);
+  } else if (layer.leaflet.setStyle) {
+    // L.esri.featureLayer — update polygon stroke + fill opacity
+    layer.leaflet.setStyle({ opacity: op * 0.5, fillOpacity: op * 0.65 });
   }
 }
 
@@ -952,12 +1346,22 @@ function syncGroupCb(grpId) {
   else{ cb.checked=false; cb.indeterminate=true; }
 }
 function syncParentCb(parentId) {
-  const found=LAYER_GROUPS.flatMap(g=>g.layers).find(l=>l.id===parentId); if(!found||!found.children) return;
-  const n=found.children.filter(c=>c.visible).length;
+  const node=findNode(parentId); if(!node||!node.children) return;
+  const leaves=collectLeaves(node);
+  const n=leaves.filter(l=>l.visible).length;
   const cb=document.getElementById(`lcb-${parentId}`); if(!cb) return;
   if(n===0){ cb.checked=false; cb.indeterminate=false; }
-  else if(n===found.children.length){ cb.checked=true; cb.indeterminate=false; }
+  else if(n===leaves.length){ cb.checked=true; cb.indeterminate=false; }
   else{ cb.checked=false; cb.indeterminate=true; }
+}
+// Sync ALL parent container checkboxes in a group (walks the full tree)
+function syncAllParentCbs(grp) {
+  function syncNode(layers) {
+    layers.forEach(l => {
+      if (l.children) { syncNode(l.children); syncParentCb(l.id); }
+    });
+  }
+  syncNode(grp.layers);
 }
 
 // ── Solo mode ─────────────────────────────────────────────────────────────────
@@ -992,10 +1396,11 @@ const SVG_CHEVRON = `<svg viewBox="0 0 10 10"><path d="M3.5 2l3.5 3-3.5 3" strok
 const SVG_EYE     = `<svg viewBox="0 0 16 16"><path d="M8 3C4.5 3 1.7 5.5 1 8c.7 2.5 3.5 5 7 5s6.3-2.5 7-5c-.7-2.5-3.5-5-7-5zm0 8.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7zm0-5.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>`;
 const SVG_DRAG    = `<svg viewBox="0 0 6 10" width="6" height="10" fill="currentColor"><circle cx="1.5" cy="2" r="1"/><circle cx="4.5" cy="2" r="1"/><circle cx="1.5" cy="5" r="1"/><circle cx="4.5" cy="5" r="1"/><circle cx="1.5" cy="8" r="1"/><circle cx="4.5" cy="8" r="1"/></svg>`;
 
-function renderLayer(lyr, grpId, isChild=false) {
+function renderLayer(lyr, grpId, depth=0) {
   const hasCh = lyr.children && lyr.children.length>0;
+  const depthClass = depth===0 ? '' : depth===1 ? ' lp-child' : ' lp-child lp-grandchild';
   return `
-  <div class="lp-layer${isChild?' lp-child':''}" id="lyd-${lyr.id}" data-layer="${lyr.id}" data-grp="${grpId}"${!isChild?' draggable="true"':''}>
+  <div class="lp-layer${depthClass}" id="lyd-${lyr.id}" data-layer="${lyr.id}" data-grp="${grpId}"${depth===0?' draggable="true"':''}>
     <div class="lp-layer-row">
       <span class="drag-handle" title="Drag to reorder">${SVG_DRAG}</span>
       ${hasCh ? `<button class="lp-chevron${lyr.expanded?' open':''}" id="lch-${lyr.id}" data-target="lchildren-${lyr.id}">${SVG_CHEVRON}</button>`
@@ -1017,7 +1422,7 @@ function renderLayer(lyr, grpId, isChild=false) {
       <span class="lp-opacity-val" id="opv-${lyr.id}">${lyr.opacity}%</span>
     </div>
     ${hasCh ? `<div class="lp-children${lyr.expanded?' open':''}" id="lchildren-${lyr.id}">
-      ${lyr.children.map(c=>renderLayer(c,grpId,true)).join('')}
+      ${lyr.children.map(c=>renderLayer(c,grpId,depth+1)).join('')}
     </div>` : ''}
   </div>`;
 }
@@ -1065,7 +1470,7 @@ function attachPanelListeners() {
         const g=LAYER_GROUPS.find(g=>btn.id===`gch-${g.id}`); if(g) g.expanded=open;
       } else if (btn.id.startsWith('lch-')) {
         const id=btn.id.replace('lch-','');
-        LAYER_GROUPS.forEach(g=>g.layers.forEach(l=>{ if(l.id===id) l.expanded=open; }));
+        const node=findNode(id); if(node) node.expanded=open;
       }
     });
   });
@@ -1079,8 +1484,8 @@ function attachPanelListeners() {
         setVisible(l, cb.checked);
         const lc=document.getElementById(`lcb-${l.id}`); if(lc){ lc.checked=cb.checked; lc.indeterminate=false; }
       });
-      // sync parent checkboxes for layers-with-children
-      grp.layers.filter(l=>l.children).forEach(l=>syncParentCb(l.id));
+      // sync all container checkboxes at every depth
+      syncAllParentCbs(grp);
       syncGroupCb(grp.id);
       updateActiveCounts();
     });
@@ -1094,18 +1499,30 @@ function attachPanelListeners() {
       const {layer, group, parent}=found;
 
       if (layer.children) {
-        // Parent-of-children: toggle all sub-layers
-        layer.children.forEach(c=>{
-          c.visible=cb.checked;
-          setVisible(c, cb.checked);
-          const lc=document.getElementById(`lcb-${c.id}`); if(lc){ lc.checked=cb.checked; lc.indeterminate=false; }
-        });
+        // Parent-of-children: cascade toggle through all depths
+        const cascadeToggle = (children, vis) => {
+          children.forEach(c => {
+            if (c.children) {
+              // intermediate container — update its checkbox + recurse
+              const lc=document.getElementById(`lcb-${c.id}`);
+              if(lc){ lc.checked=vis; lc.indeterminate=false; }
+              cascadeToggle(c.children, vis);
+            } else {
+              c.visible=vis;
+              setVisible(c, vis);
+              const lc=document.getElementById(`lcb-${c.id}`);
+              if(lc){ lc.checked=vis; lc.indeterminate=false; }
+            }
+          });
+        };
+        cascadeToggle(layer.children, cb.checked);
       } else {
         setVisible(layer, cb.checked);
       }
 
-      // Sync parent checkbox if this is a child
-      if (parent) syncParentCb(parent.id);
+      // Sync all ancestor checkboxes (parent, grandparent)
+      if (parent)      syncParentCb(parent.id);
+      if (found.grandparent) syncParentCb(found.grandparent.id);
       syncGroupCb(group.id);
       updateActiveCounts();
     });
@@ -1273,47 +1690,67 @@ let _idTimer  = null;
 let _idAbort  = null;
 
 async function doIdentify(latlng, clientX, clientY) {
-  const arcIds = getActiveMPLayerIds();
-  if (!arcIds.length) { hideMPTip(); return; }
+  // Build the list of active identify targets
+  const queries = [];
 
-  // Cancel any in-flight request
+  // 1 · Kigali City master plan layers
+  const arcIds = getActiveMPLayerIds();
+  if (arcIds.length) queries.push({ url: MP_URL, layers: `all:${arcIds.join(',')}`, isMP: true });
+
+  // 2 · Active district DLUP MapServer layers
+  for (const [lid, url] of Object.entries(DLUP_IDENTIFY)) {
+    const f = findLayer(lid);
+    if (f && f.layer.visible) queries.push({ url, layers: 'all', isMP: false });
+  }
+
+  if (!queries.length) { hideMPTip(); return; }
+
+  // Cancel any in-flight requests
   if (_idAbort) { try { _idAbort.abort(); } catch(e) {} }
   _idAbort = new AbortController();
+  const sig = _idAbort.signal;
 
   const bounds = map.getBounds();
   const size   = map.getSize();
-  const params = new URLSearchParams({
+  const baseP  = {
     geometry:       `${latlng.lng},${latlng.lat}`,
     geometryType:   'esriGeometryPoint',
     sr:             '4326',
-    layers:         `all:${arcIds.join(',')}`,
     tolerance:      '3',
     mapExtent:      `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`,
     imageDisplay:   `${size.x},${size.y},96`,
     returnGeometry: 'false',
     f:              'json',
-  });
+  };
 
   try {
-    const r = await fetch(`${MP_URL}/identify?${params}`, { signal: _idAbort.signal });
-    if (!r.ok) { hideMPTip(); return; }
-    const data = await r.json();
-    const results = (data.results || []).filter(res =>
-      res.value && res.value.trim() !== '' && res.value !== 'N/A' && res.value !== 'Null'
-    );
-    if (!results.length) { hideMPTip(); return; }
-    renderMPTip(clientX, clientY, results);
+    // Fire identify + legend requests in parallel across all active targets
+    const buckets = await Promise.all(queries.map(async q => {
+      const [legend, raw] = await Promise.all([
+        q.isMP ? getMPLegend() : getDLUPLegend(q.url),
+        fetch(`${q.url}/identify?${new URLSearchParams({ ...baseP, layers: q.layers })}`, { signal: sig })
+          .then(r => r.ok ? r.json() : { results: [] })
+          .catch(() => ({ results: [] })),
+      ]);
+      return (raw.results || [])
+        .filter(res => res.value && res.value.trim() !== '' && res.value !== 'N/A' && res.value !== 'Null')
+        .map(res => ({ ...res, _legend: legend }));  // annotate with the right legend
+    }));
+
+    const all = buckets.flat();
+    if (!all.length) { hideMPTip(); return; }
+    renderMPTip(clientX, clientY, all);
   } catch(e) {
     if (e.name !== 'AbortError') hideMPTip();
   }
 }
 
 function renderMPTip(clientX, clientY, results) {
-  const legend = _mpLegend || {};
   let html = '';
 
   for (const res of results) {
-    const lyrLegend = legend[res.layerId];
+    // Each result carries its own legend cache (_legend), set by doIdentify
+    const lyrLegend = (res._legend || _mpLegend || {})[res.layerId];
     const rawVal    = (res.value || '').trim();
     const layerNm   = res.layerName || '';
 

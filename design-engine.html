@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<script>(function(){var t=localStorage.getItem('imali-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Engine — Imali.biz Internal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+
+/* ── Page shell ── */
+html, body { height: 100%; overflow: hidden; }
+.de-wrap { display: flex; flex-direction: column; height: 100vh; padding-top: var(--nav-h); }
+
+/* ── Hero strip ── */
+.de-header {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem;
+  height: 52px;
+  border-bottom: 1px solid rgba(245,240,232,0.06);
+  background: rgba(10,10,15,0.6);
+  backdrop-filter: blur(10px);
+  gap: 1.5rem;
+}
+[data-theme="light"] .de-header { background: rgba(250,247,242,0.94); border-bottom-color: rgba(10,10,15,0.08); }
+.de-hero-left { display: flex; align-items: center; gap: 1rem; }
+.de-eyebrow { font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+[data-theme="light"] .de-eyebrow { color: #a07820; }
+.de-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--cream); }
+[data-theme="light"] .de-title { color: var(--ink); }
+.de-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--terracotta); }
+.de-hero-stats { display: flex; gap: 1.5rem; }
+.de-stat { font-size: 0.67rem; color: rgba(245,240,232,0.4); display: flex; align-items: center; gap: 0.35rem; }
+[data-theme="light"] .de-stat { color: rgba(10,10,15,0.4); }
+.de-stat strong { color: var(--cream); font-weight: 500; }
+[data-theme="light"] .de-stat strong { color: var(--ink); }
+
+/* ── Main 3-panel layout ── */
+.de-main {
+  flex: 1; min-height: 0;
+  display: flex; overflow: hidden;
+}
+
+/* ── Left panel (site config) ── */
+.de-left {
+  width: 252px; flex-shrink: 0;
+  border-right: 1px solid rgba(245,240,232,0.06);
+  overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column;
+}
+[data-theme="light"] .de-left { border-right-color: rgba(10,10,15,0.08); }
+.de-left::-webkit-scrollbar { width: 3px; }
+.de-left::-webkit-scrollbar-thumb { background: rgba(245,240,232,0.08); border-radius: 2px; }
+
+.panel-section {
+  padding: 0.9rem 1rem 0.7rem;
+  border-bottom: 1px solid rgba(245,240,232,0.04);
+}
+[data-theme="light"] .panel-section { border-bottom-color: rgba(10,10,15,0.05); }
+.panel-label {
+  font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--gold); font-weight: 500; margin-bottom: 0.6rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+[data-theme="light"] .panel-label { color: #a07820; }
+
+/* Mode toggle */
+.mode-toggle { display: flex; gap: 0.25rem; margin-bottom: 0.7rem; }
+.mode-btn {
+  flex: 1; padding: 0.32rem 0; font-size: 0.7rem; border: none;
+  border-radius: 6px; cursor: none; transition: background 0.18s, color 0.18s;
+  background: rgba(245,240,232,0.04); color: rgba(245,240,232,0.4);
+  font-family: 'DM Sans', sans-serif;
+}
+.mode-btn.active { background: rgba(200,82,26,0.15); color: var(--terracotta); font-weight: 500; }
+[data-theme="light"] .mode-btn { background: rgba(10,10,15,0.05); color: rgba(10,10,15,0.45); }
+[data-theme="light"] .mode-btn.active { background: rgba(200,82,26,0.12); }
+
+/* Select & inputs */
+.de-select, .de-input {
+  width: 100%; padding: 0.42rem 0.6rem;
+  background: rgba(245,240,232,0.04); border: 1px solid rgba(245,240,232,0.09);
+  border-radius: 7px; color: var(--cream); font-size: 0.73rem;
+  font-family: 'DM Sans', sans-serif; outline: none; cursor: none;
+  transition: border-color 0.18s;
+}
+.de-select:focus, .de-input:focus { border-color: rgba(200,82,26,0.5); }
+[data-theme="light"] .de-select, [data-theme="light"] .de-input {
+  background: rgba(10,10,15,0.04); border-color: rgba(10,10,15,0.1);
+  color: var(--ink);
+}
+.de-select option { background: #1a1814; color: var(--cream); }
+.de-label { font-size: 0.64rem; color: rgba(245,240,232,0.4); margin-bottom: 0.25rem; display: block; }
+[data-theme="light"] .de-label { color: rgba(10,10,15,0.45); }
+.de-field { margin-bottom: 0.55rem; }
+
+/* Parcel info card */
+.parcel-card {
+  background: rgba(245,240,232,0.03); border: 1px solid rgba(245,240,232,0.07);
+  border-radius: 8px; padding: 0.6rem 0.7rem; margin-top: 0.5rem;
+}
+[data-theme="light"] .parcel-card { background: rgba(10,10,15,0.03); border-color: rgba(10,10,15,0.08); }
+.parcel-card-name { font-size: 0.78rem; font-weight: 500; color: var(--cream); margin-bottom: 0.15rem; }
+[data-theme="light"] .parcel-card-name { color: var(--ink); }
+.parcel-card-loc { font-size: 0.64rem; color: rgba(245,240,232,0.45); margin-bottom: 0.45rem; }
+[data-theme="light"] .parcel-card-loc { color: rgba(10,10,15,0.45); }
+.parcel-card-row { display: flex; justify-content: space-between; font-size: 0.64rem; margin-bottom: 0.2rem; }
+.parcel-card-row .lbl { color: rgba(245,240,232,0.38); }
+.parcel-card-row .val { color: var(--cream); font-weight: 500; }
+[data-theme="light"] .parcel-card-row .lbl { color: rgba(10,10,15,0.4); }
+[data-theme="light"] .parcel-card-row .val { color: var(--ink); }
+
+/* Zone compliance card */
+.zone-card {
+  border-radius: 8px; padding: 0.65rem 0.7rem;
+  border: 1px solid rgba(245,240,232,0.07);
+  margin-top: 0.4rem; position: relative; overflow: hidden;
+}
+.zone-card-stripe {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+}
+.zone-card-name { font-size: 0.72rem; font-weight: 500; color: var(--cream); margin-bottom: 0.35rem; }
+[data-theme="light"] .zone-card-name { color: var(--ink); }
+.zone-rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.22rem 0.4rem; }
+.zone-rule { font-size: 0.62rem; }
+.zone-rule .zr-label { color: rgba(245,240,232,0.38); }
+.zone-rule .zr-value { color: var(--cream); font-weight: 500; }
+[data-theme="light"] .zone-rule .zr-label { color: rgba(10,10,15,0.4); }
+[data-theme="light"] .zone-rule .zr-value { color: var(--ink); }
+
+/* Compliance pills */
+.compliance-row { display: flex; gap: 0.3rem; margin-top: 0.45rem; flex-wrap: wrap; }
+.comp-pill {
+  font-size: 0.58rem; padding: 0.15rem 0.45rem; border-radius: 1rem;
+  font-weight: 500;
+}
+.comp-pill.ok  { background: rgba(76,175,80,0.15); color: #66bb6a; }
+.comp-pill.bad { background: rgba(183,28,28,0.15); color: #ef5350; }
+
+/* ── Center panel (visualisation) ── */
+.de-center {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.de-viz-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid rgba(245,240,232,0.06);
+  flex-shrink: 0; padding: 0 1rem;
+}
+[data-theme="light"] .de-viz-tabs { border-bottom-color: rgba(10,10,15,0.07); }
+.viz-tab {
+  padding: 0.5rem 0.9rem; font-size: 0.7rem; border: none; background: none;
+  color: rgba(245,240,232,0.35); cursor: none; border-bottom: 2px solid transparent;
+  font-family: 'DM Sans', sans-serif; transition: color 0.18s, border-color 0.18s;
+  margin-bottom: -1px;
+}
+.viz-tab.active { color: var(--terracotta); border-bottom-color: var(--terracotta); }
+[data-theme="light"] .viz-tab { color: rgba(10,10,15,0.4); }
+[data-theme="light"] .viz-tab.active { color: var(--terracotta); }
+
+.de-viz-area {
+  flex: 1; min-height: 0; overflow: hidden;
+  display: flex; align-items: stretch; justify-content: space-around;
+  padding: 1rem; gap: 1rem;
+}
+.svg-panel {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; align-items: center;
+}
+.svg-panel-label {
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(245,240,232,0.3); margin-bottom: 0.5rem;
+}
+[data-theme="light"] .svg-panel-label { color: rgba(10,10,15,0.35); }
+.de-svg {
+  border-radius: 12px; overflow: hidden;
+  border: 1px solid rgba(245,240,232,0.07);
+  flex: 1; min-height: 0;
+  width: 100%;
+}
+[data-theme="light"] .de-svg { border-color: rgba(10,10,15,0.08); }
+
+/* ── Metrics strip ── */
+.de-metrics {
+  flex-shrink: 0; height: 54px;
+  border-top: 1px solid rgba(245,240,232,0.06);
+  display: flex; align-items: stretch;
+  overflow-x: auto;
+}
+[data-theme="light"] .de-metrics { border-top-color: rgba(10,10,15,0.07); }
+.de-metrics::-webkit-scrollbar { height: 2px; }
+.de-metric {
+  flex: 1; min-width: 90px;
+  display: flex; flex-direction: column; justify-content: center;
+  align-items: center; padding: 0 0.75rem;
+  border-right: 1px solid rgba(245,240,232,0.04);
+  transition: background 0.15s;
+}
+[data-theme="light"] .de-metric { border-right-color: rgba(10,10,15,0.05); }
+.de-metric:hover { background: rgba(245,240,232,0.02); }
+.de-metric-val {
+  font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700;
+  color: var(--cream); line-height: 1.1;
+}
+[data-theme="light"] .de-metric-val { color: var(--ink); }
+.de-metric-val.highlight { color: var(--terracotta); }
+.de-metric-lbl {
+  font-size: 0.55rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(245,240,232,0.32); margin-top: 0.12rem;
+}
+[data-theme="light"] .de-metric-lbl { color: rgba(10,10,15,0.38); }
+
+/* ── Right panel (parameters & output) ── */
+.de-right {
+  width: 268px; flex-shrink: 0;
+  border-left: 1px solid rgba(245,240,232,0.06);
+  overflow-y: auto; overflow-x: hidden;
+}
+[data-theme="light"] .de-right { border-left-color: rgba(10,10,15,0.08); }
+.de-right::-webkit-scrollbar { width: 3px; }
+.de-right::-webkit-scrollbar-thumb { background: rgba(245,240,232,0.08); }
+
+/* Typology pills */
+.typo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; }
+.typo-btn {
+  padding: 0.38rem 0.4rem; border: 1px solid rgba(245,240,232,0.09);
+  border-radius: 7px; background: rgba(245,240,232,0.03);
+  color: rgba(245,240,232,0.45); font-size: 0.67rem;
+  text-align: center; cursor: none; transition: all 0.18s;
+  font-family: 'DM Sans', sans-serif;
+}
+.typo-btn.active {
+  background: rgba(200,82,26,0.12); border-color: rgba(200,82,26,0.4);
+  color: var(--terracotta); font-weight: 500;
+}
+[data-theme="light"] .typo-btn { color: rgba(10,10,15,0.5); border-color: rgba(10,10,15,0.1); background: rgba(10,10,15,0.03); }
+[data-theme="light"] .typo-btn.active { color: var(--terracotta); }
+
+/* Sliders */
+.slider-row { margin-bottom: 0.55rem; }
+.slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.22rem; }
+.slider-lbl { font-size: 0.64rem; color: rgba(245,240,232,0.42); }
+[data-theme="light"] .slider-lbl { color: rgba(10,10,15,0.45); }
+.slider-val { font-size: 0.72rem; font-family: 'Syne', sans-serif; font-weight: 600; color: var(--terracotta); }
+.de-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 3px; border-radius: 2px; outline: none; cursor: pointer;
+  background: linear-gradient(to right, var(--terracotta) 50%, rgba(245,240,232,0.1) 50%);
+}
+.de-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%;
+  background: var(--cream); border: 2px solid var(--terracotta); cursor: pointer;
+  transition: transform 0.12s;
+}
+.de-slider::-webkit-slider-thumb:hover { transform: scale(1.25); }
+[data-theme="light"] .de-slider::-webkit-slider-thumb { background: white; }
+
+/* Unit mix */
+.mix-section { display: none; }
+.mix-section.visible { display: block; }
+.mix-bar {
+  height: 6px; border-radius: 3px; display: flex; overflow: hidden;
+  margin-bottom: 0.5rem; gap: 1px;
+}
+.mix-bar-seg { transition: flex 0.3s; border-radius: 2px; }
+
+/* Output cards */
+.output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem; }
+.output-card {
+  background: rgba(245,240,232,0.03); border: 1px solid rgba(245,240,232,0.07);
+  border-radius: 8px; padding: 0.55rem 0.65rem;
+  transition: border-color 0.2s;
+}
+[data-theme="light"] .output-card { background: rgba(10,10,15,0.03); border-color: rgba(10,10,15,0.07); }
+.output-card.wide { grid-column: 1 / -1; }
+.output-card-val {
+  font-family: 'Syne', sans-serif; font-size: 0.92rem; font-weight: 700;
+  color: var(--cream); line-height: 1.1;
+}
+[data-theme="light"] .output-card-val { color: var(--ink); }
+.output-card-val.gold { color: var(--gold); }
+[data-theme="light"] .output-card-val.gold { color: #a07820; }
+.output-card-val.green { color: #66bb6a; }
+.output-card-val.red { color: #ef5350; }
+.output-card-lbl {
+  font-size: 0.57rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(245,240,232,0.32); margin-top: 0.1rem;
+}
+[data-theme="light"] .output-card-lbl { color: rgba(10,10,15,0.38); }
+
+/* Mini materials table */
+.mini-mat-table { width: 100%; border-collapse: collapse; margin-top: 0.4rem; }
+.mini-mat-table td { font-size: 0.62rem; padding: 0.25rem 0; border-bottom: 1px solid rgba(245,240,232,0.04); }
+[data-theme="light"] .mini-mat-table td { border-bottom-color: rgba(10,10,15,0.05); }
+.mini-mat-table td:last-child { text-align: right; color: var(--gold); font-family: 'Syne', sans-serif; font-size: 0.6rem; }
+[data-theme="light"] .mini-mat-table td:last-child { color: #a07820; }
+.mini-mat-table td:first-child { color: rgba(245,240,232,0.6); }
+[data-theme="light"] .mini-mat-table td:first-child { color: rgba(10,10,15,0.65); }
+.mat-link { display: block; font-size: 0.6rem; text-align: right; color: var(--terracotta); text-decoration: none; margin-top: 0.4rem; }
+
+/* Save scenario button */
+.save-btn {
+  width: 100%; margin-top: 0.6rem;
+  padding: 0.55rem 1rem;
+  background: rgba(200,82,26,0.1); border: 1px solid rgba(200,82,26,0.3);
+  border-radius: 8px; color: var(--terracotta); font-size: 0.73rem; font-weight: 500;
+  cursor: none; font-family: 'DM Sans', sans-serif; transition: background 0.2s, border-color 0.2s;
+}
+.save-btn:hover { background: rgba(200,82,26,0.18); border-color: rgba(200,82,26,0.5); }
+
+/* ── Scenarios strip ── */
+.de-scenarios {
+  flex-shrink: 0;
+  min-height: 0; max-height: 160px;
+  border-top: 1px solid rgba(245,240,232,0.06);
+  display: flex; align-items: stretch; gap: 0;
+  overflow-x: auto; overflow-y: hidden;
+}
+[data-theme="light"] .de-scenarios { border-top-color: rgba(10,10,15,0.07); }
+.de-scenarios::-webkit-scrollbar { height: 3px; }
+.de-scenarios::-webkit-scrollbar-thumb { background: rgba(245,240,232,0.1); }
+.scenarios-empty {
+  display: flex; align-items: center; justify-content: center;
+  flex: 1; gap: 0.5rem;
+  font-size: 0.67rem; color: rgba(245,240,232,0.22);
+  font-style: italic;
+}
+[data-theme="light"] .scenarios-empty { color: rgba(10,10,15,0.28); }
+.scenario-card {
+  flex-shrink: 0; width: 200px;
+  border-right: 1px solid rgba(245,240,232,0.05);
+  padding: 0.7rem 0.85rem;
+  display: flex; flex-direction: column; gap: 0.35rem;
+  transition: background 0.15s;
+  position: relative; cursor: none;
+}
+.scenario-card:hover { background: rgba(245,240,232,0.02); }
+.sc-header { display: flex; align-items: center; justify-content: space-between; }
+.sc-name { font-size: 0.7rem; font-weight: 500; color: var(--cream); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-theme="light"] .sc-name { color: var(--ink); }
+.sc-zone { font-size: 0.58rem; padding: 0.1rem 0.38rem; border-radius: 1rem; font-weight: 500; }
+.sc-delete {
+  position: absolute; top: 0.4rem; right: 0.5rem;
+  background: none; border: none; color: rgba(245,240,232,0.25);
+  font-size: 0.75rem; cursor: none; transition: color 0.15s; padding: 0;
+}
+.sc-delete:hover { color: #ef5350; }
+.sc-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.sc-chip { font-size: 0.6rem; color: rgba(245,240,232,0.4); }
+[data-theme="light"] .sc-chip { color: rgba(10,10,15,0.45); }
+.sc-chip strong { color: var(--cream); font-weight: 500; }
+[data-theme="light"] .sc-chip strong { color: var(--ink); }
+.sc-bar { height: 3px; border-radius: 2px; background: rgba(245,240,232,0.06); overflow: hidden; }
+.sc-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+
+/* ── Data quality badge ── */
+.confidence-badge {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  font-size: 0.58rem; padding: 0.12rem 0.42rem; border-radius: 1rem;
+}
+.confidence-badge.high   { background: rgba(76,175,80,0.1);   color: #66bb6a; }
+.confidence-badge.medium { background: rgba(255,193,7,0.1);   color: #ffc107; }
+.confidence-badge.low    { background: rgba(96,125,139,0.1);  color: #78909c; }
+
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav class="int-nav">
+  <div class="int-nav-left">
+    <a href="index.html" class="int-nav-logo">Imali<span>.</span>biz</a>
+    <div class="int-nav-divider"></div>
+    <span class="int-nav-badge">Internal Ops</span>
+  </div>
+  <div class="int-nav-right">
+    <a href="index.html"        class="int-nav-link">Overview</a>
+    <a href="inventory.html"    class="int-nav-link">Inventory</a>
+    <a href="materials.html"    class="int-nav-link">Materials</a>
+    <a href="map.html"          class="int-nav-link">Opportunity Map</a>
+    <a href="design-engine.html"class="int-nav-link active">Design Engine</a>
+    <button class="theme-toggle" onclick="toggleTheme()">☾ Dark</button>
+  </div>
+</nav>
+
+<div class="de-wrap">
+
+  <!-- Hero strip -->
+  <div class="de-header">
+    <div class="de-hero-left">
+      <div>
+        <div class="de-eyebrow">Generative Design · Rwanda</div>
+        <div class="de-title">Design <em>Engine</em></div>
+      </div>
+    </div>
+    <div class="de-hero-stats" id="heroStats">
+      <span class="de-stat"><strong id="hGFA">—</strong> GFA</span>
+      <span class="de-stat"><strong id="hUnits">—</strong> units</span>
+      <span class="de-stat"><strong id="hCost">—</strong> dev cost</span>
+      <span class="de-stat"><strong id="hRevenue">—</strong> est. revenue</span>
+    </div>
+  </div>
+
+  <!-- Main 3-panel -->
+  <div class="de-main">
+
+    <!-- LEFT: Site configuration -->
+    <div class="de-left">
+
+      <div class="panel-section">
+        <div class="panel-label">Site</div>
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="btnPortfolio" onclick="setMode('portfolio')">Portfolio</button>
+          <button class="mode-btn"        id="btnCustom"    onclick="setMode('custom')">Custom</button>
+        </div>
+
+        <!-- Portfolio selector -->
+        <div id="portfolioSelector">
+          <label class="de-label">Select parcel</label>
+          <select class="de-select" id="parcelSelect" onchange="onParcelChange()"></select>
+          <div id="parcelCard" class="parcel-card" style="margin-top:0.5rem"></div>
+        </div>
+
+        <!-- Custom site form -->
+        <div id="customForm" style="display:none">
+          <div class="de-field">
+            <label class="de-label">Site name</label>
+            <input type="text" class="de-input" id="customName" value="Custom Site" oninput="onCustomChange()">
+          </div>
+          <div class="de-field">
+            <label class="de-label">Plot area (sqm)</label>
+            <input type="number" class="de-input" id="customArea" value="1000" min="100" step="50" oninput="onCustomChange()">
+          </div>
+          <div class="de-field">
+            <label class="de-label">Estimated land price (RWF)</label>
+            <input type="number" class="de-input" id="customPrice" value="0" min="0" step="1000000" oninput="onCustomChange()">
+          </div>
+          <div class="de-field">
+            <label class="de-label">District</label>
+            <select class="de-select" id="customDistrict" onchange="onCustomChange()"></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zone -->
+      <div class="panel-section">
+        <div class="panel-label">Zone Type</div>
+        <select class="de-select" id="zoneSelect" onchange="onZoneChange()"></select>
+        <div id="zoneCard" class="zone-card" style="margin-top:0.45rem"></div>
+      </div>
+
+      <!-- Plot shape -->
+      <div class="panel-section">
+        <div class="panel-label">Plot Dimensions</div>
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-lbl">Width : Depth ratio</span>
+            <span class="slider-val" id="ratioVal">1 : 1.5</span>
+          </div>
+          <input type="range" class="de-slider" id="ratioSlider" min="5" max="30" value="15"
+                 oninput="onRatioChange(this)">
+        </div>
+        <div style="font-size:0.63rem;color:rgba(245,240,232,0.35);margin-top:0.2rem" id="dimDisplay">—</div>
+      </div>
+
+    </div><!-- /de-left -->
+
+    <!-- CENTER: Visualisation -->
+    <div class="de-center">
+      <div class="de-viz-tabs">
+        <button class="viz-tab active" data-tab="both"      onclick="setTab('both')">Plan + Elevation</button>
+        <button class="viz-tab"        data-tab="plan"      onclick="setTab('plan')">Site Plan</button>
+        <button class="viz-tab"        data-tab="elevation" onclick="setTab('elevation')">Elevation</button>
+      </div>
+
+      <div class="de-viz-area" id="vizArea">
+        <div class="svg-panel" id="panelPlan">
+          <div class="svg-panel-label">Site Plan</div>
+          <svg class="de-svg" id="svgPlan" viewBox="0 0 340 340" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="svg-panel" id="panelElev">
+          <div class="svg-panel-label">Elevation</div>
+          <svg class="de-svg" id="svgElev" viewBox="0 0 340 220" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+
+      <!-- Metrics strip -->
+      <div class="de-metrics">
+        <div class="de-metric"><div class="de-metric-val" id="mGFA">—</div><div class="de-metric-lbl">GFA (sqm)</div></div>
+        <div class="de-metric"><div class="de-metric-val" id="mCoverage">—</div><div class="de-metric-lbl">Coverage</div></div>
+        <div class="de-metric"><div class="de-metric-val" id="mFAR">—</div><div class="de-metric-lbl">FAR</div></div>
+        <div class="de-metric"><div class="de-metric-val highlight" id="mFloors">—</div><div class="de-metric-lbl">Floors</div></div>
+        <div class="de-metric"><div class="de-metric-val highlight" id="mUnits">—</div><div class="de-metric-lbl">Units</div></div>
+        <div class="de-metric"><div class="de-metric-val" id="mHeight">—</div><div class="de-metric-lbl">Height (m)</div></div>
+        <div class="de-metric"><div class="de-metric-val" id="mDevCost">—</div><div class="de-metric-lbl">Dev Cost</div></div>
+        <div class="de-metric"><div class="de-metric-val" id="mLeverage">—</div><div class="de-metric-lbl">Leverage</div></div>
+      </div>
+    </div><!-- /de-center -->
+
+    <!-- RIGHT: Parameters + Output -->
+    <div class="de-right">
+
+      <!-- Building typology -->
+      <div class="panel-section">
+        <div class="panel-label">Building Typology</div>
+        <div class="typo-grid">
+          <button class="typo-btn active" data-typo="apartments" onclick="setTypo('apartments')">🏢 Apartments</button>
+          <button class="typo-btn"        data-typo="townhouses" onclick="setTypo('townhouses')">🏘 Townhouses</button>
+          <button class="typo-btn"        data-typo="commercial" onclick="setTypo('commercial')">🏪 Commercial</button>
+          <button class="typo-btn"        data-typo="mixed"      onclick="setTypo('mixed')">🏗 Mixed-Use</button>
+        </div>
+      </div>
+
+      <!-- Design parameters -->
+      <div class="panel-section">
+        <div class="panel-label">Design Parameters</div>
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-lbl">Target floors</span>
+            <span class="slider-val" id="floorsVal">6</span>
+          </div>
+          <input type="range" class="de-slider" id="floorsSlider" min="1" max="20" value="6"
+                 oninput="onSliderChange('floors',this)">
+        </div>
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-lbl">Coverage target</span>
+            <span class="slider-val" id="coverageVal">55%</span>
+          </div>
+          <input type="range" class="de-slider" id="coverageSlider" min="20" max="85" value="55"
+                 oninput="onSliderChange('coverage',this)">
+        </div>
+      </div>
+
+      <!-- Unit mix (residential / mixed only) -->
+      <div class="panel-section mix-section" id="mixSection">
+        <div class="panel-label">Unit Mix</div>
+        <div class="mix-bar" id="mixBar">
+          <div class="mix-bar-seg" id="mixBarStudio"  style="flex:20;background:#b39ddb"></div>
+          <div class="mix-bar-seg" id="mixBarOne"     style="flex:40;background:#7986cb"></div>
+          <div class="mix-bar-seg" id="mixBarTwo"     style="flex:30;background:#4db6ac"></div>
+          <div class="mix-bar-seg" id="mixBarThree"   style="flex:10;background:#81c784"></div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-lbl">Studio <span style="color:#b39ddb">■</span></span>
+            <span class="slider-val" id="studioVal">20%</span>
+          </div>
+          <input type="range" class="de-slider" id="studioSlider" min="0" max="60" value="20"
+                 oninput="onMixChange()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-lbl">1-Bed <span style="color:#7986cb">■</span></span>
+            <span class="slider-val" id="oneVal">40%</span>
+          </div>
+          <input type="range" class="de-slider" id="oneSlider" min="0" max="70" value="40"
+                 oninput="onMixChange()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-lbl">2-Bed <span style="color:#4db6ac">■</span></span>
+            <span class="slider-val" id="twoVal">30%</span>
+          </div>
+          <input type="range" class="de-slider" id="twoSlider" min="0" max="60" value="30"
+                 oninput="onMixChange()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-header">
+            <span class="slider-lbl">3-Bed <span style="color:#81c784">■</span></span>
+            <span class="slider-val" id="threeVal">10%</span>
+          </div>
+          <input type="range" class="de-slider" id="threeSlider" min="0" max="50" value="10"
+                 oninput="onMixChange()">
+        </div>
+      </div>
+
+      <!-- Generated output -->
+      <div class="panel-section">
+        <div class="panel-label">Generated Output</div>
+        <div class="output-grid">
+          <div class="output-card">
+            <div class="output-card-val" id="outGFA">—</div>
+            <div class="output-card-lbl">GFA (sqm)</div>
+          </div>
+          <div class="output-card">
+            <div class="output-card-val" id="outUnits">—</div>
+            <div class="output-card-lbl">Total Units</div>
+          </div>
+          <div class="output-card wide">
+            <div class="output-card-val" id="outDevCost">—</div>
+            <div class="output-card-lbl">Est. Dev Cost (construction only)</div>
+          </div>
+          <div class="output-card">
+            <div class="output-card-val gold" id="outRevenue">—</div>
+            <div class="output-card-lbl">Est. Revenue <span id="confBadge"></span></div>
+          </div>
+          <div class="output-card">
+            <div class="output-card-val" id="outMargin">—</div>
+            <div class="output-card-lbl">Gross Margin</div>
+          </div>
+          <div class="output-card">
+            <div class="output-card-val" id="outCostPerUnit">—</div>
+            <div class="output-card-lbl">Cost / Unit</div>
+          </div>
+          <div class="output-card">
+            <div class="output-card-val" id="outLeverage">—</div>
+            <div class="output-card-lbl">Leverage Ratio</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Materials preview -->
+      <div class="panel-section">
+        <div class="panel-label">Top Materials by Cost</div>
+        <table class="mini-mat-table" id="matPreview"></table>
+        <a href="materials.html" class="mat-link">View full bill of materials →</a>
+      </div>
+
+      <!-- Save scenario -->
+      <div class="panel-section" style="border-bottom:none">
+        <button class="save-btn" onclick="saveScenario()">＋ Save Scenario</button>
+      </div>
+
+    </div><!-- /de-right -->
+
+  </div><!-- /de-main -->
+
+  <!-- Scenarios strip -->
+  <div class="de-scenarios" id="scenariosStrip">
+    <div class="scenarios-empty" id="scenariosEmpty">
+      No saved scenarios yet — configure a design and click Save Scenario
+    </div>
+  </div>
+
+</div><!-- /de-wrap -->
+
+<!-- Scripts -->
+<script src="data.js"></script>
+<script src="shared/config.js"></script>
+<script src="shared/zoning.js"></script>
+<script src="shared/land-pricing.js"></script>
+<script>
+'use strict';
+
+// ── Cursor ────────────────────────────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.transform=`translate(${mx-5}px,${my-5}px)`; });
+(function ar(){ rx+=(mx-rx-18)*.12; ry+=(my-ry-18)*.12; ring.style.transform=`translate(${rx}px,${ry}px)`; requestAnimationFrame(ar); })();
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('imali-theme', next);
+  document.querySelector('.theme-toggle').textContent = next === 'dark' ? '☀ Light' : '☾ Dark';
+  render(); // redraw SVGs for new theme
+}
+document.querySelector('.theme-toggle').textContent =
+  (localStorage.getItem('imali-theme') || 'dark') === 'dark' ? '☀ Light' : '☾ Dark';
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+const FLOOR_H   = 3.0;   // metres per floor
+const EFFICIENCY = 0.82; // net/gross GFA ratio
+const UNIT_SIZES = { studio:28, oneBed:45, twoBed:65, threeBed:85 };
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const S = {
+  mode:      'portfolio',
+  parcelIdx: 0,
+  custom: { name:'Custom Site', area:1000, price:0, district:'Gasabo' },
+  zoneCode:  'R3',
+  typology:  'apartments',
+  floors:    6,
+  coverage:  55,  // target %
+  ratio:     15,  // slider value; width = sqrt(area / ratio×0.1)
+  mix:       { studio:20, one:40, two:30, three:10 },
+  tab:       'both',
+  scenarios: [],
+};
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+(function init() {
+  // Populate parcel select
+  const sel = document.getElementById('parcelSelect');
+  parcels.forEach((p, i) => {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = `${p.id} — ${p.name}`;
+    sel.appendChild(o);
+  });
+
+  // Populate zone select
+  const zs = document.getElementById('zoneSelect');
+  ZONE_ORDER.forEach(code => {
+    const z = ZONE_RULES[code];
+    const o = document.createElement('option');
+    o.value = code;
+    o.textContent = `${code} — ${z.name}`;
+    if (code === S.zoneCode) o.selected = true;
+    zs.appendChild(o);
+  });
+
+  // Populate custom district select
+  const cd = document.getElementById('customDistrict');
+  Object.values(IMALI.districts).flat().sort().forEach(d => {
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d;
+    if (d === S.custom.district) o.selected = true;
+    cd.appendChild(o);
+  });
+
+  // Set zone from first parcel type
+  S.zoneCode = defaultZoneFor(parcels[0].type);
+  document.getElementById('zoneSelect').value = S.zoneCode;
+
+  render();
+})();
+
+// ── Site helpers ──────────────────────────────────────────────────────────────
+function getActiveSite() {
+  if (S.mode === 'portfolio') {
+    const p = parcels[S.parcelIdx];
+    return {
+      name:          p.name,
+      area:          p.size_sqm,
+      landPrice:     p.land_price_rwf,
+      district:      p.district,
+      type:          p.type,
+    };
+  }
+  return {
+    name:      S.custom.name,
+    area:      S.custom.area,
+    landPrice: S.custom.price,
+    district:  S.custom.district,
+    type:      S.typology === 'commercial' ? 'commercial' :
+               S.typology === 'mixed'      ? 'mixed-use' : 'residential',
+  };
+}
+
+function getSiteDimensions(area) {
+  // ratio slider 5–30 maps to depth/width ratio 0.5–3.0
+  const depthWidthRatio = 0.5 + (S.ratio - 5) / 25 * 2.5;
+  const width = Math.sqrt(area / depthWidthRatio);
+  const depth = area / width;
+  return { width, depth };
+}
+
+// ── Core design computation ───────────────────────────────────────────────────
+function computeDesign() {
+  const site = getActiveSite();
+  const zone = getZone(S.zoneCode);
+  const dims = getSiteDimensions(site.area);
+  const { width: plotW, depth: plotD } = dims;
+  const plotArea = site.area;
+
+  // Buildable area after setbacks
+  const buildW = Math.max(0, plotW - 2 * zone.setbackSide);
+  const buildD = Math.max(0, plotD - zone.setbackFront - zone.setbackRear);
+  const buildableArea = buildW * buildD;
+
+  // Coverage (capped at zone max)
+  const capCov   = Math.min(S.coverage, zone.maxCoverage * 100);
+  const footprint = Math.min(buildableArea, (capCov / 100) * plotArea);
+  const achievedCovPct = (footprint / plotArea * 100);
+
+  // Floors (capped at zone max)
+  const floors = Math.min(S.floors, zone.maxFloors);
+
+  // GFA (capped by FAR × plotArea)
+  const maxGFA     = zone.maxFAR * plotArea;
+  const targetGFA  = footprint * floors;
+  const gfa        = Math.min(targetGFA, maxGFA);
+  const effFloors  = footprint > 0 ? Math.max(1, Math.ceil(gfa / footprint)) : 0;
+  const achievedFAR= gfa / plotArea;
+  const heightM    = effFloors * FLOOR_H;
+
+  // Units
+  let units = 0, unitBreakdown = {};
+  const isResidential = S.typology === 'apartments' || S.typology === 'townhouses' || S.typology === 'mixed';
+  if (isResidential) {
+    const netArea  = gfa * EFFICIENCY;
+    const avgSize  = (S.mix.studio/100)*UNIT_SIZES.studio + (S.mix.one/100)*UNIT_SIZES.oneBed +
+                     (S.mix.two/100)*UNIT_SIZES.twoBed    + (S.mix.three/100)*UNIT_SIZES.threeBed;
+    units = avgSize > 0 ? Math.floor(netArea / avgSize) : 0;
+    unitBreakdown = {
+      studio: Math.round(units * S.mix.studio / 100),
+      one:    Math.round(units * S.mix.one    / 100),
+      two:    Math.round(units * S.mix.two    / 100),
+      three:  Math.round(units * S.mix.three  / 100),
+    };
+  }
+
+  // Costs
+  const devCost  = gfa * DEV_COST_PER_SQM;
+  const landCost = site.landPrice || 0;
+  const totalInvestment = devCost + landCost;
+
+  // Revenue estimate
+  let grossRevenue = 0, confData = { confidence:'low', source:'estimate' };
+  if (isResidential && units > 0) {
+    const dist = site.district;
+    const unitRev =
+      unitBreakdown.studio * getUnitPrice(dist,'studio')  +
+      unitBreakdown.one    * getUnitPrice(dist,'oneBed')  +
+      unitBreakdown.two    * getUnitPrice(dist,'twoBed')  +
+      unitBreakdown.three  * getUnitPrice(dist,'threeBed');
+    grossRevenue = unitRev;
+    confData = getLandPrice(dist, S.zoneCode);
+  } else if (S.typology === 'commercial') {
+    const cp = getCommercialPrice(site.district);
+    grossRevenue = gfa * EFFICIENCY * cp.salePerSqm;
+  }
+  const grossMargin = totalInvestment > 0 && grossRevenue > 0
+    ? ((grossRevenue - totalInvestment) / grossRevenue * 100).toFixed(1)
+    : null;
+
+  // Compliance
+  const compliance = {
+    coverage: achievedCovPct <= zone.maxCoverage * 100 + 0.5,
+    far:      achievedFAR    <= zone.maxFAR + 0.01,
+    height:   heightM        <= zone.maxHeightM + 0.1,
+  };
+
+  // Materials
+  const mats = getMaterials(gfa, units || Math.floor(gfa / 80));
+
+  return {
+    plotW, plotD, plotArea, buildW, buildD, buildableArea,
+    footprint, capCov, achievedCovPct, floors: effFloors, gfa,
+    achievedFAR, heightM, units, unitBreakdown,
+    devCost, landCost, totalInvestment, grossRevenue, grossMargin,
+    compliance, confData, mats, zone,
+  };
+}
+
+// ── SVG drawing ───────────────────────────────────────────────────────────────
+function isDark() {
+  return document.documentElement.getAttribute('data-theme') !== 'light';
+}
+
+function drawSitePlan(result) {
+  const dark = isDark();
+  const { plotW, plotD, buildW, buildD, footprint, zone, plotArea } = result;
+  const CANVAS = 340, PAD = 30;
+  const avail  = CANVAS - 2 * PAD;
+
+  const scale = Math.min(avail / plotW, avail / plotD, 9);
+  const pxW = plotW * scale, pxD = plotD * scale;
+  const ox  = (CANVAS - pxW) / 2, oy = (CANVAS - pxD) / 2;
+
+  // Buildable zone (setbacks applied)
+  const bzX = ox + zone.setbackSide  * scale;
+  const bzY = oy + zone.setbackFront * scale;
+  const bzW = buildW * scale;
+  const bzD = buildD * scale;
+
+  // Actual footprint (scaled proportionally within buildable zone)
+  const ratio = buildW * buildD > 0 ? Math.sqrt(footprint / (buildW * buildD)) : 0;
+  const fpW   = Math.min(bzW, bzW * ratio);
+  const fpD   = Math.min(bzD, bzD * ratio);
+  const fpX   = bzX + (bzW - fpW) / 2;
+  const fpY   = bzY + (bzD - fpD) / 2;
+
+  // Colours
+  const plotFill   = dark ? '#0f1e28' : '#e0ecf2';
+  const plotStroke = dark ? '#2a4050' : '#6a90a8';
+  const sbFill     = dark ? 'rgba(0,80,80,0.12)' : 'rgba(0,120,100,0.06)';
+  const sbStroke   = dark ? '#1a5040' : '#3a8060';
+  const bldgFill   = zone.color;
+  const bldgStroke = dark ? 'rgba(10,10,15,0.5)' : 'rgba(10,10,15,0.3)';
+
+  let s = '';
+
+  // Background
+  s += `<rect width="340" height="340" fill="${dark?'#0c1820':'#dde8ee'}"/>`;
+
+  // Grid lines
+  const gridCol = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)';
+  for (let i = 0; i < 340; i += 20) {
+    s += `<line x1="${i}" y1="0" x2="${i}" y2="340" stroke="${gridCol}" stroke-width="0.5"/>`;
+    s += `<line x1="0" y1="${i}" x2="340" y2="${i}" stroke="${gridCol}" stroke-width="0.5"/>`;
+  }
+
+  // Plot
+  s += `<rect x="${ox}" y="${oy}" width="${pxW}" height="${pxD}" fill="${plotFill}" stroke="${plotStroke}" stroke-width="1.5" rx="2"/>`;
+
+  // Green space (remaining buildable, outside footprint)
+  if (buildW > 0 && buildD > 0) {
+    s += `<rect x="${bzX}" y="${bzY}" width="${bzW}" height="${bzD}" fill="${sbFill}" stroke="${sbStroke}" stroke-width="0.7" stroke-dasharray="3 2" rx="1"/>`;
+  }
+
+  // Building footprint
+  if (fpW > 4 && fpD > 4) {
+    s += `<rect x="${fpX}" y="${fpY}" width="${fpW}" height="${fpD}" fill="${bldgFill}" fill-opacity="0.82" stroke="${bldgStroke}" stroke-width="1" rx="2"/>`;
+    // Footprint area label
+    const labelColor = dark ? 'rgba(10,10,15,0.85)' : 'rgba(10,10,15,0.8)';
+    s += `<text x="${fpX+fpW/2}" y="${fpY+fpD/2+4}" text-anchor="middle" font-size="10" font-family="Syne,sans-serif" font-weight="700" fill="${labelColor}">${Math.round(footprint)}m²</text>`;
+  }
+
+  // Dimension labels
+  const txtCol = dark ? '#4a7090' : '#4a7090';
+  const dimY   = oy + pxD + 18;
+  const dimX   = ox - 18;
+  s += `<text x="${ox+pxW/2}" y="${dimY}" text-anchor="middle" font-size="9" font-family="DM Sans,sans-serif" fill="${txtCol}">${Math.round(plotW)}m</text>`;
+  s += `<text x="${dimX}" y="${oy+pxD/2+3}" text-anchor="middle" font-size="9" font-family="DM Sans,sans-serif" fill="${txtCol}" transform="rotate(-90,${dimX},${oy+pxD/2})">${Math.round(plotD)}m</text>`;
+
+  // Plot area label (bottom)
+  s += `<text x="${ox+pxW/2}" y="${oy+pxD+30}" text-anchor="middle" font-size="8" font-family="DM Sans,sans-serif" fill="${txtCol}" opacity="0.7">${Math.round(plotArea)} sqm plot</text>`;
+
+  // North arrow
+  const nx=CANVAS-22, ny=PAD+16;
+  const arrowCol = dark ? '#4a7090' : '#3a6080';
+  s += `<polygon points="${nx},${ny-9} ${nx-4},${ny+5} ${nx},${ny} ${nx+4},${ny+5}" fill="${arrowCol}" opacity="0.8"/>`;
+  s += `<text x="${nx}" y="${ny+16}" text-anchor="middle" font-size="7.5" font-family="DM Sans,sans-serif" fill="${arrowCol}">N</text>`;
+
+  // Scale bar (10m if scale × 10 ≥ 20px, else 5m)
+  const scaleM  = scale * 10 >= 20 ? 10 : 5;
+  const scaleW  = scaleM * scale;
+  const sbX = PAD, sbY = CANVAS - 16;
+  const scaleCol = dark ? '#3a6080' : '#4a7090';
+  s += `<line x1="${sbX}" y1="${sbY}" x2="${sbX+scaleW}" y2="${sbY}" stroke="${scaleCol}" stroke-width="2"/>`;
+  s += `<line x1="${sbX}" y1="${sbY-4}" x2="${sbX}" y2="${sbY+4}" stroke="${scaleCol}" stroke-width="1.5"/>`;
+  s += `<line x1="${sbX+scaleW}" y1="${sbY-4}" x2="${sbX+scaleW}" y2="${sbY+4}" stroke="${scaleCol}" stroke-width="1.5"/>`;
+  s += `<text x="${sbX+scaleW/2}" y="${sbY-7}" text-anchor="middle" font-size="7.5" font-family="DM Sans,sans-serif" fill="${scaleCol}">${scaleM}m</text>`;
+
+  // Legend (bottom right)
+  const legX = CANVAS - 90, legY = CANVAS - 42;
+  s += `<rect x="${legX}" y="${legY}" width="8" height="8" fill="${bldgFill}" fill-opacity="0.8" rx="1"/>`;
+  s += `<text x="${legX+11}" y="${legY+7}" font-size="7.5" font-family="DM Sans,sans-serif" fill="${txtCol}">Building</text>`;
+  s += `<rect x="${legX}" y="${legY+12}" width="8" height="8" fill="${sbFill}" stroke="${sbStroke}" stroke-width="0.7" stroke-dasharray="2 1" rx="1"/>`;
+  s += `<text x="${legX+11}" y="${legY+19}" font-size="7.5" font-family="DM Sans,sans-serif" fill="${txtCol}">Setback</text>`;
+
+  document.getElementById('svgPlan').innerHTML = s;
+}
+
+function drawElevation(result) {
+  const dark = isDark();
+  const { plotW, floors, gfa, zone, footprint } = result;
+  const C_W = 340, C_H = 220, PAD = 24;
+
+  const buildingW  = Math.sqrt(footprint * (plotW / result.plotD || 1));
+  const buildingH  = floors * FLOOR_H; // metres
+
+  const maxPxW = C_W - 2 * PAD - 30;
+  const maxPxH = C_H - PAD - 28;
+  const scaleX = buildingW > 0 ? maxPxW / buildingW : 1;
+  const scaleY = buildingH > 0 ? maxPxH / buildingH : 1;
+  const scale  = Math.min(scaleX, scaleY, 10);
+
+  const bPxW    = buildingW * scale;
+  const bPxH    = buildingH * scale;
+  const groundY = C_H - 22;
+  const bX      = (C_W - bPxW) / 2;
+  const bY      = groundY - bPxH;
+
+  // Colours
+  const skyTop   = dark ? '#0a1520' : '#b8d8ee';
+  const skyBot   = dark ? '#14253a' : '#d8ecf8';
+  const groundC  = dark ? '#0f2010' : '#b8d4b0';
+  const bldgC    = zone.color;
+  const windowC  = dark ? 'rgba(160,210,255,0.22)' : 'rgba(180,220,255,0.55)';
+  const lineC    = dark ? 'rgba(10,10,15,0.25)' : 'rgba(10,10,15,0.18)';
+  const txtCol   = dark ? '#4a7090' : '#4a7090';
+
+  let s = '';
+
+  // Sky gradient (via linearGradient)
+  s += `<defs>
+    <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${skyTop}"/>
+      <stop offset="100%" stop-color="${skyBot}"/>
+    </linearGradient>
+  </defs>`;
+  s += `<rect width="${C_W}" height="${C_H}" fill="url(#skyG)"/>`;
+
+  // Ground strip
+  s += `<rect x="0" y="${groundY}" width="${C_W}" height="${C_H-groundY}" fill="${groundC}"/>`;
+
+  // Shadow
+  if (bPxW > 0 && bPxH > 0) {
+    s += `<ellipse cx="${bX+bPxW/2+8}" cy="${groundY+4}" rx="${bPxW/2*0.9}" ry="6" fill="rgba(0,0,0,0.18)"/>`;
+
+    // Building body
+    s += `<rect x="${bX}" y="${bY}" width="${bPxW}" height="${bPxH}" fill="${bldgC}" fill-opacity="0.78" rx="2"/>`;
+
+    // Floor lines
+    const floorPx = FLOOR_H * scale;
+    for (let f = 1; f < floors; f++) {
+      const ly = groundY - f * floorPx;
+      s += `<line x1="${bX}" y1="${ly}" x2="${bX+bPxW}" y2="${ly}" stroke="${lineC}" stroke-width="0.8"/>`;
+    }
+
+    // Windows (simple grid)
+    const cols = Math.max(2, Math.min(8, Math.floor(bPxW / 22)));
+    const winW = Math.min(14, (bPxW - 12) / (cols + 1));
+    const winH = Math.min(9, floorPx * 0.45);
+    for (let fl = 0; fl < floors; fl++) {
+      for (let c = 0; c < cols; c++) {
+        const wx = bX + 6 + c * (bPxW - 12) / cols + (bPxW - 12) / cols / 2 - winW / 2;
+        const wy = groundY - (fl + 1) * floorPx + floorPx * 0.25;
+        s += `<rect x="${wx}" y="${wy}" width="${winW}" height="${winH}" fill="${windowC}" rx="1"/>`;
+      }
+    }
+
+    // Dimension callouts
+    const dimRight = bX + bPxW + 8;
+    s += `<line x1="${dimRight}" y1="${bY}" x2="${dimRight}" y2="${groundY}" stroke="${txtCol}" stroke-width="0.7" stroke-dasharray="2 2"/>`;
+    s += `<text x="${dimRight+4}" y="${(bY+groundY)/2+4}" font-size="8.5" font-family="Syne,sans-serif" font-weight="700" fill="${txtCol}">${Math.round(buildingH)}m</text>`;
+    s += `<text x="${bX+bPxW/2}" y="${bY-8}" text-anchor="middle" font-size="8.5" font-family="DM Sans,sans-serif" fill="${txtCol}">${floors} floor${floors!==1?'s':''}</text>`;
+
+    // Floor label on first floor
+    if (S.typology === 'mixed' || S.typology === 'commercial') {
+      s += `<text x="${bX+bPxW/2}" y="${groundY-4}" text-anchor="middle" font-size="7" font-family="DM Sans,sans-serif" fill="rgba(10,10,15,0.6)">GF Commercial</text>`;
+    }
+  }
+
+  // Zone label (bottom left)
+  s += `<text x="${PAD}" y="${C_H-6}" font-size="7.5" font-family="DM Sans,sans-serif" fill="${txtCol}">${zone.code} · ${zone.name} · max ${zone.maxFloors} fl.</text>`;
+
+  document.getElementById('svgElev').innerHTML = s;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  const r = computeDesign();
+
+  // Update SVGs
+  drawSitePlan(r);
+  drawElevation(r);
+
+  // Metrics strip
+  document.getElementById('mGFA').textContent      = fmtNum(Math.round(r.gfa));
+  document.getElementById('mCoverage').textContent = r.achievedCovPct.toFixed(1) + '%';
+  document.getElementById('mFAR').textContent      = r.achievedFAR.toFixed(2);
+  document.getElementById('mFloors').textContent   = r.floors;
+  document.getElementById('mUnits').textContent    = r.units || (S.typology==='commercial' ? '—' : '0');
+  document.getElementById('mHeight').textContent   = Math.round(r.heightM) + 'm';
+  document.getElementById('mDevCost').textContent  = shortRWF(r.devCost);
+  document.getElementById('mLeverage').textContent = r.landCost ? (r.devCost / r.landCost).toFixed(1) + '×' : '—';
+
+  // Hero stats
+  document.getElementById('hGFA').textContent     = fmtNum(Math.round(r.gfa)) + ' m²';
+  document.getElementById('hUnits').textContent   = r.units || '—';
+  document.getElementById('hCost').textContent    = shortRWF(r.devCost);
+  document.getElementById('hRevenue').textContent = r.grossRevenue ? shortRWF(r.grossRevenue) : '—';
+
+  // Output cards
+  document.getElementById('outGFA').textContent     = fmtNum(Math.round(r.gfa)) + ' m²';
+  document.getElementById('outUnits').textContent   = r.units || (S.typology==='commercial' ? 'GLA' : '0');
+  document.getElementById('outDevCost').textContent = fmtRWF(r.devCost);
+  document.getElementById('outRevenue').textContent = r.grossRevenue ? fmtRWF(r.grossRevenue) : '—';
+  const marginEl = document.getElementById('outMargin');
+  if (r.grossMargin !== null) {
+    const m = parseFloat(r.grossMargin);
+    marginEl.textContent = m.toFixed(1) + '%';
+    marginEl.className = 'output-card-val ' + (m >= 20 ? 'green' : m >= 0 ? '' : 'red');
+  } else {
+    marginEl.textContent = '—';
+    marginEl.className = 'output-card-val';
+  }
+  document.getElementById('outCostPerUnit').textContent = r.units > 0 ? shortRWF(r.devCost / r.units) : '—';
+  document.getElementById('outLeverage').textContent    = r.landCost ? (r.devCost / r.landCost).toFixed(1) + '×' : '—';
+
+  // Confidence badge
+  const cb = document.getElementById('confBadge');
+  if (r.grossRevenue) {
+    const conf = r.confData?.confidence || 'low';
+    const src  = r.confData?.source     || 'estimate';
+    cb.innerHTML = `<span class="confidence-badge ${conf}">${conf === 'high' ? '● live data' : conf === 'medium' ? '● field data' : '● estimate'}</span>`;
+  } else {
+    cb.innerHTML = '';
+  }
+
+  // Zone card
+  renderZoneCard(r.zone, r.compliance);
+
+  // Parcel card
+  if (S.mode === 'portfolio') renderParcelCard(parcels[S.parcelIdx]);
+
+  // Plot dimensions display
+  document.getElementById('dimDisplay').textContent =
+    `${Math.round(r.plotW)}m × ${Math.round(r.plotD)}m (${Math.round(r.buildW)}m × ${Math.round(r.buildD)}m buildable)`;
+
+  // Materials preview
+  const top5 = [...r.mats].sort((a,b)=>b.total_cost-a.total_cost).slice(0,5);
+  document.getElementById('matPreview').innerHTML = top5.map(m =>
+    `<tr><td>${m.name}</td><td>${shortRWF(m.total_cost)}</td></tr>`
+  ).join('');
+
+  // Slider track fills
+  syncSliderFill('floorsSlider',   S.floors,   1, 20);
+  syncSliderFill('coverageSlider', S.coverage, 20, 85);
+  syncSliderFill('ratioSlider',    S.ratio,    5, 30);
+}
+
+function renderZoneCard(zone, compliance) {
+  const zc = document.getElementById('zoneCard');
+  const comps = [
+    { key:'coverage', label:'Coverage' },
+    { key:'far',      label:'FAR' },
+    { key:'height',   label:'Height' },
+  ];
+  const compHTML = comps.map(c =>
+    `<span class="comp-pill ${compliance[c.key]?'ok':'bad'}">${compliance[c.key]?'✓':'✗'} ${c.label}</span>`
+  ).join('');
+  zc.innerHTML = `
+    <div class="zone-card-stripe" style="background:${zone.color}"></div>
+    <div class="zone-card-name">${zone.code} — ${zone.name}</div>
+    <div class="zone-rules-grid">
+      <div class="zone-rule"><span class="zr-label">Max FAR</span><br><span class="zr-value">${zone.maxFAR}</span></div>
+      <div class="zone-rule"><span class="zr-label">Coverage</span><br><span class="zr-value">${Math.round(zone.maxCoverage*100)}%</span></div>
+      <div class="zone-rule"><span class="zr-label">Max floors</span><br><span class="zr-value">${zone.maxFloors}</span></div>
+      <div class="zone-rule"><span class="zr-label">Max height</span><br><span class="zr-value">${zone.maxHeightM}m</span></div>
+      <div class="zone-rule"><span class="zr-label">Front setback</span><br><span class="zr-value">${zone.setbackFront}m</span></div>
+      <div class="zone-rule"><span class="zr-label">Side setback</span><br><span class="zr-value">${zone.setbackSide}m</span></div>
+    </div>
+    <div class="compliance-row">${compHTML}</div>`;
+  zc.style.background = isDark() ? 'rgba(245,240,232,0.03)' : 'rgba(10,10,15,0.03)';
+}
+
+function renderParcelCard(p) {
+  const pc = document.getElementById('parcelCard');
+  const priceData = getLandPrice(p.district, S.zoneCode);
+  pc.innerHTML = `
+    <div class="parcel-card-name">${p.name}</div>
+    <div class="parcel-card-loc">📍 ${p.location}</div>
+    <div class="parcel-card-row"><span class="lbl">Plot area</span><span class="val">${fmtNum(p.size_sqm)} sqm</span></div>
+    <div class="parcel-card-row"><span class="lbl">Land price</span><span class="val">${fmtRWF(p.land_price_rwf)}</span></div>
+    <div class="parcel-card-row"><span class="lbl">Land / sqm</span><span class="val">${fmtNum(p.price_per_sqm)} RWF</span></div>
+    <div class="parcel-card-row"><span class="lbl">Market est.</span><span class="val">${fmtNum(priceData.pricePerSqm)} RWF/sqm</span></div>
+    <div class="parcel-card-row"><span class="lbl">Readiness</span><span class="val">${p.avg_readiness}%</span></div>`;
+}
+
+// ── Event handlers ─────────────────────────────────────────────────────────────
+function setMode(mode) {
+  S.mode = mode;
+  document.getElementById('btnPortfolio').classList.toggle('active', mode==='portfolio');
+  document.getElementById('btnCustom').classList.toggle('active',    mode==='custom');
+  document.getElementById('portfolioSelector').style.display = mode==='portfolio' ? '' : 'none';
+  document.getElementById('customForm').style.display        = mode==='custom'    ? '' : 'none';
+  render();
+}
+
+function onParcelChange() {
+  S.parcelIdx = +document.getElementById('parcelSelect').value;
+  const p = parcels[S.parcelIdx];
+  S.zoneCode = defaultZoneFor(p.type);
+  document.getElementById('zoneSelect').value = S.zoneCode;
+  render();
+}
+
+function onCustomChange() {
+  S.custom.name     = document.getElementById('customName').value;
+  S.custom.area     = +document.getElementById('customArea').value || 1000;
+  S.custom.price    = +document.getElementById('customPrice').value || 0;
+  S.custom.district = document.getElementById('customDistrict').value;
+  render();
+}
+
+function onZoneChange() {
+  S.zoneCode = document.getElementById('zoneSelect').value;
+  // Clamp sliders to new zone maxes
+  const z = getZone(S.zoneCode);
+  S.floors   = Math.min(S.floors,   z.maxFloors);
+  S.coverage = Math.min(S.coverage, Math.round(z.maxCoverage * 100));
+  document.getElementById('floorsSlider').max   = z.maxFloors;
+  document.getElementById('floorsSlider').value = S.floors;
+  document.getElementById('coverageSlider').max = Math.round(z.maxCoverage * 100);
+  document.getElementById('coverageSlider').value = S.coverage;
+  document.getElementById('floorsVal').textContent   = S.floors;
+  document.getElementById('coverageVal').textContent = S.coverage + '%';
+  render();
+}
+
+function setTab(tab) {
+  S.tab = tab;
+  document.querySelectorAll('.viz-tab').forEach(t => t.classList.toggle('active', t.dataset.tab===tab));
+  const both = tab === 'both';
+  document.getElementById('panelPlan').style.display = (both || tab==='plan') ? '' : 'none';
+  document.getElementById('panelElev').style.display = (both || tab==='elevation') ? '' : 'none';
+}
+
+function setTypo(typo) {
+  S.typology = typo;
+  document.querySelectorAll('.typo-btn').forEach(b => b.classList.toggle('active', b.dataset.typo===typo));
+  const showMix = typo === 'apartments' || typo === 'townhouses' || typo === 'mixed';
+  document.getElementById('mixSection').classList.toggle('visible', showMix);
+  render();
+}
+
+function onSliderChange(field, el) {
+  const v = +el.value;
+  if (field === 'floors') {
+    S.floors = v;
+    document.getElementById('floorsVal').textContent = v;
+  } else if (field === 'coverage') {
+    S.coverage = v;
+    document.getElementById('coverageVal').textContent = v + '%';
+  }
+  syncSliderFill(el.id, v, +el.min, +el.max);
+  render();
+}
+
+function onRatioChange(el) {
+  S.ratio = +el.value;
+  const r  = 0.5 + (S.ratio - 5) / 25 * 2.5;
+  document.getElementById('ratioVal').textContent = `1 : ${r.toFixed(1)}`;
+  syncSliderFill(el.id, S.ratio, 5, 30);
+  render();
+}
+
+function onMixChange() {
+  const s = +document.getElementById('studioSlider').value;
+  const o = +document.getElementById('oneSlider').value;
+  const t = +document.getElementById('twoSlider').value;
+  const th= +document.getElementById('threeSlider').value;
+  const total = s + o + t + th;
+  if (total === 0) return;
+  // Normalise so they sum to 100
+  S.mix.studio = Math.round(s  / total * 100);
+  S.mix.one    = Math.round(o  / total * 100);
+  S.mix.two    = Math.round(t  / total * 100);
+  S.mix.three  = 100 - S.mix.studio - S.mix.one - S.mix.two;
+
+  document.getElementById('studioVal').textContent = S.mix.studio + '%';
+  document.getElementById('oneVal').textContent    = S.mix.one    + '%';
+  document.getElementById('twoVal').textContent    = S.mix.two    + '%';
+  document.getElementById('threeVal').textContent  = S.mix.three  + '%';
+
+  // Mix bar
+  document.getElementById('mixBarStudio').style.flex = S.mix.studio;
+  document.getElementById('mixBarOne').style.flex    = S.mix.one;
+  document.getElementById('mixBarTwo').style.flex    = S.mix.two;
+  document.getElementById('mixBarThree').style.flex  = S.mix.three;
+
+  syncSliderFill('studioSlider', s,  0, 60);
+  syncSliderFill('oneSlider',    o,  0, 70);
+  syncSliderFill('twoSlider',    t,  0, 60);
+  syncSliderFill('threeSlider',  th, 0, 50);
+  render();
+}
+
+function syncSliderFill(id, val, min, max) {
+  const pct = ((val - min) / (max - min)) * 100;
+  const el  = document.getElementById(id);
+  if (el) el.style.background =
+    `linear-gradient(to right, var(--terracotta) ${pct}%, rgba(245,240,232,0.1) ${pct}%)`;
+}
+
+// ── Scenarios ──────────────────────────────────────────────────────────────────
+function saveScenario() {
+  if (S.scenarios.length >= 6) { S.scenarios.shift(); }
+  const r    = computeDesign();
+  const site = getActiveSite();
+  S.scenarios.push({
+    id:       Date.now(),
+    name:     site.name,
+    zone:     S.zoneCode,
+    typology: S.typology,
+    floors:   r.floors,
+    gfa:      Math.round(r.gfa),
+    units:    r.units,
+    coverage: r.achievedCovPct,
+    devCost:  r.devCost,
+    revenue:  r.grossRevenue,
+    color:    r.zone.color,
+    maxFAR:   r.zone.maxFAR,
+    far:      r.achievedFAR,
+  });
+  renderScenarios();
+}
+
+function deleteScenario(id) {
+  S.scenarios = S.scenarios.filter(s => s.id !== id);
+  renderScenarios();
+}
+
+function renderScenarios() {
+  const strip = document.getElementById('scenariosStrip');
+  const empty = document.getElementById('scenariosEmpty');
+  if (!S.scenarios.length) {
+    empty.style.display = '';
+    // Remove all scenario cards
+    strip.querySelectorAll('.scenario-card').forEach(el => el.remove());
+    return;
+  }
+  empty.style.display = 'none';
+  // Rebuild cards
+  strip.querySelectorAll('.scenario-card').forEach(el => el.remove());
+  S.scenarios.forEach(sc => {
+    const el = document.createElement('div');
+    el.className = 'scenario-card';
+    const farPct = Math.min(100, (sc.far / sc.maxFAR * 100)).toFixed(0);
+    el.innerHTML = `
+      <button class="sc-delete" onclick="deleteScenario(${sc.id})">✕</button>
+      <div class="sc-header">
+        <span class="sc-name">${sc.name}</span>
+        <span class="sc-zone" style="background:${sc.color}20;color:${sc.color}">${sc.zone}</span>
+      </div>
+      <div class="sc-meta">
+        <span class="sc-chip"><strong>${sc.floors}</strong> fl</span>
+        <span class="sc-chip"><strong>${fmtNum(sc.gfa)}</strong> m²</span>
+        <span class="sc-chip"><strong>${sc.units||'—'}</strong> units</span>
+        <span class="sc-chip"><strong>${shortRWF(sc.devCost)}</strong></span>
+      </div>
+      <div class="sc-bar"><div class="sc-bar-fill" style="width:${farPct}%;background:${sc.color}"></div></div>
+      <div style="font-size:0.57rem;color:rgba(245,240,232,0.3);margin-top:0.1rem">${sc.typology} · FAR ${sc.far.toFixed(2)} / ${sc.maxFAR}</div>`;
+    strip.appendChild(el);
+  });
+}
+
+// ── Formatting helpers ────────────────────────────────────────────────────────
+function shortRWF(n) {
+  if (!n) return '—';
+  if (n >= 1e9) return (n/1e9).toFixed(1) + 'bn RWF';
+  if (n >= 1e6) return (n/1e6).toFixed(0) + 'M RWF';
+  if (n >= 1e3) return (n/1e3).toFixed(0) + 'K RWF';
+  return n + ' RWF';
+}
+
+// Init mix section visibility
+document.getElementById('mixSection').classList.add('visible');
+
+</script>
+</body>
+</html>
