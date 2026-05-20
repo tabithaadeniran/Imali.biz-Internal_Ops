@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<script>(function(){var t=localStorage.getItem('imali-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Land Valuation — Imali.biz Internal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="shared/rwanda-geo.js"></script>
+<script src="shared/config.js"></script>
+<script src="shared/zoning.js"></script>
+<script src="shared/land-pricing.js"></script>
+<style>
+/* ── Design tokens ─────────────────────────────────────────────────────── */
+:root {
+  --ink: #0a0a0f; --cream: #f5f0e8; --terracotta: #c8521a;
+  --gold: #d4a832; --forest: #1a3a2a; --text-muted: #6b6560;
+  --bg: #faf7f2; --bg-alt: #ede7db; --bg-card: #ffffff;
+  --surface: rgba(0,0,0,0.04); --surface-hover: rgba(0,0,0,0.07);
+  --border: rgba(0,0,0,0.09); --border-strong: rgba(0,0,0,0.17);
+  --text: #1a1814; --text-dim: rgba(26,24,20,0.6);
+  --text-faint: rgba(26,24,20,0.38);
+  --input-bg: rgba(0,0,0,0.05); --input-border: rgba(0,0,0,0.14);
+  --nav-bg: rgba(250,247,242,0.97);
+  --scrollbar-thumb: rgba(200,82,26,0.3);
+}
+[data-theme="dark"] {
+  --bg: #0a0a0f; --bg-alt: #0f0f16; --bg-card: rgba(245,240,232,0.04);
+  --surface: rgba(245,240,232,0.04); --surface-hover: rgba(245,240,232,0.08);
+  --border: rgba(245,240,232,0.08); --border-strong: rgba(245,240,232,0.15);
+  --text: #f5f0e8; --text-dim: rgba(245,240,232,0.55);
+  --text-faint: rgba(245,240,232,0.3);
+  --input-bg: rgba(245,240,232,0.06); --input-border: rgba(245,240,232,0.14);
+  --nav-bg: rgba(10,10,15,0.97);
+  --scrollbar-thumb: rgba(212,168,50,0.3);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif;
+       font-weight: 300; overflow-x: hidden; cursor: none; }
+body::before { content:''; position:fixed; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:9997; opacity:0.6; }
+
+/* ── Custom cursor ─────────────────────────────────────────────────────── */
+.cursor { position:fixed; width:10px; height:10px; background:var(--terracotta); border-radius:50%; pointer-events:none; z-index:9999; }
+.cursor-ring { position:fixed; width:36px; height:36px; border:1px solid rgba(200,82,26,0.4); border-radius:50%; pointer-events:none; z-index:9998; transition:transform 0.4s ease,width 0.3s,height 0.3s,border-color 0.3s; }
+body:has(a:hover) .cursor-ring, body:has(button:hover) .cursor-ring { width:56px; height:56px; border-color:var(--terracotta); transform:translate(-10px,-10px) !important; }
+
+/* ── Internal nav ──────────────────────────────────────────────────────── */
+.int-nav { position:fixed; top:0; left:0; right:0; z-index:200; height:60px;
+           display:flex; align-items:center; justify-content:space-between;
+           padding:0 2rem; background:var(--nav-bg); backdrop-filter:blur(8px);
+           border-bottom:1px solid var(--border); }
+.int-nav-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.1rem;
+                letter-spacing:-0.02em; color:var(--text); text-decoration:none;
+                display:flex; align-items:center; gap:0.4rem; }
+.int-nav-logo span { color:var(--terracotta); font-style:italic; font-family:'Instrument Serif',serif; }
+.int-nav-sub { font-size:0.55rem; letter-spacing:0.14em; text-transform:uppercase;
+               color:var(--gold); font-weight:500; display:block; line-height:1; margin-top:1px; }
+.int-nav-right { display:flex; align-items:center; gap:0.25rem; }
+.int-nav-link { color:var(--text-dim); text-decoration:none; font-size:0.8rem;
+                letter-spacing:0.04em; padding:0.35rem 0.75rem; border-radius:0.5rem;
+                transition:color 0.2s,background 0.2s; }
+.int-nav-link:hover { color:var(--text); background:var(--surface-hover); }
+.int-nav-link.active { color:var(--terracotta); background:rgba(200,82,26,0.08); }
+.theme-toggle { background:var(--surface); border:1px solid var(--border); border-radius:2rem;
+                padding:0.3rem 0.7rem; cursor:none; font-size:0.75rem; color:var(--text-dim);
+                transition:all 0.2s; margin-left:0.25rem; }
+.theme-toggle:hover { background:var(--surface-hover); color:var(--text); }
+
+/* ── Page body ─────────────────────────────────────────────────────────── */
+.page-body { padding-top: 60px; min-height: 100vh; }
+
+/* ── Hero strip ────────────────────────────────────────────────────────── */
+.hero-strip {
+  padding: 3.5rem 4rem 3rem;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+  position: relative; overflow: hidden;
+}
+.hero-strip::before {
+  content:''; position:absolute; inset:0;
+  background-image:linear-gradient(rgba(212,168,50,0.03) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(212,168,50,0.03) 1px,transparent 1px);
+  background-size:60px 60px; animation:gridShift 20s linear infinite;
+}
+@keyframes gridShift { 0%{background-position:0 0} 100%{background-position:60px 60px} }
+.orb-val { position:absolute; border-radius:50%; filter:blur(80px); pointer-events:none;
+           width:360px; height:360px; background:radial-gradient(circle,rgba(200,82,26,0.12),transparent 70%);
+           top:-80px; right:-60px; }
+.hero-strip-inner { position:relative; z-index:2; max-width:620px; }
+.hero-eyebrow { display:inline-flex; align-items:center; gap:0.75rem; font-size:0.7rem;
+                letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); margin-bottom:1rem; }
+.hero-eyebrow::before { content:''; display:block; width:24px; height:1px; background:var(--gold); }
+.hero-hed { font-family:'Syne',sans-serif; font-size:clamp(1.8rem,3.5vw,3rem); font-weight:800;
+            line-height:1.05; letter-spacing:-0.025em; margin-bottom:0.75rem; }
+.hero-hed em { font-family:'Instrument Serif',serif; font-style:italic; font-weight:400; color:var(--terracotta); }
+.hero-sub { font-size:0.92rem; color:var(--text-dim); line-height:1.7; max-width:500px; }
+.data-source-pills { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1.25rem; }
+.ds-pill { display:inline-flex; align-items:center; gap:0.4rem; border-radius:2rem; padding:0.3rem 0.75rem;
+           font-size:0.68rem; letter-spacing:0.03em; }
+.ds-pill.active { background:rgba(76,175,125,0.1); border:1px solid rgba(76,175,125,0.25); color:#4caf7d; }
+.ds-pill.pending { background:rgba(212,168,50,0.08); border:1px solid rgba(212,168,50,0.2); color:var(--gold); }
+
+/* ── Main layout: form | results ───────────────────────────────────────── */
+.main-wrap { display:grid; grid-template-columns:500px 1fr; min-height:calc(100vh - 260px); }
+
+/* ── Form panel ────────────────────────────────────────────────────────── */
+.form-panel { padding:2.5rem 3rem; border-right:1px solid var(--border); background:var(--bg-alt); }
+.form-section-title { font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase;
+                      color:var(--text-faint); margin-bottom:1.25rem; padding-bottom:0.6rem;
+                      border-bottom:1px solid var(--border); }
+.field-group { margin-bottom:1.25rem; }
+label { display:block; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase;
+        color:var(--text-dim); margin-bottom:0.45rem; font-weight:500; }
+input[type="text"], input[type="number"], select, textarea {
+  width:100%; background:var(--input-bg); border:1px solid var(--input-border);
+  border-radius:0.75rem; padding:0.75rem 1rem; font-family:'DM Sans',sans-serif;
+  font-size:0.875rem; color:var(--text); outline:none; cursor:none;
+  transition:border-color 0.2s,background 0.2s;
+}
+input:focus, select:focus, textarea:focus { border-color:rgba(200,82,26,0.5); }
+input::placeholder { color:var(--text-faint); }
+select option { background:var(--bg-alt); }
+select:disabled { opacity:0.4; cursor:not-allowed; }
+textarea { resize:vertical; min-height:70px; }
+.field-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.field-row-3 { display:grid; grid-template-columns:2fr 1fr 1fr; gap:1rem; }
+.field-separator { height:1px; background:var(--border); margin:1.5rem 0; }
+
+/* Radio / toggle buttons */
+.radio-group { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.radio-btn { background:var(--surface); border:1px solid var(--border); border-radius:0.6rem;
+             padding:0.5rem 0.8rem; cursor:none; font-size:0.78rem;
+             transition:background 0.2s,border-color 0.2s,color 0.2s; }
+.radio-btn.selected { background:rgba(200,82,26,0.12); border-color:rgba(200,82,26,0.35); color:var(--terracotta); }
+
+/* Amenity checkboxes */
+.amenity-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.45rem; }
+.amenity-item { display:flex; align-items:center; gap:0.45rem; background:var(--surface);
+                border:1px solid var(--border); border-radius:0.6rem; padding:0.45rem 0.65rem;
+                cursor:none; font-size:0.76rem; color:var(--text-dim);
+                transition:background 0.2s,border-color 0.2s,color 0.2s; }
+.amenity-item.checked { background:rgba(76,175,125,0.07); border-color:rgba(76,175,125,0.2); color:#4caf7d; }
+
+/* Calculate button */
+.btn-calculate { width:100%; background:var(--terracotta); color:white; padding:0.9rem;
+                 border-radius:0.75rem; font-family:'Syne',sans-serif; font-size:0.95rem;
+                 font-weight:700; cursor:none; border:none; margin-top:0.5rem;
+                 transition:background 0.2s,box-shadow 0.2s,transform 0.2s;
+                 display:flex; align-items:center; justify-content:center; gap:0.6rem;
+                 box-shadow:0 6px 20px rgba(200,82,26,0.2); }
+.btn-calculate:hover { background:#d65a1e; box-shadow:0 10px 28px rgba(200,82,26,0.35); transform:translateY(-1px); }
+
+/* ── Results panel ─────────────────────────────────────────────────────── */
+.results-panel { padding:2.5rem 3rem; }
+.results-empty { display:flex; flex-direction:column; align-items:center; justify-content:center;
+                 min-height:420px; text-align:center; color:var(--text-faint); }
+.empty-icon { font-size:3rem; margin-bottom:1.1rem; display:block; }
+.empty-title { font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; margin-bottom:0.4rem; }
+.empty-desc { font-size:0.8rem; line-height:1.6; max-width:260px; }
+.results-content { display:none; }
+.results-content.visible { display:block; }
+
+/* Loading */
+.calculating { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:300px; }
+.calculating.active { display:flex; }
+.calc-spinner { width:44px; height:44px; border:3px solid rgba(200,82,26,0.2); border-top-color:var(--terracotta);
+                border-radius:50%; animation:spin 0.9s linear infinite; margin-bottom:1.1rem; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.calc-text { font-size:0.82rem; color:var(--text-dim); text-align:center; }
+.calc-text span { display:block; color:var(--gold); font-family:'Syne',sans-serif; font-size:0.72rem;
+                  font-weight:700; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.35rem; }
+
+/* Result headline */
+.result-headline { margin-bottom:2rem; }
+.result-eyebrow { font-size:0.66rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); margin-bottom:0.65rem; }
+.result-amount { font-family:'Syne',sans-serif; font-size:clamp(2rem,3.5vw,3.2rem); font-weight:800;
+                 color:var(--text); margin-bottom:0.3rem; line-height:1; }
+.result-range { font-size:0.82rem; color:var(--text-dim); margin-bottom:0.85rem; }
+.result-confidence { display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; }
+.conf-label { font-size:0.63rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint); margin-bottom:0.15rem; }
+.conf-val { font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:700; }
+.conf-val.green { color:#4caf7d; } .conf-val.gold { color:var(--gold); } .conf-val.red { color:#ef5350; }
+.hotspot-badge { display:inline-flex; align-items:center; gap:0.4rem; background:rgba(200,82,26,0.12);
+                 border:1px solid rgba(200,82,26,0.25); border-radius:2rem; padding:0.35rem 0.85rem;
+                 font-size:0.76rem; color:var(--terracotta); margin-top:0.85rem; }
+.hotspot-badge.gold-badge { background:rgba(212,168,50,0.1); border-color:rgba(212,168,50,0.25); color:var(--gold); }
+
+/* Data source banner */
+.data-tier-banner { display:flex; align-items:center; gap:0.6rem; padding:0.6rem 0.9rem;
+                    border-radius:0.6rem; margin-bottom:1.5rem; font-size:0.76rem; }
+.data-tier-banner.tier-scraped { background:rgba(76,175,125,0.08); border:1px solid rgba(76,175,125,0.2); color:#4caf7d; }
+.data-tier-banner.tier-field   { background:rgba(76,155,200,0.08); border:1px solid rgba(76,155,200,0.2); color:#4c9bc8; }
+.data-tier-banner.tier-nla     { background:rgba(212,168,50,0.08); border:1px solid rgba(212,168,50,0.2); color:var(--gold); }
+.data-tier-banner.tier-estimate{ background:var(--surface);        border:1px solid var(--border);         color:var(--text-faint); }
+
+/* Per-sqm strip */
+.per-sqm-strip { display:flex; gap:1.25rem; flex-wrap:wrap; padding:1.1rem 0;
+                 border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin-bottom:1.75rem; }
+.psq-label { font-size:0.63rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint); margin-bottom:0.15rem; }
+.psq-val { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:700; }
+
+/* Factor breakdown */
+.factors-title { font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-faint); margin-bottom:1.1rem; }
+.factor-list { display:grid; grid-template-columns:1fr 1fr; gap:0.9rem; margin-bottom:1.75rem; }
+.factor-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1rem 1.1rem; }
+.fc-label { font-size:0.63rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint); margin-bottom:0.35rem; }
+.fc-value { font-family:'Syne',sans-serif; font-size:0.88rem; font-weight:700; color:var(--text); margin-bottom:0.2rem; }
+.fc-impact { font-size:0.7rem; }
+.impact-pos { color:#4caf7d; } .impact-neg { color:#ef5350; } .impact-neu { color:var(--text-faint); }
+
+/* Market comparison bars */
+.comp-title { font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-faint); margin-bottom:1.1rem; }
+.comp-bar-item { margin-bottom:1.1rem; }
+.comp-bar-header { display:flex; justify-content:space-between; margin-bottom:0.35rem; font-size:0.78rem; }
+.comp-bar-loc { color:var(--text-dim); }
+.comp-bar-val { font-weight:500; font-family:'Syne',sans-serif; font-size:0.8rem; }
+.comp-bar-track { height:5px; background:var(--border); border-radius:3px; overflow:hidden; }
+.comp-bar-fill { height:100%; border-radius:3px; transition:width 1.2s ease; }
+.comp-bar-yours { background:var(--terracotta); }
+.comp-bar-other { background:rgba(212,168,50,0.4); }
+.your-marker { font-size:0.63rem; color:var(--terracotta); margin-top:0.15rem; }
+
+/* Recommended price box */
+.rec-price-box { background:linear-gradient(135deg,rgba(200,82,26,0.08),rgba(212,168,50,0.06));
+                 border:1px solid rgba(200,82,26,0.18); border-radius:14px; padding:1.4rem;
+                 margin-bottom:1.75rem; display:flex; align-items:center; justify-content:space-between; }
+.rec-label { font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint); margin-bottom:0.35rem; }
+.rec-amount { font-family:'Syne',sans-serif; font-size:1.7rem; font-weight:800; color:var(--text); }
+.rec-note { font-size:0.72rem; color:var(--text-faint); margin-top:0.25rem; }
+.rec-psqm { font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:700; color:var(--gold); }
+.rec-psqm-label { font-size:0.66rem; color:var(--text-faint); }
+
+/* Development potential box */
+.dev-potential-box { background:linear-gradient(135deg,rgba(26,58,42,0.25),rgba(212,168,50,0.06));
+                     border:1px solid rgba(26,175,100,0.18); border-radius:14px; padding:1.4rem;
+                     margin-bottom:1.75rem; }
+.dev-potential-title { font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase;
+                       color:var(--gold); margin-bottom:1rem; }
+.dev-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin-bottom:1rem; }
+.dev-metric { }
+.dev-metric-label { font-size:0.62rem; letter-spacing:0.07em; text-transform:uppercase; color:var(--text-faint); margin-bottom:0.2rem; }
+.dev-metric-val { font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:700; color:var(--text); }
+.btn-dev-engine { display:inline-flex; align-items:center; gap:0.45rem; background:var(--forest);
+                  border:1px solid rgba(76,175,100,0.35); color:#7ddba4; padding:0.55rem 1.1rem;
+                  border-radius:2rem; font-size:0.78rem; text-decoration:none; cursor:none;
+                  transition:background 0.2s,border-color 0.2s,box-shadow 0.2s; }
+.btn-dev-engine:hover { background:#24523a; border-color:rgba(76,175,100,0.6); box-shadow:0 4px 14px rgba(26,58,42,0.35); }
+
+/* Pipeline action */
+.result-actions { display:flex; gap:0.75rem; flex-wrap:wrap; }
+.btn-primary { display:inline-flex; align-items:center; gap:0.45rem; background:var(--terracotta);
+               color:white; padding:0.8rem 1.75rem; border-radius:3rem; font-size:0.85rem;
+               font-weight:500; cursor:none; border:none; text-decoration:none;
+               transition:background 0.2s,transform 0.2s; }
+.btn-primary:hover { background:#d65a1e; transform:translateY(-1px); }
+.btn-outline { display:inline-flex; align-items:center; gap:0.45rem;
+               border:1px solid var(--border-strong); color:var(--text-dim);
+               padding:0.8rem 1.5rem; border-radius:3rem; font-size:0.85rem;
+               text-decoration:none; cursor:none; background:transparent;
+               transition:border-color 0.2s,color 0.2s; }
+.btn-outline:hover { border-color:var(--border-strong); color:var(--text); }
+
+/* Internal footer */
+.int-footer { background:var(--bg-alt); padding:1.5rem 2rem; border-top:1px solid var(--border);
+              display:flex; align-items:center; justify-content:space-between; }
+.footer-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1rem; color:var(--text); text-decoration:none; }
+.footer-logo span { color:var(--terracotta); font-style:italic; font-family:'Instrument Serif',serif; }
+.footer-note { font-size:0.72rem; color:var(--text-faint); }
+
+::-webkit-scrollbar { width:8px; } ::-webkit-scrollbar-thumb { background:var(--scrollbar-thumb); border-radius:4px; }
+
+@media (max-width:1100px) {
+  .main-wrap { grid-template-columns:1fr; }
+  .form-panel { border-right:none; border-bottom:1px solid var(--border); padding:2rem 1.5rem; }
+  .results-panel { padding:2rem 1.5rem; }
+  .hero-strip { padding:3rem 2rem 2rem; }
+  .factor-list { grid-template-columns:1fr; }
+  .dev-metrics { grid-template-columns:repeat(2,1fr); }
+  .field-row-3 { grid-template-columns:1fr 1fr; }
+  .rec-price-box { flex-direction:column; gap:0.75rem; }
+}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ── Internal Nav ───────────────────────────────────────────────────── -->
+<nav class="int-nav">
+  <a href="index.html" class="int-nav-logo">
+    Imali<span>.</span>biz
+    <span class="int-nav-sub">Internal</span>
+  </a>
+  <div class="int-nav-right">
+    <a href="index.html"          class="int-nav-link">Overview</a>
+    <a href="inventory.html"      class="int-nav-link">Inventory</a>
+    <a href="materials.html"      class="int-nav-link">Materials</a>
+    <a href="map.html"            class="int-nav-link">Opportunity Map</a>
+    <a href="design-engine.html"  class="int-nav-link">Design Engine</a>
+    <a href="valuation.html"      class="int-nav-link active">Valuation</a>
+    <button class="theme-toggle" onclick="toggleTheme()">☀ Light</button>
+  </div>
+</nav>
+
+<div class="page-body">
+
+<!-- ── Hero Strip ────────────────────────────────────────────────────── -->
+<div class="hero-strip">
+  <div class="orb-val"></div>
+  <div class="hero-strip-inner">
+    <div class="hero-eyebrow">Internal Tool · Land Valuation Engine</div>
+    <h1 class="hero-hed">Estimate land value <em>accurately.</em></h1>
+    <p class="hero-sub">Pipeline and acquisition valuations using multi-source Rwanda market data. Select province → district → sector → cell → village, enter land details and get a calibrated estimate with factor breakdown and development potential.</p>
+    <div class="data-source-pills">
+      <div class="ds-pill active" id="pillScraping">✓ Scraped market data — imali.biz (May 2026, Kigali + some districts)</div>
+      <div class="ds-pill pending" id="pillField">⏳ Field capture — pending deployment</div>
+      <div class="ds-pill active">✓ NLA transaction data — live (2026, used as context)</div>
+      <div class="ds-pill active">✓ 2021 Official Gazette reference prices</div>
+      <div class="ds-pill active">✓ 2018 Gazette baseline × inflation</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main layout ────────────────────────────────────────────────────── -->
+<div class="main-wrap">
+
+  <!-- FORM PANEL -->
+  <div class="form-panel">
+
+    <div class="form-section-title">Location</div>
+
+    <div class="field-group">
+      <label>Province</label>
+      <select id="vProvince">
+        <option value="kigali">Kigali City</option>
+        <option value="northern">Northern Province</option>
+        <option value="southern">Southern Province</option>
+        <option value="eastern">Eastern Province</option>
+        <option value="western">Western Province</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label>District</label>
+      <select id="vDistrict">
+        <option value="">— Select Province first —</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label>Sector</label>
+      <select id="vSector" disabled>
+        <option value="">— Select District first —</option>
+      </select>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group" style="margin-bottom:0">
+        <label>Cell</label>
+        <select id="vCell" disabled>
+          <option value="">— Select Sector first —</option>
+        </select>
+      </div>
+      <div class="field-group" style="margin-bottom:0">
+        <label>Village</label>
+        <select id="vVillage" disabled>
+          <option value="">— Select Cell first —</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-separator"></div>
+    <div class="form-section-title">Land Details</div>
+
+    <div class="field-row">
+      <div class="field-group" style="margin-bottom:0">
+        <label>Land Size</label>
+        <input type="number" id="vSize" placeholder="e.g. 2400" min="1"/>
+      </div>
+      <div class="field-group" style="margin-bottom:0">
+        <label>Unit</label>
+        <select id="vUnit">
+          <option value="sqm">sqm</option>
+          <option value="ha">Hectares</option>
+          <option value="acre">Acres</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group" style="margin-top:1.25rem">
+      <label>Land Type</label>
+      <div class="radio-group" id="vTypeGroup">
+        <div class="radio-btn selected" data-v="residential">🏘️ Residential</div>
+        <div class="radio-btn" data-v="commercial">🏢 Commercial</div>
+        <div class="radio-btn" data-v="agricultural">🌾 Agricultural</div>
+        <div class="radio-btn" data-v="mixed">🏗️ Mixed Use</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Zoning Classification</label>
+      <select id="vZoning">
+        <option value="">— Not specified / Unknown —</option>
+        <option value="R1">R1 — Low-Density Residential</option>
+        <option value="R2">R2 — Medium-Density Residential</option>
+        <option value="R3">R3 — High-Density Residential</option>
+        <option value="R4">R4 — Very High-Density Residential</option>
+        <option value="C1">C1 — Neighbourhood Commercial</option>
+        <option value="C2">C2 — District Commercial Centre</option>
+        <option value="C3">C3 — City Centre / CBD</option>
+        <option value="MU1">MU1 — Mixed-Use (Low)</option>
+        <option value="MU2">MU2 — Mixed-Use (High)</option>
+        <option value="OS">OS — Open Space / Green</option>
+        <option value="AG">AG — Agricultural</option>
+        <option value="IN">IN — Institutional</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label>Land Tenure Type</label>
+      <div class="radio-group" id="vTenureGroup">
+        <div class="radio-btn selected" data-v="emphyteutic">📋 Emphyteutic</div>
+        <div class="radio-btn" data-v="freehold">🏛️ Freehold</div>
+        <div class="radio-btn" data-v="condominium">🏢 Condo</div>
+        <div class="radio-btn" data-v="sublease">🔄 Sub-lease</div>
+        <div class="radio-btn" data-v="investment">📈 Investment</div>
+        <div class="radio-btn" data-v="concession">🤝 Concession</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Title Document</label>
+      <div class="radio-group" id="vTitleFormatGroup">
+        <div class="radio-btn selected" data-v="etitle">💻 e-Title (digital)</div>
+        <div class="radio-btn" data-v="physical">📄 Physical Title (paper)</div>
+        <div class="radio-btn" data-v="notitled">⚠️ No Title Yet</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Slope / Gradient</label>
+      <select id="vSlope">
+        <option value="flat">Flat (0–2°)</option>
+        <option value="gentle">Gentle slope (2–8°)</option>
+        <option value="moderate">Moderate slope (8–15°)</option>
+        <option value="steep">Steep (15–30°)</option>
+        <option value="verysteep">Very Steep (30–50°)</option>
+        <option value="extreme">Extreme (50°+)</option>
+      </select>
+    </div>
+
+    <div class="field-separator"></div>
+    <div class="form-section-title">Access & Amenities</div>
+
+    <div class="field-group">
+      <label>Utilities Access</label>
+      <div class="amenity-grid" id="vUtilities">
+        <div class="amenity-item checked" data-v="water">💧 Water</div>
+        <div class="amenity-item checked" data-v="electricity">⚡ Electricity</div>
+        <div class="amenity-item" data-v="tarmac">🛣️ Tarmac Road</div>
+        <div class="amenity-item" data-v="internet">📶 Internet</div>
+        <div class="amenity-item" data-v="sewage">🚿 Sewage</div>
+        <div class="amenity-item" data-v="school">🏫 School Nearby</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Nearby Amenities</label>
+      <div class="amenity-grid" id="vAmenities">
+        <div class="amenity-item" data-v="hospital">🏥 Hospital</div>
+        <div class="amenity-item checked" data-v="market">🛒 Market</div>
+        <div class="amenity-item" data-v="transport">🚌 Transport Hub</div>
+        <div class="amenity-item" data-v="lake">🌊 Lake/River View</div>
+      </div>
+    </div>
+
+    <div class="field-separator"></div>
+    <div class="form-section-title">Internal Notes (Optional)</div>
+
+    <div class="field-row">
+      <div class="field-group" style="margin-bottom:0">
+        <label>Parcel / Deal ID</label>
+        <input type="text" id="vParcelId" placeholder="e.g. P042"/>
+      </div>
+      <div class="field-group" style="margin-bottom:0">
+        <label>Deal Status</label>
+        <select id="vDealStatus">
+          <option value="prospecting">Prospecting</option>
+          <option value="under_review">Under Review</option>
+          <option value="negotiation">In Negotiation</option>
+          <option value="listed">Listed</option>
+          <option value="acquired">Acquired</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group" style="margin-top:1.25rem">
+      <label>Notes</label>
+      <textarea id="vNotes" placeholder="e.g. Corner plot, near Kigali bypass road, owner asking RWF 45,000/sqm..."></textarea>
+    </div>
+
+    <button class="btn-calculate" id="calcBtn">
+      ⚡ Calculate Valuation
+    </button>
+  </div><!-- end form-panel -->
+
+  <!-- RESULTS PANEL -->
+  <div class="results-panel">
+
+    <div class="results-empty" id="emptyState">
+      <span class="empty-icon">📊</span>
+      <div class="empty-title">Valuation will appear here</div>
+      <div class="empty-desc">Complete the land details on the left and click Calculate to get a calibrated estimate with factor breakdown and development potential.</div>
+    </div>
+
+    <div class="calculating" id="calcLoading">
+      <div class="calc-spinner"></div>
+      <div class="calc-text">
+        <span>Running valuation engine</span>
+        Checking NLA transaction data, gazette references, zoning premiums and comparable district rates…
+      </div>
+    </div>
+
+    <div class="results-content" id="resultsContent">
+
+      <!-- Headline -->
+      <div class="result-headline">
+        <div class="result-eyebrow">Valuation Result</div>
+        <div class="result-amount" id="rAmount">—</div>
+        <div class="result-range" id="rRange">—</div>
+        <div class="result-confidence">
+          <div class="confidence-item">
+            <div class="conf-label">Confidence</div>
+            <div class="conf-val green" id="rConfidence">—</div>
+          </div>
+          <div class="confidence-item">
+            <div class="conf-label">Hotspot Score</div>
+            <div class="conf-val gold" id="rHotspot">—</div>
+          </div>
+          <div class="confidence-item">
+            <div class="conf-label">Market Trend</div>
+            <div class="conf-val green" id="rTrend">—</div>
+          </div>
+        </div>
+        <div id="rHotspotBadge"></div>
+      </div>
+
+      <!-- Data source tier banner -->
+      <div class="data-tier-banner" id="dataTierBanner"></div>
+
+      <!-- Per-sqm strip -->
+      <div class="per-sqm-strip">
+        <div class="per-sqm-item">
+          <div class="psq-label">Est. Value / sqm</div>
+          <div class="psq-val" id="rPerSqm">—</div>
+        </div>
+        <div class="per-sqm-item">
+          <div class="psq-label">District Avg / sqm</div>
+          <div class="psq-val" id="rAvgSqm">—</div>
+        </div>
+        <div class="per-sqm-item">
+          <div class="psq-label">vs District Avg</div>
+          <div class="psq-val" id="rVsAvg">—</div>
+        </div>
+        <div class="per-sqm-item">
+          <div class="psq-label">NLA / sqm <span style="font-size:0.58rem;opacity:0.6">(fiscal ref.)</span></div>
+          <div class="psq-val" id="rNlaSqm" title="NLA data often understates real market prices significantly">—</div>
+        </div>
+      </div>
+
+      <!-- Factor breakdown -->
+      <div class="factors-title">Valuation Factor Breakdown</div>
+      <div class="factor-list" id="factorList"></div>
+
+      <!-- Market comparison -->
+      <div class="comp-title">District Comparison — Price / sqm (same province)</div>
+      <div id="compSection" style="margin-bottom:1.75rem"></div>
+
+      <!-- Recommended price -->
+      <div class="rec-price-box">
+        <div class="rec-left">
+          <div class="rec-label">Recommended Acquisition / Listing Price</div>
+          <div class="rec-amount" id="rRecPrice">—</div>
+          <div class="rec-note">Mid-point of valuation range — competitive for this area</div>
+        </div>
+        <div class="rec-right">
+          <div class="rec-psqm" id="rRecPsqm">—</div>
+          <div class="rec-psqm-label">per sqm</div>
+        </div>
+      </div>
+
+      <!-- Development potential -->
+      <div class="dev-potential-box" id="devPotentialBox" style="display:none">
+        <div class="dev-potential-title">⬆ Development Potential (based on zoning)</div>
+        <div class="dev-metrics" id="devMetrics"></div>
+        <a href="design-engine.html" class="btn-dev-engine">
+          Open in Design Engine
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M7 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+
+      <!-- Actions -->
+      <div class="result-actions">
+        <button class="btn-primary" onclick="saveToPipeline()">
+          + Save to Pipeline
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <a href="design-engine.html" class="btn-outline">Design for this Plot</a>
+        <a href="inventory.html" class="btn-outline">View Inventory</a>
+      </div>
+
+    </div><!-- end results-content -->
+
+  </div><!-- end results-panel -->
+</div><!-- end main-wrap -->
+
+</div><!-- end page-body -->
+
+<footer class="int-footer">
+  <a href="index.html" class="footer-logo">Imali<span>.</span>biz — Internal</a>
+  <div class="footer-note">Valuations are internal estimates, not formal appraisals. Data: NLA 2026 · Official Gazette 2021/2018 · Imali analyst estimates.</div>
+</footer>
+
+<script>
+'use strict';
+// ── Custom cursor ────────────────────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursorRing');
+let mx=0, my=0, rx=0, ry=0;
+document.addEventListener('mousemove', e => {
+  mx=e.clientX; my=e.clientY;
+  cursor.style.transform = `translate(${mx-5}px,${my-5}px)`;
+});
+(function animateRing() {
+  rx+=(mx-rx-18)*0.12; ry+=(my-ry-18)*0.12;
+  ring.style.transform = `translate(${rx}px,${ry}px)`;
+  requestAnimationFrame(animateRing);
+})();
+
+// ── Theme toggle ─────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('imali-theme', next);
+  document.querySelector('.theme-toggle').textContent = next==='dark' ? '☀ Light' : '☾ Dark';
+}
+(function initTheme() {
+  const t = document.documentElement.getAttribute('data-theme')||'dark';
+  document.querySelector('.theme-toggle').textContent = t==='dark' ? '☀ Light' : '☾ Dark';
+})();
+
+// ── Rwanda geographic cascade ────────────────────────────────────────────────
+// rwandaGeo is provided by shared/rwanda-geo.js
+
+function resetSelect(sel, placeholder, disabled) {
+  sel.innerHTML = `<option value="">${placeholder}</option>`;
+  sel.disabled = disabled;
+}
+
+function populateDistricts(province) {
+  const dSel = document.getElementById('vDistrict');
+  resetSelect(document.getElementById('vSector'),  '— Select District first —', true);
+  resetSelect(document.getElementById('vCell'),    '— Select Sector first —',   true);
+  resetSelect(document.getElementById('vVillage'), '— Select Cell first —',     true);
+  if (!province || !rwandaGeo[province]) { resetSelect(dSel,'— Select Province first —',true); return; }
+  dSel.innerHTML = '<option value="">— Select District —</option>';
+  Object.entries(rwandaGeo[province].districts).forEach(([k,d]) => {
+    dSel.innerHTML += `<option value="${k}">${d.label}</option>`;
+  });
+  dSel.disabled = false;
+}
+
+function populateSectors(province, district) {
+  const sSel = document.getElementById('vSector');
+  resetSelect(document.getElementById('vCell'),    '— Select Sector first —', true);
+  resetSelect(document.getElementById('vVillage'), '— Select Cell first —',   true);
+  const data = rwandaGeo[province]?.districts[district];
+  if (!data) { resetSelect(sSel,'— Select District first —',true); return; }
+  sSel.innerHTML = '<option value="">— Select Sector —</option>';
+  Object.entries(data.sectors).forEach(([k,s]) => {
+    sSel.innerHTML += `<option value="${k}">${s.label}</option>`;
+  });
+  sSel.disabled = false;
+}
+
+function populateCells(province, district, sector) {
+  const cSel = document.getElementById('vCell');
+  resetSelect(document.getElementById('vVillage'), '— Select Cell first —', true);
+  const data = rwandaGeo[province]?.districts[district]?.sectors[sector];
+  if (!data) { resetSelect(cSel,'— Select Sector first —',true); return; }
+  cSel.innerHTML = '<option value="">— Select Cell —</option>';
+  Object.entries(data.cells).forEach(([k,cv]) => {
+    cSel.innerHTML += `<option value="${k}">${cv.label}</option>`;
+  });
+  cSel.disabled = false;
+}
+
+function populateVillages(province, district, sector, cell) {
+  const vSel = document.getElementById('vVillage');
+  const cellData = rwandaGeo[province]?.districts[district]?.sectors[sector]?.cells[cell];
+  if (!cellData) { resetSelect(vSel,'— Select Cell first —',true); return; }
+  vSel.innerHTML = '<option value="">— Select Village —</option>';
+  cellData.villages.forEach(v => { vSel.innerHTML += `<option value="${v}">${v}</option>`; });
+  vSel.disabled = false;
+}
+
+document.getElementById('vProvince').addEventListener('change', function() { populateDistricts(this.value); });
+document.getElementById('vDistrict').addEventListener('change', function() {
+  populateSectors(document.getElementById('vProvince').value, this.value);
+});
+document.getElementById('vSector').addEventListener('change', function() {
+  populateCells(document.getElementById('vProvince').value, document.getElementById('vDistrict').value, this.value);
+});
+document.getElementById('vCell').addEventListener('change', function() {
+  populateVillages(document.getElementById('vProvince').value, document.getElementById('vDistrict').value,
+    document.getElementById('vSector').value, this.value);
+});
+populateDistricts('kigali');
+
+// ── State ────────────────────────────────────────────────────────────────────
+let vLandType    = 'residential';
+let vTenureType  = 'emphyteutic';
+let vTitleFormat = 'etitle';
+
+document.querySelectorAll('#vTypeGroup .radio-btn').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('#vTypeGroup .radio-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected'); vLandType = btn.dataset.v;
+}));
+document.querySelectorAll('#vTenureGroup .radio-btn').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('#vTenureGroup .radio-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected'); vTenureType = btn.dataset.v;
+}));
+document.querySelectorAll('#vTitleFormatGroup .radio-btn').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('#vTitleFormatGroup .radio-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected'); vTitleFormat = btn.dataset.v;
+}));
+[...document.querySelectorAll('#vUtilities .amenity-item'),
+ ...document.querySelectorAll('#vAmenities .amenity-item')].forEach(item => {
+  item.addEventListener('click', () => item.classList.toggle('checked'));
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// VALUATION ENGINE
+//
+// DATA HIERARCHY (best-available used as residential baseline):
+//
+//   Tier 0 · SCRAPED_LISTINGS  — imali.biz scraper (via shared/land-pricing.js)
+//            Populated when scraping data is loaded. getLandPrice() picks this up automatically.
+//
+//   Tier 1 · FIELD_CAPTURE     — field officer surveys (via shared/land-pricing.js)
+//            Populated as field data comes in. getLandPrice() uses ≥2 validated records.
+//
+//   Tier 2 · NLA Transaction   — current market average per sqm, all districts
+//            Source: Rwanda National Land Authority dashboard, retrieved 2026-05-13
+//
+//   Tier 3 · NLA / 2021 Gazette Reference Price
+//            Source: Official Gazette no. Special of 01.12.2021
+//
+//   Tier 4 · 2018 Gazette × cumulative inflation multiplier
+//            Source: Official Gazette no. Special 08/11/2018, inflated to 2026
+//
+// ════════════════════════════════════════════════════════════════════════════
+
+// 2018 Official Gazette district average (RWF/sqm, residential baseline)
+const refPrices2018 = {
+  gasabo:15460,   kicukiro:17528,  nyarugenge:21434,
+  huye:935,       kayonza:564,     muhanga:1242,    musanze:1684,
+  nyagatare:443,  rubavu:2754,     rwamagana:1126,
+  burera:1316,    gakenke:1383,    gicumbi:782,     rulindo:950,
+  bugesera:962,   gatsibo:639,     kirehe:450,      ngoma:550,
+  gisagara:450,   kamonyi:620,     nyamagabe:560,   nyanza:720,
+  nyaruguru:380,  ruhango:510,
+  karongi:920,    ngororero:610,   nyabihu:920,     nyamasheke:720,
+  rusizi:1120,    rutsiro:660
+};
+
+// NLA transaction prices — current market (RWF/sqm), 2026
+const nlaTxnPrice = {
+  gasabo:36079,   kicukiro:62261,  nyarugenge:49777,
+  burera:4291,    gakenke:2706,    gicumbi:2992,    musanze:6669,   rulindo:3569,
+  gisagara:1688,  huye:3252,       kamonyi:3881,    muhanga:3010,
+  nyamagabe:2179, nyanza:2333,     nyaruguru:2226,  ruhango:2606,
+  bugesera:3982,  gatsibo:2629,    kayonza:2363,    kirehe:2133,
+  ngoma:2336,     nyagatare:2699,  rwamagana:4880,
+  karongi:2836,   ngororero:3733,  nyabihu:3989,    nyamasheke:3345,
+  rubavu:9539,    rusizi:4421,     rutsiro:4238
+};
+
+// NLA reference prices — 2021 Official Gazette (RWF/sqm)
+const nlaRefPrice = {
+  gasabo:19976,   kicukiro:27914,  nyarugenge:28077,
+  burera:1990,    gakenke:1583,    gicumbi:1840,    musanze:2856,   rulindo:1185,
+  gisagara:2017,  huye:1993,       kamonyi:1953,    muhanga:2836,
+  nyamagabe:1409, nyanza:1150,     nyaruguru:1206,  ruhango:1115,
+  bugesera:1145,  gatsibo:977,     kayonza:961,     kirehe:867,
+  ngoma:834,      nyagatare:938,   rwamagana:1124,
+  karongi:2069,   ngororero:1935,  nyabihu:1832,    nyamasheke:2198,
+  rubavu:9156,    rusizi:3123,     rutsiro:2186
+};
+
+const provinceMap = {
+  kigali:   ['gasabo','kicukiro','nyarugenge'],
+  northern: ['burera','gakenke','gicumbi','musanze','rulindo'],
+  southern: ['gisagara','huye','kamonyi','muhanga','nyamagabe','nyanza','nyaruguru','ruhango'],
+  eastern:  ['bugesera','gatsibo','kayonza','kirehe','ngoma','nyagatare','rwamagana'],
+  western:  ['karongi','ngororero','nyabihu','nyamasheke','rubavu','rusizi','rutsiro']
+};
+
+function getDistrictType(d) {
+  if (['gasabo','kicukiro','nyarugenge'].includes(d)) return 'kigali';
+  if (['huye','kayonza','muhanga','musanze','nyagatare','rubavu','rwamagana'].includes(d)) return 'secondary';
+  return 'rural';
+}
+function getProvinceOf(d) {
+  for (const [p,arr] of Object.entries(provinceMap)) { if (arr.includes(d)) return p; }
+  return 'eastern';
+}
+
+const inflationMult = { kigali:2.14, secondary:1.85, rural:1.48 };
+const landTypeMult  = { residential:1.0, commercial:1.35, agricultural:0.45, mixed:0.85, industrial:1.10 };
+const tenureMult    = { emphyteutic:1.0, freehold:1.08, condominium:1.04, sublease:0.90, investment:1.03, concession:0.82 };
+const titleFormatMult = { etitle:1.05, physical:1.0, notitled:0.88 };
+const slopeMult     = { flat:1.0, gentle:0.97, moderate:0.90, steep:0.78, verysteep:0.62, extreme:0.45 };
+
+// Zoning premiums relative to unzoned district average (residential baseline)
+// Higher-density zones command higher land prices due to allowed FAR
+const zoningMult = {
+  R1:0.80, R2:0.95, R3:1.10, R4:1.35,
+  C1:1.20, C2:1.55, C3:2.10,
+  MU1:1.25, MU2:1.60,
+  OS:0.20, AG:0.40, IN:0.75, '':1.0
+};
+
+// District hotspot scores (0–100)
+const districtHotspot = {
+  kicukiro:92, nyarugenge:88, gasabo:85,
+  rubavu:75, musanze:72, rwamagana:68, bugesera:65,
+  rusizi:62, nyabihu:62, rutsiro:60, burera:58,
+  ngororero:56, rulindo:55, huye:55, karongi:52, kamonyi:52,
+  muhanga:50, gicumbi:50, nyamasheke:50, kayonza:48, nyagatare:48,
+  gakenke:45, ruhango:45, ngoma:43, nyanza:42, nyaruguru:40,
+  gatsibo:40, nyamagabe:40, kirehe:38, gisagara:35
+};
+
+const districtTrend = {
+  kicukiro:'+16.2% YoY', nyarugenge:'+13.5% YoY', gasabo:'+12.1% YoY',
+  rwamagana:'+14.5% YoY', bugesera:'+12.8% YoY', rulindo:'+11.2% YoY',
+  musanze:'+11.8% YoY', ngoma:'+10.2% YoY', nyagatare:'+10.5% YoY',
+  rubavu:'+9.8% YoY', kayonza:'+9.1% YoY', kirehe:'+9.1% YoY',
+  burera:'+8.4% YoY', nyabihu:'+8.4% YoY', ngororero:'+7.7% YoY',
+  rusizi:'+7.0% YoY', rutsiro:'+6.8% YoY', gakenke:'+6.6% YoY',
+  huye:'+6.5% YoY', kamonyi:'+6.2% YoY', gicumbi:'+6.3% YoY',
+  nyanza:'+6.0% YoY', nyaruguru:'+5.8% YoY', ruhango:'+5.8% YoY',
+  muhanga:'+5.2% YoY', nyamasheke:'+5.8% YoY', nyamagabe:'+5.5% YoY',
+  gatsibo:'+5.2% YoY', karongi:'+5.3% YoY', gisagara:'+3.8% YoY'
+};
+
+function fmtRWF(n) {
+  if (n >= 1e9) return 'RWF ' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return 'RWF ' + (n/1e6).toFixed(1) + 'M';
+  return 'RWF ' + Math.round(n).toLocaleString();
+}
+
+// ── Main calculate handler ───────────────────────────────────────────────────
+document.getElementById('calcBtn').addEventListener('click', () => {
+  const province = document.getElementById('vProvince').value;
+  const district = document.getElementById('vDistrict').value;
+  const sizeRaw  = parseFloat(document.getElementById('vSize').value) || 1000;
+  const unitSel  = document.getElementById('vUnit').value;
+  const slope    = document.getElementById('vSlope').value;
+  const zoning   = document.getElementById('vZoning').value;
+
+  // Convert to sqm
+  let sizeSqm = sizeRaw;
+  if (unitSel === 'ha')   sizeSqm = sizeRaw * 10000;
+  if (unitSel === 'acre') sizeSqm = sizeRaw * 4047;
+
+  const checkedUtils = document.querySelectorAll('#vUtilities .amenity-item.checked').length;
+  const checkedAmen  = document.querySelectorAll('#vAmenities .amenity-item.checked').length;
+  const utilBonus    = 1 + (checkedUtils * 0.02);
+  const amenBonus    = 1 + (checkedAmen  * 0.015);
+
+  // ── Data tier resolution ─────────────────────────────────────────────────
+  // Priority: per-listing scraped → field → scraped market summary → NLA → 2021 gazette → 2018 est.
+  //
+  // KEY CONTEXT on data quality:
+  //   · NLA data (nlaTxnPrice) systematically understates real market prices — typically
+  //     2–5× below what plots actually transact for. It uses fiscal valuations, not
+  //     actual sale prices.
+  //   · Scraped asking prices are at the other extreme — agents inflate asking prices
+  //     20–40% above what they eventually transact for.
+  //   · SCRAPED_MARKET_DATA applies a 30% discount to asking prices to estimate
+  //     realistic transaction prices. This is our best current anchor for Kigali and
+  //     a few other districts.
+  //   · For districts not in SCRAPED_MARKET_DATA, NLA data remains the least-bad option,
+  //     but treat those estimates with extra caution and widen the range mentally.
+
+  const districtCapitalised = district ? district.charAt(0).toUpperCase() + district.slice(1) : null;
+
+  // getLandPrice() now checks: SCRAPED_LISTINGS → FIELD_CAPTURE → SCRAPED_MARKET_DATA → STATIC_ESTIMATES
+  const lpResult = (districtCapitalised && typeof getLandPrice === 'function')
+    ? getLandPrice(districtCapitalised, zoning || 'R3') : null;
+
+  const dtype = getDistrictType(district);
+  const ref2018          = refPrices2018[district] || 800;
+  const ref2018_inflated = Math.round(ref2018 * inflationMult[dtype]);
+  const txn2026          = nlaTxnPrice[district]  || null;   // NLA — kept for reference/comparison only
+  const ref2021          = nlaRefPrice[district]   || null;
+  const scrapedMeta      = (typeof SCRAPED_MARKET_DATA !== 'undefined') ? SCRAPED_MARKET_DATA[districtCapitalised] : null;
+
+  // Pick the best available residential baseline
+  let resBaseline, dataSourceLabel, dataTierClass, dataTierMsg, nlaGapFactor = null;
+
+  if (lpResult && lpResult.source === 'scraped') {
+    // Tier 1: per-listing scraper data with zone code (most accurate when available)
+    resBaseline     = lpResult.pricePerSqm;
+    dataSourceLabel = '✓ Imali scraper (per-listing)';
+    dataTierClass   = 'tier-scraped';
+    dataTierMsg     = `Tier 1 — Per-listing scraped data (${lpResult.count} listings for ${districtCapitalised} ${zoning}). Highest confidence.`;
+
+  } else if (lpResult && lpResult.source === 'field') {
+    // Tier 2: validated field officer survey data
+    resBaseline     = lpResult.pricePerSqm;
+    dataSourceLabel = '✓ Field capture data';
+    dataTierClass   = 'tier-field';
+    dataTierMsg     = `Tier 2 — Field officer data (${lpResult.count} validated records for ${districtCapitalised} ${zoning}).`;
+
+  } else if (lpResult && lpResult.source === 'scraped_market') {
+    // Tier 2.5: scraped market summary (district-level, asking prices × 0.70 discount)
+    resBaseline     = lpResult.pricePerSqm;
+    nlaGapFactor    = lpResult.meta?.nla_gap_factor;
+    const sm        = lpResult.meta;
+    dataSourceLabel = '✓ Scraped market data';
+    dataTierClass   = 'tier-scraped';
+    dataTierMsg     = `Scraped data — ${sm.n_plots.toLocaleString()} plot listings from imali.biz (${sm.scraped_date}). `
+      + `Median asking price RWF ${(sm.asking_p50_rwf/1e6).toFixed(0)}M → `
+      + `RWF ${sm.asking_psqm.toLocaleString()}/sqm asking → `
+      + `RWF ${sm.market_psqm.toLocaleString()}/sqm est. transaction (×0.70 discount). `
+      + (nlaGapFactor ? `NLA gap: ${nlaGapFactor}× (NLA understates this district).` : '');
+
+  } else if (txn2026) {
+    // Tier 3: NLA transaction price — use for districts not yet in scraped market data,
+    // but NOTE this is known to understate real prices significantly.
+    resBaseline     = txn2026;
+    nlaGapFactor    = null; // we ARE using NLA, so no gap to show
+    dataSourceLabel = '⚠ NLA transaction data (likely understated)';
+    dataTierClass   = 'tier-nla';
+    dataTierMsg     = `NLA transaction price for ${districtCapitalised} — RWF ${txn2026.toLocaleString()}/sqm. `
+      + `NLA data is known to significantly understate real market prices in most Rwanda districts. `
+      + `Treat this estimate conservatively — actual market value is likely 2–5× higher.`;
+
+  } else if (ref2021) {
+    resBaseline     = ref2021;
+    dataSourceLabel = '⚠ 2021 Official Gazette';
+    dataTierClass   = 'tier-nla';
+    dataTierMsg     = `2021 Official Gazette reference price for ${districtCapitalised} — RWF ${ref2021.toLocaleString()}/sqm. Government benchmark; understates real market.`;
+
+  } else {
+    resBaseline     = ref2018_inflated;
+    dataSourceLabel = '⚠ 2018 Gazette (historical est.)';
+    dataTierClass   = 'tier-estimate';
+    dataTierMsg     = `2018 gazette baseline (RWF ${ref2018.toLocaleString()}/sqm) inflated ×${inflationMult[dtype]} to RWF ${ref2018_inflated.toLocaleString()}/sqm. Least reliable — use for direction only.`;
+  }
+
+  // Apply zoning multiplier on top of the chosen baseline
+  // Note: SCRAPED_MARKET_DATA is a district average (all zones blended), so zone
+  // multiplier still applies. STATIC_ESTIMATES are zone-specific so multiplier is neutral.
+  const zm = zoningMult[zoning] || 1.0;
+  const base = Math.round(resBaseline * (landTypeMult[vLandType] || 1.0) * zm);
+  const rate = base * tenureMult[vTenureType] * titleFormatMult[vTitleFormat] * slopeMult[slope] * utilBonus * amenBonus;
+  const total = rate * sizeSqm;
+  const low   = total * 0.88;
+  const high  = total * 1.15;
+
+  const confidence = Math.min(92,
+    (lpResult && lpResult.source==='scraped'         ? 85 :
+     lpResult && lpResult.source==='field'           ? 80 :
+     lpResult && lpResult.source==='scraped_market' && lpResult.meta?.confidence==='medium' ? 72 :
+     lpResult && lpResult.source==='scraped_market'  ? 65 :
+     txn2026 ? 58 : 50)   // NLA gets lower confidence now — we know it understates
+    + checkedUtils*2
+    + (vTitleFormat === 'etitle' ? 6 : vTitleFormat === 'notitled' ? -5 : 2)
+    + (vTenureType === 'freehold' ? 4 : 0)
+    + (zoning ? 4 : 0)
+  );
+
+  const hotspot = districtHotspot[district] || 45;
+  const distAvg = ref2021 || ref2018_inflated;
+  const vsAvg   = ((rate / distAvg - 1) * 100).toFixed(1);
+
+  // ── Show loading then results ────────────────────────────────────────────
+  document.getElementById('emptyState').style.display     = 'none';
+  document.getElementById('calcLoading').classList.add('active');
+  document.getElementById('resultsContent').classList.remove('visible');
+
+  setTimeout(() => {
+    document.getElementById('calcLoading').classList.remove('active');
+    document.getElementById('resultsContent').classList.add('visible');
+
+    // Headline
+    document.getElementById('rAmount').textContent     = fmtRWF(Math.round(total/1e6)*1e6);
+    document.getElementById('rRange').textContent      = `Range: ${fmtRWF(Math.round(low/1e6)*1e6)} – ${fmtRWF(Math.round(high/1e6)*1e6)}`;
+    document.getElementById('rConfidence').textContent = confidence + '%';
+    document.getElementById('rHotspot').textContent    = hotspot + ' / 100';
+    document.getElementById('rTrend').textContent      = districtTrend[district] || '+5.0% YoY';
+
+    // Confidence class
+    const confEl = document.getElementById('rConfidence');
+    confEl.className = 'conf-val ' + (confidence >= 75 ? 'green' : confidence >= 65 ? 'gold' : 'red');
+
+    // Hotspot badge
+    const hsBadge = document.getElementById('rHotspotBadge');
+    if (hotspot >= 80)       hsBadge.innerHTML = '<div class="hotspot-badge">🔥 Investment Hotspot Zone</div>';
+    else if (hotspot >= 65)  hsBadge.innerHTML = '<div class="hotspot-badge gold-badge">📈 Growing Investment Area</div>';
+    else                     hsBadge.innerHTML = '<div class="hotspot-badge" style="background:var(--surface);border-color:var(--border);color:var(--text-faint);">📊 Stable Market Zone</div>';
+
+    // Data tier banner
+    const banner = document.getElementById('dataTierBanner');
+    banner.className = `data-tier-banner ${dataTierClass}`;
+    banner.innerHTML = `<span>📡</span> <strong>${dataSourceLabel}</strong> — ${dataTierMsg}`;
+
+    // Per-sqm
+    document.getElementById('rPerSqm').textContent = `RWF ${Math.round(rate).toLocaleString()}`;
+    document.getElementById('rAvgSqm').textContent = `RWF ${distAvg.toLocaleString()}`;
+    const vsEl = document.getElementById('rVsAvg');
+    vsEl.textContent  = (parseFloat(vsAvg)>=0 ? '+' : '') + vsAvg + '%';
+    vsEl.style.color  = parseFloat(vsAvg) >= 0 ? '#4caf7d' : '#ef5350';
+    // NLA strip — always show NLA as a reference even when not used as baseline
+    const nlaSqmEl = document.getElementById('rNlaSqm');
+    if (txn2026) {
+      nlaSqmEl.textContent = `RWF ${txn2026.toLocaleString()}`;
+      nlaSqmEl.style.color  = nlaGapFactor && nlaGapFactor > 2 ? '#ef5350' : 'var(--text-faint)';
+      nlaSqmEl.title = nlaGapFactor
+        ? `NLA understates real market by ~${nlaGapFactor}× for ${districtCapitalised}`
+        : 'NLA transaction price — may understate real market';
+    } else { nlaSqmEl.textContent = '—'; }
+
+    // Factor breakdown
+    const tenureLabels  = { emphyteutic:'Emphyteutic Lease', freehold:'Freehold', condominium:'Condominium', sublease:'Sub-lease', investment:'Investment Lease', concession:'Land Concession' };
+    const tenureImpacts = {
+      emphyteutic:{label:'Baseline tenure (Rwanda standard)',cls:'impact-neu'},
+      freehold:   {label:'+8% full ownership premium',cls:'impact-pos'},
+      condominium:{label:'+4% condominium premium',cls:'impact-pos'},
+      sublease:   {label:'–10% secondary lease discount',cls:'impact-neg'},
+      investment: {label:'+3% government-backed lease',cls:'impact-pos'},
+      concession: {label:'–18% limited-rights discount',cls:'impact-neg'}
+    };
+    const formatImpacts = {
+      etitle:   {label:'+5% e-Title premium (faster transfer)',cls:'impact-pos'},
+      physical: {label:'Baseline — paper document',cls:'impact-neu'},
+      notitled: {label:'–12% no-title discount (transfer risk)',cls:'impact-neg'}
+    };
+    const slopeImpacts = {
+      flat:     {label:'No gradient adjustment',cls:'impact-neu'},
+      gentle:   {label:'–3% gentle slope',cls:'impact-neg'},
+      moderate: {label:'–10% moderate slope',cls:'impact-neg'},
+      steep:    {label:'–22% steep terrain (15–30°)',cls:'impact-neg'},
+      verysteep:{label:'–38% very steep terrain (30–50°)',cls:'impact-neg'},
+      extreme:  {label:'–55% extreme gradient (50°+)',cls:'impact-neg'}
+    };
+    const zoningLabels = {
+      R1:'Low-Density Residential',R2:'Medium-Density Residential',R3:'High-Density Residential',R4:'Very High-Density Residential',
+      C1:'Neighbourhood Commercial',C2:'District Commercial Centre',C3:'City Centre / CBD',
+      MU1:'Mixed-Use (Low)',MU2:'Mixed-Use (High)',OS:'Open Space / Green',AG:'Agricultural',IN:'Institutional',
+      '':'Not specified'
+    };
+
+    const si = slopeImpacts[slope];
+    const tn = tenureImpacts[vTenureType];
+    const tf = formatImpacts[vTitleFormat];
+    const zm_pct = Math.round((zm - 1) * 100);
+    const zm_str = zm_pct > 0 ? `+${zm_pct}% zone density premium` : zm_pct < 0 ? `${zm_pct}% zone discount` : 'No zone adjustment';
+    const zm_cls = zm_pct > 0 ? 'impact-pos' : zm_pct < 0 ? 'impact-neg' : 'impact-neu';
+
+    const districtLabel = district ? district.charAt(0).toUpperCase()+district.slice(1)+' District' : 'Unknown';
+
+    // Build price history row — always show what data sources say
+    const scrapedMktRow = scrapedMeta
+      ? `Scraped market (${scrapedMeta.n_plots.toLocaleString()} listings): RWF ${scrapedMeta.market_psqm.toLocaleString()}/sqm asking-adj · `
+      : '';
+    const nlaNote = nlaGapFactor
+      ? ` ⚠ NLA understates ${nlaGapFactor}×`
+      : '';
+    const priceHistory = scrapedMktRow
+      + (txn2026 ? `NLA txn: RWF ${txn2026.toLocaleString()}${nlaNote} · ` : '')
+      + (ref2021  ? `2021 ref: RWF ${ref2021.toLocaleString()} · ` : '')
+      + `2018 gazette: RWF ${ref2018.toLocaleString()}`;
+
+    document.getElementById('factorList').innerHTML = `
+      <div class="factor-card">
+        <div class="fc-label">Location</div>
+        <div class="fc-value">${districtLabel}</div>
+        <div class="fc-impact impact-${hotspot>=80?'pos':hotspot>=65?'pos':'neu'}">Hotspot: ${hotspot}/100 · ${dataSourceLabel}</div>
+        <div style="font-size:0.65rem;color:var(--text-faint);margin-top:0.4rem;line-height:1.6">${priceHistory}</div>
+      </div>
+      <div class="factor-card">
+        <div class="fc-label">Zoning</div>
+        <div class="fc-value">${zoning || 'Not specified'} — ${zoningLabels[zoning]||'Unzoned'}</div>
+        <div class="fc-impact ${zm_cls}">${zm_str}</div>
+      </div>
+      <div class="factor-card">
+        <div class="fc-label">Land Type</div>
+        <div class="fc-value">${vLandType.charAt(0).toUpperCase()+vLandType.slice(1)}</div>
+        <div class="fc-impact impact-neu">Base rate: RWF ${base.toLocaleString()}/sqm</div>
+      </div>
+      <div class="factor-card">
+        <div class="fc-label">Land Tenure</div>
+        <div class="fc-value">${tenureLabels[vTenureType]||vTenureType}</div>
+        <div class="fc-impact ${tn.cls}">${tn.label}</div>
+      </div>
+      <div class="factor-card">
+        <div class="fc-label">Title Format</div>
+        <div class="fc-value">${vTitleFormat==='etitle'?'e-Title (digital)':vTitleFormat==='notitled'?'No Title':' Physical Title (paper)'}</div>
+        <div class="fc-impact ${tf.cls}">${tf.label}</div>
+      </div>
+      <div class="factor-card">
+        <div class="fc-label">Slope / Gradient</div>
+        <div class="fc-value">${slope.charAt(0).toUpperCase()+slope.slice(1)}</div>
+        <div class="fc-impact ${si.cls}">${si.label}</div>
+      </div>
+      <div class="factor-card">
+        <div class="fc-label">Utilities Access</div>
+        <div class="fc-value">${checkedUtils} of 6 connected</div>
+        <div class="fc-impact ${checkedUtils>=3?'impact-pos':'impact-neu'}">+${(checkedUtils*2).toFixed(0)}% infrastructure premium</div>
+      </div>
+      <div class="factor-card">
+        <div class="fc-label">Nearby Amenities</div>
+        <div class="fc-value">${checkedAmen} of 4 nearby</div>
+        <div class="fc-impact ${checkedAmen>=2?'impact-pos':'impact-neu'}">+${(checkedAmen*1.5).toFixed(1)}% convenience premium</div>
+      </div>
+    `;
+
+    // Province comparison bars
+    const peerDistricts = (provinceMap[getProvinceOf(district)] || []).filter(d => d !== district);
+    const comps = peerDistricts.slice(0,5).map(d => {
+      const dt = getDistrictType(d);
+      const peerRate = nlaTxnPrice[d] || Math.round((refPrices2018[d]||800) * inflationMult[dt]);
+      return { loc: d.charAt(0).toUpperCase()+d.slice(1)+' District', rate: peerRate };
+    });
+    const maxRate = Math.max(...comps.map(c=>c.rate), rate);
+    const compHtml = comps.map(c => `
+      <div class="comp-bar-item">
+        <div class="comp-bar-header"><span class="comp-bar-loc">${c.loc}</span><span class="comp-bar-val">RWF ${c.rate.toLocaleString()}/sqm</span></div>
+        <div class="comp-bar-track"><div class="comp-bar-fill comp-bar-other" style="width:${(c.rate/maxRate*100).toFixed(1)}%"></div></div>
+      </div>`).join('') + `
+      <div class="comp-bar-item" style="margin-top:0.5rem">
+        <div class="comp-bar-header"><span class="comp-bar-loc" style="color:var(--terracotta)">This Plot</span><span class="comp-bar-val" style="color:var(--terracotta)">RWF ${Math.round(rate).toLocaleString()}/sqm</span></div>
+        <div class="comp-bar-track"><div class="comp-bar-fill comp-bar-yours" style="width:${(rate/maxRate*100).toFixed(1)}%"></div></div>
+        <div class="your-marker">↑ This estimate</div>
+      </div>`;
+    document.getElementById('compSection').innerHTML = compHtml;
+
+    // Recommended price
+    document.getElementById('rRecPrice').textContent = fmtRWF(Math.round(total/1e6)*1e6);
+    document.getElementById('rRecPsqm').textContent  = `RWF ${Math.round(rate).toLocaleString()}`;
+
+    // Development potential (show only if zoning is known and residential/mixed/commercial)
+    const devBox = document.getElementById('devPotentialBox');
+    if (zoning && ['R1','R2','R3','R4','C1','C2','C3','MU1','MU2'].includes(zoning)) {
+      const zRule = (typeof ZONE_RULES !== 'undefined') ? ZONE_RULES[zoning] : null;
+      if (zRule) {
+        const maxGFA     = Math.round(sizeSqm * zRule.maxFAR);
+        const maxUnits   = Math.round(maxGFA * 0.82 / 55); // net/gross × avg unit size
+        const devCostEst = Math.round(maxGFA * 500000);    // RWF 500,000/sqm construction
+        const levrRatio  = (devCostEst / total).toFixed(1);
+        document.getElementById('devMetrics').innerHTML = `
+          <div class="dev-metric">
+            <div class="dev-metric-label">Max GFA (FAR ${zRule.maxFAR})</div>
+            <div class="dev-metric-val">${maxGFA.toLocaleString()} sqm</div>
+          </div>
+          <div class="dev-metric">
+            <div class="dev-metric-label">Est. Units (~55sqm avg)</div>
+            <div class="dev-metric-val">${maxUnits} units</div>
+          </div>
+          <div class="dev-metric">
+            <div class="dev-metric-label">Est. Build Cost</div>
+            <div class="dev-metric-val">${fmtRWF(devCostEst)}</div>
+          </div>
+          <div class="dev-metric">
+            <div class="dev-metric-label">Max Floors</div>
+            <div class="dev-metric-val">${zRule.maxFloors} floors</div>
+          </div>
+          <div class="dev-metric">
+            <div class="dev-metric-label">Max Height</div>
+            <div class="dev-metric-val">${zRule.maxHeightM}m</div>
+          </div>
+          <div class="dev-metric">
+            <div class="dev-metric-label">Leverage (build÷land)</div>
+            <div class="dev-metric-val">${levrRatio}×</div>
+          </div>
+        `;
+        devBox.style.display = 'block';
+      } else { devBox.style.display = 'none'; }
+    } else { devBox.style.display = 'none'; }
+
+    // Scroll to results on small screens
+    if (window.innerWidth <= 1100) {
+      document.getElementById('resultsContent').scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+  }, 1600);
+});
+
+function saveToPipeline() {
+  const district  = document.getElementById('vDistrict').value || 'Unknown';
+  const sector    = document.getElementById('vSector').value || '';
+  const parcelId  = document.getElementById('vParcelId').value || '—';
+  const rAmount   = document.getElementById('rAmount').textContent;
+  const status    = document.getElementById('vDealStatus').value;
+  // Visual feedback only — backend save to be implemented
+  const btn = document.getElementById('calcBtn').parentElement.querySelector('.btn-primary') || document.querySelector('.btn-primary');
+  if (btn) {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Saved to Pipeline';
+    btn.style.background = '#4caf7d';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 2200);
+  }
+  console.log('[Imali Pipeline] Saved:', { parcelId, district, sector, rAmount, status, timestamp: new Date().toISOString() });
+}
+</script>
+</body>
+</html>

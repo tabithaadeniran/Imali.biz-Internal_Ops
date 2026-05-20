@@ -1,0 +1,31 @@
+Province,District,Avg Transaction Price (sqm),Avg Reference Price (sqm),Price Difference (sqm)
+Eastern,Bugesera,"RWF 3,981.95","RWF 1,145.12","RWF 2,836.82"
+Eastern,Gatsibo,"RWF 2,628.95",RWF 977.36,"RWF 1,651.60"
+Eastern,Kayonza,"RWF 2,362.63",RWF 961.27,"RWF 1,401.36"
+Eastern,Kirehe,"RWF 2,132.59",RWF 867.21,"RWF 1,265.38"
+Eastern,Ngoma,"RWF 2,335.60",RWF 834.25,"RWF 1,501.35"
+Eastern,Nyagatare,"RWF 2,698.76",RWF 938.10,"RWF 1,760.66"
+Eastern,Rwamagana,"RWF 4,879.52","RWF 1,123.93","RWF 3,755.59"
+Kigali City,Gasabo,"RWF 36,078.89","RWF 19,976.14","RWF 16,102.75"
+Kigali City,Kicukiro,"RWF 62,260.50","RWF 27,914.12","RWF 34,346.38"
+Kigali City,Nyarugenge,"RWF 49,777.21","RWF 28,076.80","RWF 21,700.41"
+Northern,Burera,"RWF 4,290.82","RWF 1,989.54","RWF 2,301.28"
+Northern,Gakenke,"RWF 2,705.96","RWF 1,582.86","RWF 1,123.10"
+Northern,Gicumbi,"RWF 2,992.39","RWF 1,840.42","RWF 1,151.97"
+Northern,Musanze,"RWF 6,668.81","RWF 2,855.79","RWF 3,813.02"
+Northern,Rulindo,"RWF 3,568.63","RWF 1,184.59","RWF 2,384.04"
+Southern,Gisagara,"RWF 1,687.90","RWF 2,016.64",-RWF 328.74
+Southern,Huye,"RWF 3,251.99","RWF 1,993.33","RWF 1,258.66"
+Southern,Kamonyi,"RWF 3,881.22","RWF 1,952.94","RWF 1,928.28"
+Southern,Muhanga,"RWF 3,010.45","RWF 2,835.99",RWF 174.47
+Southern,Nyamagabe,"RWF 2,179.43","RWF 1,409.41",RWF 770.02
+Southern,Nyanza,"RWF 2,332.69","RWF 1,150.00","RWF 1,182.69"
+Southern,Nyaruguru,"RWF 2,226.27","RWF 1,205.60","RWF 1,020.68"
+Southern,Ruhango,"RWF 2,605.78","RWF 1,114.61","RWF 1,491.16"
+Western,Karongi,"RWF 2,835.67","RWF 2,068.57",RWF 767.10
+Western,Ngororero,"RWF 3,732.58","RWF 1,935.00","RWF 1,797.58"
+Western,Nyabihu,"RWF 3,989.32","RWF 1,831.66","RWF 2,157.66"
+Western,Nyamasheke,"RWF 3,345.23","RWF 2,197.67","RWF 1,147.56"
+Western,Rubavu,"RWF 9,538.59","RWF 9,156.44",RWF 382.15
+Western,Rusizi,"RWF 4,420.63","RWF 3,122.61","RWF 1,298.01"
+Western,Rutsiro,"RWF 4,238.09","RWF 2,186.18","RWF 2,051.91"
