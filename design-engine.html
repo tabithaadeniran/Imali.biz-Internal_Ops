@@ -355,6 +355,68 @@ html, body { height: 100%; overflow: hidden; }
 .sc-bar { height: 3px; border-radius: 2px; background: rgba(245,240,232,0.06); overflow: hidden; }
 .sc-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
 
+/* ── Zoom hint ── */
+.zoom-hint {
+  font-size: 0.52rem; letter-spacing: 0.04em;
+  color: rgba(245,240,232,0.20); text-align: center;
+  padding: 0.12rem 0.5rem 0.3rem; flex-shrink: 0;
+  user-select: none;
+}
+[data-theme="light"] .zoom-hint { color: rgba(10,10,15,0.24); }
+
+/* Grab cursor on SVGs */
+.de-svg { cursor: grab; }
+.de-svg:active { cursor: grabbing; }
+
+/* Legend container inside svg-panel */
+.svg-legend {
+  display: flex; flex-wrap: wrap; gap: 0.3rem 0.65rem;
+  padding: 0.35rem 0.6rem 0; flex-shrink: 0; justify-content: center;
+  border-top: 1px solid rgba(245,240,232,0.05); margin-top: 0.3rem;
+}
+[data-theme="light"] .svg-legend { border-top-color: rgba(10,10,15,0.06); }
+.svg-legend-item {
+  display: flex; align-items: center; gap: 0.28rem;
+  font-size: 0.57rem; color: rgba(245,240,232,0.42);
+  white-space: nowrap;
+}
+[data-theme="light"] .svg-legend-item { color: rgba(10,10,15,0.48); }
+.svg-legend-dot {
+  width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0;
+}
+/* Party-wall swatch (a thin vertical line look) */
+.svg-legend-dot.wall {
+  width: 3px; height: 12px; border-radius: 1px;
+}
+
+/* ── Swiss Cube presets ── */
+.cube-section { display: none; }
+.cube-section.visible { display: block; }
+.cube-grid { grid-template-columns: repeat(3, 1fr) !important; }
+.cube-info {
+  font-size: 0.62rem; line-height: 1.55;
+  color: rgba(245,240,232,0.42); margin-top: 0.45rem;
+  background: rgba(245,240,232,0.03); border: 1px solid rgba(245,240,232,0.06);
+  border-radius: 6px; padding: 0.4rem 0.55rem;
+}
+[data-theme="light"] .cube-info { color: rgba(10,10,15,0.48); background: rgba(10,10,15,0.03); border-color: rgba(10,10,15,0.06); }
+.cube-info strong { color: var(--gold); font-weight: 600; }
+[data-theme="light"] .cube-info strong { color: #a07820; }
+
+/* ── Viz legend pills ── */
+.plan-legend {
+  display: flex; gap: 0.6rem; flex-wrap: wrap;
+  padding: 0.3rem 1rem 0; flex-shrink: 0;
+}
+.plan-legend-item {
+  display: flex; align-items: center; gap: 0.25rem;
+  font-size: 0.58rem; color: rgba(245,240,232,0.38);
+}
+[data-theme="light"] .plan-legend-item { color: rgba(10,10,15,0.42); }
+.plan-legend-dot {
+  width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0;
+}
+
 /* ── Data quality badge ── */
 .confidence-badge {
   display: inline-flex; align-items: center; gap: 0.25rem;
@@ -482,10 +544,14 @@ html, body { height: 100%; overflow: hidden; }
         <div class="svg-panel" id="panelPlan">
           <div class="svg-panel-label">Site Plan</div>
           <svg class="de-svg" id="svgPlan" viewBox="0 0 340 340" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="svg-legend" id="planLegend"></div>
+          <div class="zoom-hint">Scroll to zoom · Drag to pan · Double-click to reset</div>
         </div>
         <div class="svg-panel" id="panelElev">
           <div class="svg-panel-label">Elevation</div>
           <svg class="de-svg" id="svgElev" viewBox="0 0 340 220" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="svg-legend" id="elevLegend"></div>
+          <div class="zoom-hint">Scroll to zoom · Drag to pan · Double-click to reset</div>
         </div>
       </div>
 
@@ -513,6 +579,23 @@ html, body { height: 100%; overflow: hidden; }
           <button class="typo-btn"        data-typo="townhouses" onclick="setTypo('townhouses')">🏘 Townhouses</button>
           <button class="typo-btn"        data-typo="commercial" onclick="setTypo('commercial')">🏪 Commercial</button>
           <button class="typo-btn"        data-typo="mixed"      onclick="setTypo('mixed')">🏗 Mixed-Use</button>
+        </div>
+      </div>
+
+      <!-- Swiss Cube size presets (townhouses only) -->
+      <div class="panel-section cube-section" id="cubeSection">
+        <div class="panel-label">Swiss Cube Size</div>
+        <div class="typo-grid cube-grid">
+          <button class="typo-btn"        data-cube="XS"  onclick="setCube('XS')">XS·58m²</button>
+          <button class="typo-btn"        data-cube="S"   onclick="setCube('S')">S·63m²</button>
+          <button class="typo-btn active" data-cube="M"   onclick="setCube('M')">M·67m²</button>
+          <button class="typo-btn"        data-cube="L"   onclick="setCube('L')">L·77m²</button>
+          <button class="typo-btn"        data-cube="XL"  onclick="setCube('XL')">XL·81m²</button>
+          <button class="typo-btn"        data-cube="XXL" onclick="setCube('XXL')">XXL·86m²</button>
+        </div>
+        <div class="cube-info" id="cubeInfo">
+          <strong>M</strong> · 4.06m × 8.34m · Room height 2.40m<br>
+          Shell from <strong>8.1M RWF</strong> · Duplex from <strong>10.7M RWF</strong>
         </div>
       </div>
 
@@ -668,9 +751,20 @@ document.querySelector('.theme-toggle').textContent =
   (localStorage.getItem('imali-theme') || 'dark') === 'dark' ? '☀ Light' : '☾ Dark';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const FLOOR_H   = 3.0;   // metres per floor
-const EFFICIENCY = 0.82; // net/gross GFA ratio
-const UNIT_SIZES = { studio:28, oneBed:45, twoBed:65, threeBed:85 };
+const FLOOR_H    = 3.0;   // metres per floor
+const EFFICIENCY  = 0.82; // net/gross GFA ratio
+const UNIT_SIZES  = { studio:28, oneBed:45, twoBed:65, threeBed:85 };
+
+// Swiss Cube sizes from Modern Brick Construction guide (Skat Consulting / Rwanda)
+// Interior dims: all units 8.34m deep; room height 2.40m; iron-sheet roof; Rowlock Bond brick
+const CUBE_SIZES = {
+  XS:  { w:3.50, d:8.34, area:58, shell:7_500_000,  duplex:9_200_000,  simplex:2_900_000 },
+  S:   { w:3.78, d:8.34, area:63, shell:7_500_000,  duplex:10_500_000, simplex:5_000_000 },
+  M:   { w:4.06, d:8.34, area:67, shell:8_100_000,  duplex:10_700_000, simplex:6_500_000 },
+  L:   { w:4.63, d:8.34, area:77, shell:9_500_000,  duplex:13_000_000, simplex:7_500_000 },
+  XL:  { w:4.92, d:8.34, area:81, shell:9_800_000,  duplex:13_600_000, simplex:8_000_000 },
+  XXL: { w:5.20, d:8.34, area:86, shell:10_200_000, duplex:14_400_000, simplex:8_600_000 },
+};
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const S = {
@@ -679,9 +773,10 @@ const S = {
   custom: { name:'Custom Site', area:1000, price:0, district:'Gasabo' },
   zoneCode:  'R3',
   typology:  'apartments',
+  cubeSize:  'M',          // Swiss Cube size preset (townhouses mode)
   floors:    6,
-  coverage:  55,  // target %
-  ratio:     15,  // slider value; width = sqrt(area / ratio×0.1)
+  coverage:  55,
+  ratio:     15,
   mix:       { studio:20, one:40, two:30, three:10 },
   tab:       'both',
   scenarios: [],
@@ -723,6 +818,10 @@ const S = {
   document.getElementById('zoneSelect').value = S.zoneCode;
 
   render();
+
+  // Initialise zoom/pan on both SVG views
+  initZoomPan(document.getElementById('svgPlan'), 340, 340);
+  initZoomPan(document.getElementById('svgElev'), 340, 220);
 })();
 
 // ── Site helpers ──────────────────────────────────────────────────────────────
@@ -788,11 +887,20 @@ function computeDesign() {
   let units = 0, unitBreakdown = {};
   const isResidential = S.typology === 'apartments' || S.typology === 'townhouses' || S.typology === 'mixed';
   if (isResidential) {
-    const netArea  = gfa * EFFICIENCY;
-    const avgSize  = (S.mix.studio/100)*UNIT_SIZES.studio + (S.mix.one/100)*UNIT_SIZES.oneBed +
-                     (S.mix.two/100)*UNIT_SIZES.twoBed    + (S.mix.three/100)*UNIT_SIZES.threeBed;
+    const netArea = gfa * EFFICIENCY;
+    let avgSize;
+    if (S.typology === 'townhouses' && S.cubeSize && CUBE_SIZES[S.cubeSize]) {
+      // Swiss Cube row houses: unit area is fixed by the selected cube size
+      avgSize = CUBE_SIZES[S.cubeSize].area;
+    } else {
+      avgSize = (S.mix.studio/100)*UNIT_SIZES.studio + (S.mix.one/100)*UNIT_SIZES.oneBed +
+                (S.mix.two/100)*UNIT_SIZES.twoBed    + (S.mix.three/100)*UNIT_SIZES.threeBed;
+    }
     units = avgSize > 0 ? Math.floor(netArea / avgSize) : 0;
-    unitBreakdown = {
+    unitBreakdown = S.typology === 'townhouses' ? {
+      // Swiss Cube duplexes are effectively 2-bed units
+      studio: 0, one: 0, two: units, three: 0,
+    } : {
       studio: Math.round(units * S.mix.studio / 100),
       one:    Math.round(units * S.mix.one    / 100),
       two:    Math.round(units * S.mix.two    / 100),
@@ -851,108 +959,200 @@ function isDark() {
 function drawSitePlan(result) {
   const dark = isDark();
   const { plotW, plotD, buildW, buildD, footprint, zone, plotArea } = result;
-  const CANVAS = 340, PAD = 30;
+  const CANVAS = 340, PAD = 28;
   const avail  = CANVAS - 2 * PAD;
 
   const scale = Math.min(avail / plotW, avail / plotD, 9);
   const pxW = plotW * scale, pxD = plotD * scale;
   const ox  = (CANVAS - pxW) / 2, oy = (CANVAS - pxD) / 2;
 
-  // Buildable zone (setbacks applied)
+  // Buildable zone
   const bzX = ox + zone.setbackSide  * scale;
   const bzY = oy + zone.setbackFront * scale;
   const bzW = buildW * scale;
   const bzD = buildD * scale;
 
-  // Actual footprint (scaled proportionally within buildable zone)
+  // Footprint (centred in buildable zone)
   const ratio = buildW * buildD > 0 ? Math.sqrt(footprint / (buildW * buildD)) : 0;
   const fpW   = Math.min(bzW, bzW * ratio);
   const fpD   = Math.min(bzD, bzD * ratio);
   const fpX   = bzX + (bzW - fpW) / 2;
   const fpY   = bzY + (bzD - fpD) / 2;
 
-  // Colours
-  const plotFill   = dark ? '#0f1e28' : '#e0ecf2';
-  const plotStroke = dark ? '#2a4050' : '#6a90a8';
-  const sbFill     = dark ? 'rgba(0,80,80,0.12)' : 'rgba(0,120,100,0.06)';
-  const sbStroke   = dark ? '#1a5040' : '#3a8060';
-  const bldgFill   = zone.color;
-  const bldgStroke = dark ? 'rgba(10,10,15,0.5)' : 'rgba(10,10,15,0.3)';
+  const bldgC   = zone.color;
+  const txtCol  = dark ? '#4a7090' : '#4a7090';
+  const gridCol = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)';
+
+  // Room colour palette
+  const rLive  = dark ? 'rgba(200,82,26,0.22)'   : 'rgba(200,82,26,0.17)';
+  const rBed   = dark ? 'rgba(74,112,144,0.32)'  : 'rgba(74,112,144,0.25)';
+  const rWet   = dark ? 'rgba(38,110,130,0.38)'  : 'rgba(38,110,130,0.30)';
+  const rCirc  = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const garden = dark ? 'rgba(26,58,42,0.50)'    : 'rgba(90,148,90,0.22)';
+  const parkC  = dark ? 'rgba(16,24,38,0.70)'    : 'rgba(158,163,178,0.55)';
+  const wallL  = dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.25)';
 
   let s = '';
 
   // Background
   s += `<rect width="340" height="340" fill="${dark?'#0c1820':'#dde8ee'}"/>`;
-
-  // Grid lines
-  const gridCol = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)';
+  // Grid
   for (let i = 0; i < 340; i += 20) {
     s += `<line x1="${i}" y1="0" x2="${i}" y2="340" stroke="${gridCol}" stroke-width="0.5"/>`;
     s += `<line x1="0" y1="${i}" x2="340" y2="${i}" stroke="${gridCol}" stroke-width="0.5"/>`;
   }
 
-  // Plot
-  s += `<rect x="${ox}" y="${oy}" width="${pxW}" height="${pxD}" fill="${plotFill}" stroke="${plotStroke}" stroke-width="1.5" rx="2"/>`;
+  // Plot boundary
+  s += `<rect x="${ox}" y="${oy}" width="${pxW}" height="${pxD}" fill="${dark?'#0f1e28':'#e0ecf2'}" stroke="${dark?'#2a4050':'#6a90a8'}" stroke-width="1.5" rx="2"/>`;
 
-  // Green space (remaining buildable, outside footprint)
-  if (buildW > 0 && buildD > 0) {
-    s += `<rect x="${bzX}" y="${bzY}" width="${bzW}" height="${bzD}" fill="${sbFill}" stroke="${sbStroke}" stroke-width="0.7" stroke-dasharray="3 2" rx="1"/>`;
+  // Garden/setback zones
+  const fsH = zone.setbackFront * scale, rsH = zone.setbackRear * scale, ssW = zone.setbackSide * scale;
+  if (fsH > 1) s += `<rect x="${ox}" y="${oy}" width="${pxW}" height="${fsH}" fill="${garden}" opacity="0.55"/>`;
+  if (rsH > 1) s += `<rect x="${ox}" y="${oy+pxD-rsH}" width="${pxW}" height="${rsH}" fill="${garden}" opacity="0.65"/>`;
+  if (ssW > 1) {
+    s += `<rect x="${ox}" y="${oy}" width="${ssW}" height="${pxD}" fill="${garden}" opacity="0.30"/>`;
+    s += `<rect x="${ox+pxW-ssW}" y="${oy}" width="${ssW}" height="${pxD}" fill="${garden}" opacity="0.30"/>`;
   }
 
-  // Building footprint
-  if (fpW > 4 && fpD > 4) {
-    s += `<rect x="${fpX}" y="${fpY}" width="${fpW}" height="${fpD}" fill="${bldgFill}" fill-opacity="0.82" stroke="${bldgStroke}" stroke-width="1" rx="2"/>`;
-    // Footprint area label
-    const labelColor = dark ? 'rgba(10,10,15,0.85)' : 'rgba(10,10,15,0.8)';
-    s += `<text x="${fpX+fpW/2}" y="${fpY+fpD/2+4}" text-anchor="middle" font-size="10" font-family="Syne,sans-serif" font-weight="700" fill="${labelColor}">${Math.round(footprint)}m²</text>`;
+  if (fpW > 6 && fpD > 6) {
+    // ── Building interior layout ──────────────────────────────────────────────
+    if (S.typology === 'apartments' || S.typology === 'mixed') {
+      // Double-loaded corridor: living front / wet middle / beds rear
+      const corrW = Math.max(5, Math.min(12, fpW * 0.12));
+      const corrX = fpX + (fpW - corrW) / 2;
+      const sw    = (fpW - corrW) / 2; // side width
+      const lD = fpD * 0.40, wD = fpD * 0.15, bD = fpD * 0.45;
+      const r  = corrX + corrW;
+
+      for (let side = 0; side < 2; side++) {
+        const sx = side === 0 ? fpX : r;
+        s += `<rect x="${sx}" y="${fpY}"        width="${sw}" height="${lD}" fill="${rLive}"/>`;
+        s += `<rect x="${sx}" y="${fpY+lD}"     width="${sw}" height="${wD}" fill="${rWet}"/>`;
+        s += `<rect x="${sx}" y="${fpY+lD+wD}"  width="${sw}" height="${bD}" fill="${rBed}"/>`;
+      }
+      // Corridor
+      s += `<rect x="${corrX}" y="${fpY}" width="${corrW}" height="${fpD}" fill="${rCirc}"/>`;
+      s += `<line x1="${corrX+corrW/2}" y1="${fpY+4}" x2="${corrX+corrW/2}" y2="${fpY+fpD-4}" stroke="${bldgC}" stroke-width="0.6" stroke-dasharray="3 2" opacity="0.45"/>`;
+      // Stair core
+      const sh = Math.min(14, fpD * 0.10);
+      s += `<rect x="${corrX+1}" y="${fpY+6}" width="${corrW-2}" height="${sh}" fill="${dark?'rgba(255,255,255,0.09)':'rgba(0,0,0,0.10)'}" stroke="${wallL}" stroke-width="0.5" rx="1"/>`;
+      s += `<text x="${corrX+corrW/2}" y="${fpY+sh/2+9}" text-anchor="middle" font-size="5.5" font-family="DM Sans,sans-serif" fill="${dark?'rgba(255,255,255,0.30)':'rgba(0,0,0,0.30)'}">▲</text>`;
+      // Horizontal zone lines
+      s += `<line x1="${fpX}" y1="${fpY+lD}"    x2="${fpX+fpW}" y2="${fpY+lD}"    stroke="${wallL}" stroke-width="0.7"/>`;
+      s += `<line x1="${fpX}" y1="${fpY+lD+wD}" x2="${fpX+fpW}" y2="${fpY+lD+wD}" stroke="${wallL}" stroke-width="0.7"/>`;
+      // Unit partition lines (one stack per ~6 m)
+      const nDiv = Math.max(0, Math.floor((sw / scale) / 6) - 1);
+      for (let i = 1; i <= nDiv; i++) {
+        const dx1 = fpX + i * sw / (nDiv + 1);
+        const dx2 = r   + i * sw / (nDiv + 1);
+        s += `<line x1="${dx1}" y1="${fpY}" x2="${dx1}" y2="${fpY+fpD}" stroke="${wallL}" stroke-width="0.55"/>`;
+        s += `<line x1="${dx2}" y1="${fpY}" x2="${dx2}" y2="${fpY+fpD}" stroke="${wallL}" stroke-width="0.55"/>`;
+      }
+
+    } else if (S.typology === 'townhouses') {
+      // Swiss Cube row: units side-by-side, 8.34m deep
+      const cubeW_m = S.cubeSize ? CUBE_SIZES[S.cubeSize].w : 4.1;
+      const uW = Math.max(fpW / Math.max(1, Math.floor(fpW / (cubeW_m * scale))), 1);
+      const nU = Math.max(1, Math.floor(fpW / uW));
+      const lD = fpD * 0.40, wD = fpD * 0.13, bD = fpD * 0.35, gD = fpD * 0.12;
+
+      for (let i = 0; i < nU; i++) {
+        const ux = fpX + i * uW;
+        s += `<rect x="${ux+0.5}" y="${fpY}"         width="${uW-1}" height="${lD}" fill="${rLive}"/>`;
+        // Kitchen corner (rear of living zone)
+        const kW = Math.min(uW * 0.44, 18);
+        s += `<rect x="${ux+0.5}" y="${fpY+lD*0.60}" width="${kW}"   height="${lD*0.40}" fill="${rWet}"/>`;
+        // Bathroom
+        s += `<rect x="${ux+0.5}" y="${fpY+lD}"       width="${Math.min(uW*0.40,16)}" height="${wD}" fill="${rWet}"/>`;
+        // Bedrooms
+        s += `<rect x="${ux+0.5}" y="${fpY+lD+wD}"    width="${uW-1}" height="${bD}" fill="${rBed}"/>`;
+        // Bedroom partition
+        if (uW > 18) {
+          s += `<line x1="${ux+uW/2}" y1="${fpY+lD+wD}" x2="${ux+uW/2}" y2="${fpY+lD+wD+bD}" stroke="${wallL}" stroke-width="0.55"/>`;
+        }
+        // Private garden strip
+        s += `<rect x="${ux+0.5}" y="${fpY+lD+wD+bD}" width="${uW-1}" height="${gD}" fill="${garden}" opacity="0.85"/>`;
+        // Party wall
+        if (i > 0) s += `<line x1="${ux}" y1="${fpY}" x2="${ux}" y2="${fpY+fpD}" stroke="${dark?'rgba(255,255,255,0.28)':'rgba(0,0,0,0.38)'}" stroke-width="1.2"/>`;
+      }
+      // Horizontal zone dividers
+      for (const dY of [lD, lD+wD, lD+wD+bD])
+        s += `<line x1="${fpX}" y1="${fpY+dY}" x2="${fpX+fpW}" y2="${fpY+dY}" stroke="${wallL}" stroke-width="0.7"/>`;
+
+    } else if (S.typology === 'commercial') {
+      // Open plan: lobby + column grid + service core
+      const lbD = fpD * 0.14, svD = fpD * 0.13;
+      const flD = fpD - lbD - svD;
+      s += `<rect x="${fpX}" y="${fpY}" width="${fpW}" height="${lbD}" fill="${rWet}" opacity="0.65"/>`;
+      s += `<text x="${fpX+fpW/2}" y="${fpY+lbD/2+4}" text-anchor="middle" font-size="5.5" font-family="DM Sans,sans-serif" fill="${dark?'rgba(255,255,255,0.38)':'rgba(0,0,0,0.38)'}">LOBBY</text>`;
+      const cols = Math.max(2, Math.round(fpW / (8 * scale)));
+      const rows = Math.max(2, Math.round(flD / (8 * scale)));
+      for (let ci = 0; ci <= cols; ci++)
+        for (let ri = 0; ri <= rows; ri++) {
+          const cx = fpX + ci * fpW / cols;
+          const cy = fpY + lbD + ri * flD / rows;
+          s += `<circle cx="${cx}" cy="${cy}" r="2.2" fill="${dark?'rgba(255,255,255,0.20)':'rgba(0,0,0,0.25)'}"/>`;
+        }
+      const cW = fpW * 0.28;
+      s += `<rect x="${fpX+(fpW-cW)/2}" y="${fpY+fpD-svD}" width="${cW}" height="${svD}" fill="${rCirc}" stroke="${wallL}" stroke-width="0.5"/>`;
+      s += `<text x="${fpX+fpW/2}" y="${fpY+fpD-svD/2+4}" text-anchor="middle" font-size="5" font-family="DM Sans,sans-serif" fill="${dark?'rgba(255,255,255,0.28)':'rgba(0,0,0,0.28)'}">SERVICES</text>`;
+    }
+
+    // Parking strip (front setback, if 3 m+ deep)
+    if (zone.setbackFront >= 3 && fsH >= 16 && fpW >= 24) {
+      const pkY = oy + fsH * 0.22;
+      const pkH = Math.min(12, fsH * 0.48);
+      const pkW = fpW * 0.55;
+      const pkX = fpX + (fpW - pkW) / 2;
+      s += `<rect x="${pkX}" y="${pkY}" width="${pkW}" height="${pkH}" fill="${parkC}" rx="1"/>`;
+      const bays = Math.max(1, Math.floor(pkW / 11));
+      for (let b = 1; b < bays; b++)
+        s += `<line x1="${pkX + b*pkW/bays}" y1="${pkY}" x2="${pkX + b*pkW/bays}" y2="${pkY+pkH}" stroke="${dark?'rgba(255,255,255,0.12)':'rgba(0,0,0,0.16)'}" stroke-width="0.5"/>`;
+      s += `<text x="${pkX+pkW/2}" y="${pkY+pkH/2+3}" text-anchor="middle" font-size="5.5" font-family="DM Sans,sans-serif" fill="${dark?'rgba(255,255,255,0.28)':'rgba(0,0,0,0.28)'}">PARKING</text>`;
+    }
+
+    // Building outer wall
+    s += `<rect x="${fpX}" y="${fpY}" width="${fpW}" height="${fpD}" fill="none" stroke="${dark?'rgba(255,255,255,0.32)':'rgba(0,0,0,0.42)'}" stroke-width="1.5" rx="1"/>`;
+    // Footprint label
+    s += `<text x="${fpX+fpW/2}" y="${fpY-5}" text-anchor="middle" font-size="9.5" font-family="Syne,sans-serif" font-weight="700" fill="${bldgC}">${Math.round(footprint)}m²</text>`;
+
   }
 
   // Dimension labels
-  const txtCol = dark ? '#4a7090' : '#4a7090';
-  const dimY   = oy + pxD + 18;
-  const dimX   = ox - 18;
+  const dimY = oy + pxD + 18, dimX = ox - 18;
   s += `<text x="${ox+pxW/2}" y="${dimY}" text-anchor="middle" font-size="9" font-family="DM Sans,sans-serif" fill="${txtCol}">${Math.round(plotW)}m</text>`;
   s += `<text x="${dimX}" y="${oy+pxD/2+3}" text-anchor="middle" font-size="9" font-family="DM Sans,sans-serif" fill="${txtCol}" transform="rotate(-90,${dimX},${oy+pxD/2})">${Math.round(plotD)}m</text>`;
-
-  // Plot area label (bottom)
-  s += `<text x="${ox+pxW/2}" y="${oy+pxD+30}" text-anchor="middle" font-size="8" font-family="DM Sans,sans-serif" fill="${txtCol}" opacity="0.7">${Math.round(plotArea)} sqm plot</text>`;
+  s += `<text x="${ox+pxW/2}" y="${oy+pxD+29}" text-anchor="middle" font-size="7.5" font-family="DM Sans,sans-serif" fill="${txtCol}" opacity="0.6">${Math.round(plotArea)} sqm</text>`;
 
   // North arrow
-  const nx=CANVAS-22, ny=PAD+16;
-  const arrowCol = dark ? '#4a7090' : '#3a6080';
-  s += `<polygon points="${nx},${ny-9} ${nx-4},${ny+5} ${nx},${ny} ${nx+4},${ny+5}" fill="${arrowCol}" opacity="0.8"/>`;
-  s += `<text x="${nx}" y="${ny+16}" text-anchor="middle" font-size="7.5" font-family="DM Sans,sans-serif" fill="${arrowCol}">N</text>`;
+  const nx=CANVAS-22, ny=PAD+16, aC=dark?'#4a7090':'#3a6080';
+  s += `<polygon points="${nx},${ny-9} ${nx-4},${ny+5} ${nx},${ny} ${nx+4},${ny+5}" fill="${aC}" opacity="0.8"/>`;
+  s += `<text x="${nx}" y="${ny+16}" text-anchor="middle" font-size="7.5" font-family="DM Sans,sans-serif" fill="${aC}">N</text>`;
 
-  // Scale bar (10m if scale × 10 ≥ 20px, else 5m)
-  const scaleM  = scale * 10 >= 20 ? 10 : 5;
-  const scaleW  = scaleM * scale;
-  const sbX = PAD, sbY = CANVAS - 16;
-  const scaleCol = dark ? '#3a6080' : '#4a7090';
-  s += `<line x1="${sbX}" y1="${sbY}" x2="${sbX+scaleW}" y2="${sbY}" stroke="${scaleCol}" stroke-width="2"/>`;
-  s += `<line x1="${sbX}" y1="${sbY-4}" x2="${sbX}" y2="${sbY+4}" stroke="${scaleCol}" stroke-width="1.5"/>`;
-  s += `<line x1="${sbX+scaleW}" y1="${sbY-4}" x2="${sbX+scaleW}" y2="${sbY+4}" stroke="${scaleCol}" stroke-width="1.5"/>`;
-  s += `<text x="${sbX+scaleW/2}" y="${sbY-7}" text-anchor="middle" font-size="7.5" font-family="DM Sans,sans-serif" fill="${scaleCol}">${scaleM}m</text>`;
-
-  // Legend (bottom right)
-  const legX = CANVAS - 90, legY = CANVAS - 42;
-  s += `<rect x="${legX}" y="${legY}" width="8" height="8" fill="${bldgFill}" fill-opacity="0.8" rx="1"/>`;
-  s += `<text x="${legX+11}" y="${legY+7}" font-size="7.5" font-family="DM Sans,sans-serif" fill="${txtCol}">Building</text>`;
-  s += `<rect x="${legX}" y="${legY+12}" width="8" height="8" fill="${sbFill}" stroke="${sbStroke}" stroke-width="0.7" stroke-dasharray="2 1" rx="1"/>`;
-  s += `<text x="${legX+11}" y="${legY+19}" font-size="7.5" font-family="DM Sans,sans-serif" fill="${txtCol}">Setback</text>`;
+  // Scale bar
+  const scaleM = scale * 10 >= 20 ? 10 : 5;
+  const scaleW = scaleM * scale;
+  const sbX = PAD, sbY = CANVAS - 16, sC = dark ? '#3a6080' : '#4a7090';
+  s += `<line x1="${sbX}" y1="${sbY}" x2="${sbX+scaleW}" y2="${sbY}" stroke="${sC}" stroke-width="2"/>`;
+  s += `<line x1="${sbX}" y1="${sbY-4}" x2="${sbX}" y2="${sbY+4}" stroke="${sC}" stroke-width="1.5"/>`;
+  s += `<line x1="${sbX+scaleW}" y1="${sbY-4}" x2="${sbX+scaleW}" y2="${sbY+4}" stroke="${sC}" stroke-width="1.5"/>`;
+  s += `<text x="${sbX+scaleW/2}" y="${sbY-7}" text-anchor="middle" font-size="7.5" font-family="DM Sans,sans-serif" fill="${sC}">${scaleM}m</text>`;
 
   document.getElementById('svgPlan').innerHTML = s;
 }
 
 function drawElevation(result) {
   const dark = isDark();
-  const { plotW, floors, gfa, zone, footprint } = result;
+  const { plotW, floors, zone, footprint } = result;
   const C_W = 340, C_H = 220, PAD = 24;
 
-  const buildingW  = Math.sqrt(footprint * (plotW / result.plotD || 1));
-  const buildingH  = floors * FLOOR_H; // metres
+  const buildingW = Math.sqrt(footprint * (plotW / result.plotD || 1));
+  const buildingH = floors * FLOOR_H;
 
-  const maxPxW = C_W - 2 * PAD - 30;
-  const maxPxH = C_H - PAD - 28;
+  // Reserve space for pitched roof above body
+  const maxRoofH = 34;
+  const maxPxW = C_W - 2 * PAD - 36;
+  const maxPxH = C_H - PAD - 32 - maxRoofH;
   const scaleX = buildingW > 0 ? maxPxW / buildingW : 1;
   const scaleY = buildingH > 0 ? maxPxH / buildingH : 1;
   const scale  = Math.min(scaleX, scaleY, 10);
@@ -962,69 +1162,160 @@ function drawElevation(result) {
   const groundY = C_H - 22;
   const bX      = (C_W - bPxW) / 2;
   const bY      = groundY - bPxH;
+  const floorPx = FLOOR_H * scale;
 
-  // Colours
-  const skyTop   = dark ? '#0a1520' : '#b8d8ee';
-  const skyBot   = dark ? '#14253a' : '#d8ecf8';
-  const groundC  = dark ? '#0f2010' : '#b8d4b0';
-  const bldgC    = zone.color;
-  const windowC  = dark ? 'rgba(160,210,255,0.22)' : 'rgba(180,220,255,0.55)';
-  const lineC    = dark ? 'rgba(10,10,15,0.25)' : 'rgba(10,10,15,0.18)';
-  const txtCol   = dark ? '#4a7090' : '#4a7090';
+  // Roof geometry
+  const roofPitch = 0.22; // rise/run ratio ~ 12° ≈ Rwanda iron-sheet standard
+  const roofH     = Math.max(10, Math.min(bPxW * roofPitch, maxRoofH));
+  const overhg    = Math.min(10, bPxW * 0.045);
+  const apexY     = bY - roofH;
+  const eaveL     = bX - overhg;
+  const eaveR     = bX + bPxW + overhg;
+
+  // Colour palette
+  const skyTop  = dark ? '#0a1520' : '#b0d2e8';
+  const skyBot  = dark ? '#14253a' : '#d4e8f4';
+  const groundC = dark ? '#0f2010' : '#aacaa2';
+  const bldgC   = zone.color;
+  const roofC   = dark ? '#182816' : '#4a5e46';
+  const winC    = dark ? 'rgba(155,210,255,0.20)' : 'rgba(175,220,255,0.55)';
+  const winFrm  = dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.20)';
+  const doorC   = dark ? 'rgba(90,60,35,0.75)'   : 'rgba(110,75,45,0.80)';
+  const lineC   = dark ? 'rgba(0,0,0,0.22)'       : 'rgba(0,0,0,0.14)';
+  const brickC  = dark ? 'rgba(200,82,26,0.07)'   : 'rgba(200,82,26,0.05)';
+  const txtCol  = dark ? '#4a7090' : '#4a7090';
 
   let s = '';
 
-  // Sky gradient (via linearGradient)
+  // Defs
   s += `<defs>
     <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="${skyTop}"/>
       <stop offset="100%" stop-color="${skyBot}"/>
     </linearGradient>
+    <linearGradient id="bldgG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${bldgC}" stop-opacity="0.90"/>
+      <stop offset="100%" stop-color="${bldgC}" stop-opacity="0.68"/>
+    </linearGradient>
   </defs>`;
+
+  // Sky + ground
   s += `<rect width="${C_W}" height="${C_H}" fill="url(#skyG)"/>`;
+  s += `<rect x="0" y="${groundY}" width="${C_W}" height="${C_H - groundY}" fill="${groundC}"/>`;
+  s += `<line x1="0" y1="${groundY}" x2="${C_W}" y2="${groundY}" stroke="${dark?'#1a3020':'#7a9870'}" stroke-width="1"/>`;
 
-  // Ground strip
-  s += `<rect x="0" y="${groundY}" width="${C_W}" height="${C_H-groundY}" fill="${groundC}"/>`;
-
-  // Shadow
   if (bPxW > 0 && bPxH > 0) {
-    s += `<ellipse cx="${bX+bPxW/2+8}" cy="${groundY+4}" rx="${bPxW/2*0.9}" ry="6" fill="rgba(0,0,0,0.18)"/>`;
+    // Shadow
+    s += `<ellipse cx="${bX+bPxW/2+10}" cy="${groundY+5}" rx="${bPxW/2*0.82}" ry="4.5" fill="rgba(0,0,0,0.14)"/>`;
 
     // Building body
-    s += `<rect x="${bX}" y="${bY}" width="${bPxW}" height="${bPxH}" fill="${bldgC}" fill-opacity="0.78" rx="2"/>`;
+    s += `<rect x="${bX}" y="${bY}" width="${bPxW}" height="${bPxH}" fill="url(#bldgG)"/>`;
 
-    // Floor lines
-    const floorPx = FLOOR_H * scale;
-    for (let f = 1; f < floors; f++) {
-      const ly = groundY - f * floorPx;
-      s += `<line x1="${bX}" y1="${ly}" x2="${bX+bPxW}" y2="${ly}" stroke="${lineC}" stroke-width="0.8"/>`;
+    // Subtle brick course lines (~every 3 courses = 0.24m × 3 = 0.72m)
+    const courseH = 0.72 * scale;
+    if (courseH >= 2.5) {
+      for (let cy = bY + (courseH - ((bPxH % courseH) || courseH)); cy < groundY; cy += courseH)
+        s += `<line x1="${bX}" y1="${cy}" x2="${bX+bPxW}" y2="${cy}" stroke="${brickC}" stroke-width="0.6"/>`;
     }
 
-    // Windows (simple grid)
-    const cols = Math.max(2, Math.min(8, Math.floor(bPxW / 22)));
-    const winW = Math.min(14, (bPxW - 12) / (cols + 1));
-    const winH = Math.min(9, floorPx * 0.45);
+    // Floor lines + slab bands
+    for (let f = 1; f < floors; f++) {
+      const ly = groundY - f * floorPx;
+      s += `<rect x="${bX}" y="${ly-1.5}" width="${bPxW}" height="3" fill="${dark?'rgba(0,0,0,0.18)':'rgba(255,255,255,0.18)'}"/>`;
+      s += `<line x1="${bX}" y1="${ly}" x2="${bX+bPxW}" y2="${ly}" stroke="${lineC}" stroke-width="1.0"/>`;
+    }
+
+    // ── Windows ──
+    const winW_m = 0.9, winH_m = 1.15;
+    const winPxW = Math.max(7, winW_m * scale);
+    const winPxH = Math.max(6, Math.min(winH_m * scale, floorPx * 0.70));
+    const winGap = Math.max(winPxW + 6, (bPxW - 10) / Math.max(2, Math.floor(bPxW / (winPxW + 10))));
+    const cols   = Math.max(2, Math.floor((bPxW - 10) / winGap));
+    const winX0  = bX + (bPxW - cols * winGap + (winGap - winPxW)) / 2;
+    const winOffY = floorPx * 0.22;
+
     for (let fl = 0; fl < floors; fl++) {
+      const baseY = groundY - (fl + 1) * floorPx;
       for (let c = 0; c < cols; c++) {
-        const wx = bX + 6 + c * (bPxW - 12) / cols + (bPxW - 12) / cols / 2 - winW / 2;
-        const wy = groundY - (fl + 1) * floorPx + floorPx * 0.25;
-        s += `<rect x="${wx}" y="${wy}" width="${winW}" height="${winH}" fill="${windowC}" rx="1"/>`;
+        const wx = winX0 + c * winGap;
+        const wy = baseY + winOffY;
+        // Skip centre column ground floor (door position)
+        if (fl === 0 && Math.abs(wx + winPxW/2 - (bX + bPxW/2)) < winGap * 0.65) continue;
+        s += `<rect x="${wx}" y="${wy}" width="${winPxW}" height="${winPxH}" fill="${winC}" stroke="${winFrm}" stroke-width="0.7" rx="1"/>`;
+        // Crossbar
+        s += `<line x1="${wx}" y1="${wy+winPxH*0.50}" x2="${wx+winPxW}" y2="${wy+winPxH*0.50}" stroke="${winFrm}" stroke-width="0.5"/>`;
+        s += `<line x1="${wx+winPxW*0.50}" y1="${wy}" x2="${wx+winPxW*0.50}" y2="${wy+winPxH}" stroke="${winFrm}" stroke-width="0.5"/>`;
+        // Glare highlight
+        s += `<rect x="${wx+1}" y="${wy+1}" width="${winPxW*0.35}" height="${winPxH*0.28}" fill="rgba(255,255,255,0.10)" rx="0.5"/>`;
       }
     }
 
-    // Dimension callouts
-    const dimRight = bX + bPxW + 8;
-    s += `<line x1="${dimRight}" y1="${bY}" x2="${dimRight}" y2="${groundY}" stroke="${txtCol}" stroke-width="0.7" stroke-dasharray="2 2"/>`;
-    s += `<text x="${dimRight+4}" y="${(bY+groundY)/2+4}" font-size="8.5" font-family="Syne,sans-serif" font-weight="700" fill="${txtCol}">${Math.round(buildingH)}m</text>`;
-    s += `<text x="${bX+bPxW/2}" y="${bY-8}" text-anchor="middle" font-size="8.5" font-family="DM Sans,sans-serif" fill="${txtCol}">${floors} floor${floors!==1?'s':''}</text>`;
-
-    // Floor label on first floor
-    if (S.typology === 'mixed' || S.typology === 'commercial') {
-      s += `<text x="${bX+bPxW/2}" y="${groundY-4}" text-anchor="middle" font-size="7" font-family="DM Sans,sans-serif" fill="rgba(10,10,15,0.6)">GF Commercial</text>`;
+    // Ground-floor commercial glazing (mixed / commercial)
+    if (S.typology === 'commercial' || S.typology === 'mixed') {
+      const panelCount = Math.max(2, Math.floor((bPxW - 12) / 28));
+      const panW = (bPxW - 12 - (panelCount - 1) * 3) / panelCount;
+      for (let p = 0; p < panelCount; p++) {
+        const px = bX + 6 + p * (panW + 3);
+        const py = groundY - floorPx + 5;
+        s += `<rect x="${px}" y="${py}" width="${panW}" height="${floorPx - 7}" fill="${winC}" stroke="${winFrm}" stroke-width="0.6" rx="1"/>`;
+      }
+      s += `<text x="${bX+bPxW/2}" y="${groundY - floorPx*0.38}" text-anchor="middle" font-size="6.5" font-family="DM Sans,sans-serif" fill="rgba(10,10,15,0.52)">GF: Commercial</text>`;
     }
+
+    // ── Entry door ──
+    const dW = Math.min(16, bPxW * 0.09);
+    const dH = Math.min(floorPx * 0.74, 22);
+    const dX = bX + bPxW / 2 - dW / 2;
+    const dY = groundY - dH;
+    s += `<rect x="${dX}" y="${dY}" width="${dW}" height="${dH}" fill="${doorC}" rx="1.5"/>`;
+    // Arched top
+    const aR = dW / 2;
+    s += `<path d="M${dX} ${dY+aR} A${aR} ${aR} 0 0 1 ${dX+dW} ${dY+aR}" fill="${doorC}" stroke="${dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.18)'}" stroke-width="0.5"/>`;
+    // Handle
+    s += `<circle cx="${dX+dW*0.73}" cy="${dY+dH*0.52}" r="1.3" fill="${dark?'rgba(212,168,50,0.75)':'rgba(175,135,40,0.85)'}"/>`;
+    // Door panel line
+    s += `<line x1="${dX+dW/2}" y1="${dY+aR}" x2="${dX+dW/2}" y2="${dY+dH}" stroke="${dark?'rgba(255,255,255,0.10)':'rgba(0,0,0,0.15)'}" stroke-width="0.5"/>`;
+
+    // ── Pitched gable roof (iron sheet) ──
+    // Left slope fill
+    s += `<polygon points="${eaveL},${bY} ${bX+bPxW/2},${apexY} ${bX},${bY}" fill="${roofC}" fill-opacity="0.92"/>`;
+    // Right slope (slightly darker for 3D effect)
+    s += `<polygon points="${bX+bPxW/2},${apexY} ${eaveR},${bY} ${bX+bPxW},${bY}" fill="${roofC}" fill-opacity="0.78"/>`;
+
+    // Iron sheet lines (parallel to slope, left side)
+    const nLines = Math.max(4, Math.floor(bPxW * 0.16));
+    for (let i = 1; i <= nLines; i++) {
+      const t = i / (nLines + 1);
+      // Left slope: from apex-side point to eave
+      const lx1 = eaveL + t * (bX + bPxW/2 - eaveL);
+      const ly1 = bY + t * (apexY - bY);
+      s += `<line x1="${lx1}" y1="${ly1}" x2="${eaveL + t*(bPxW*0.5 + overhg)}" y2="${bY}" stroke="${dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)'}" stroke-width="0.55"/>`;
+      // Right slope (mirrored)
+      const rx1 = eaveR - t * (eaveR - (bX + bPxW/2));
+      const ry1 = bY + t * (apexY - bY);
+      s += `<line x1="${rx1}" y1="${ry1}" x2="${eaveR - t*(bPxW*0.5 + overhg)}" y2="${bY}" stroke="${dark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.06)'}" stroke-width="0.55"/>`;
+    }
+    // Ridge cap line
+    s += `<line x1="${bX+bPxW/2-7}" y1="${apexY}" x2="${bX+bPxW/2+7}" y2="${apexY}" stroke="${dark?'rgba(255,255,255,0.28)':'rgba(0,0,0,0.32)'}" stroke-width="1.4"/>`;
+    // Eave line
+    s += `<line x1="${eaveL}" y1="${bY}" x2="${eaveR}" y2="${bY}" stroke="${dark?'rgba(255,255,255,0.14)':'rgba(0,0,0,0.22)'}" stroke-width="0.9"/>`;
+    // Roof outline
+    s += `<polyline points="${eaveL},${bY} ${bX+bPxW/2},${apexY} ${eaveR},${bY}" fill="none" stroke="${dark?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.26)'}" stroke-width="1"/>`;
+
+    // Building left/right walls (strong outline)
+    s += `<line x1="${bX}" y1="${bY}" x2="${bX}" y2="${groundY}" stroke="${dark?'rgba(0,0,0,0.40)':'rgba(0,0,0,0.32)'}" stroke-width="1.2"/>`;
+    s += `<line x1="${bX+bPxW}" y1="${bY}" x2="${bX+bPxW}" y2="${groundY}" stroke="${dark?'rgba(0,0,0,0.40)':'rgba(0,0,0,0.32)'}" stroke-width="1.2"/>`;
+
+    // ── Dimension callouts ──
+    const dimR = bX + bPxW + 13;
+    s += `<line x1="${dimR}" y1="${bY}" x2="${dimR}" y2="${groundY}" stroke="${txtCol}" stroke-width="0.7" stroke-dasharray="2 2"/>`;
+    s += `<line x1="${dimR-3}" y1="${bY}"      x2="${dimR+3}" y2="${bY}"      stroke="${txtCol}" stroke-width="1"/>`;
+    s += `<line x1="${dimR-3}" y1="${groundY}" x2="${dimR+3}" y2="${groundY}" stroke="${txtCol}" stroke-width="1"/>`;
+    s += `<text x="${dimR+5}" y="${(bY+groundY)/2+4}" font-size="8.5" font-family="Syne,sans-serif" font-weight="700" fill="${txtCol}">${Math.round(buildingH)}m</text>`;
+    s += `<text x="${bX+bPxW/2}" y="${apexY-8}" text-anchor="middle" font-size="8.5" font-family="DM Sans,sans-serif" fill="${txtCol}">${floors} fl · ${Math.round(buildingH + roofH / scale * 0.5)}m to ridge</text>`;
   }
 
-  // Zone label (bottom left)
+  // Zone label
   s += `<text x="${PAD}" y="${C_H-6}" font-size="7.5" font-family="DM Sans,sans-serif" fill="${txtCol}">${zone.code} · ${zone.name} · max ${zone.maxFloors} fl.</text>`;
 
   document.getElementById('svgElev').innerHTML = s;
@@ -1034,9 +1325,10 @@ function drawElevation(result) {
 function render() {
   const r = computeDesign();
 
-  // Update SVGs
+  // Update SVGs + legends
   drawSitePlan(r);
   drawElevation(r);
+  updateLegends();
 
   // Metrics strip
   document.getElementById('mGFA').textContent      = fmtNum(Math.round(r.gfa));
@@ -1193,8 +1485,21 @@ function setTab(tab) {
 function setTypo(typo) {
   S.typology = typo;
   document.querySelectorAll('.typo-btn').forEach(b => b.classList.toggle('active', b.dataset.typo===typo));
-  const showMix = typo === 'apartments' || typo === 'townhouses' || typo === 'mixed';
+  const showMix  = typo === 'apartments' || typo === 'townhouses' || typo === 'mixed';
+  const showCube = typo === 'townhouses';
   document.getElementById('mixSection').classList.toggle('visible', showMix);
+  document.getElementById('cubeSection').classList.toggle('visible', showCube);
+  render();
+}
+
+function setCube(size) {
+  S.cubeSize = size;
+  document.querySelectorAll('[data-cube]').forEach(b => b.classList.toggle('active', b.dataset.cube===size));
+  const c = CUBE_SIZES[size];
+  const fmtM = n => (n/1e6).toFixed(1) + 'M RWF';
+  document.getElementById('cubeInfo').innerHTML =
+    `<strong>${size}</strong> · ${c.w}m × ${c.d}m · Room height 2.40m · ${c.area}m² per unit<br>` +
+    `Shell from <strong>${fmtM(c.shell)}</strong> · Duplex from <strong>${fmtM(c.duplex)}</strong>`;
   render();
 }
 
@@ -1255,6 +1560,106 @@ function syncSliderFill(id, val, min, max) {
   const el  = document.getElementById(id);
   if (el) el.style.background =
     `linear-gradient(to right, var(--terracotta) ${pct}%, rgba(245,240,232,0.1) ${pct}%)`;
+}
+
+// ── SVG Zoom & Pan ────────────────────────────────────────────────────────────
+function initZoomPan(svgEl, origW, origH) {
+  let vb = { x:0, y:0, w:origW, h:origH };
+  let dragging = false, lastX = 0, lastY = 0;
+
+  function applyVB() {
+    svgEl.setAttribute('viewBox', `${vb.x.toFixed(1)} ${vb.y.toFixed(1)} ${vb.w.toFixed(1)} ${vb.h.toFixed(1)}`);
+  }
+
+  svgEl.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = svgEl.getBoundingClientRect();
+    const mx = vb.x + (e.clientX - rect.left) / rect.width  * vb.w;
+    const my = vb.y + (e.clientY - rect.top)  / rect.height * vb.h;
+    const factor = e.deltaY > 0 ? 1.15 : (1 / 1.15);
+    const nw = Math.max(40, Math.min(origW * 4, vb.w * factor));
+    const nh = Math.max(30, Math.min(origH * 4, vb.h * factor));
+    vb.x = mx - (e.clientX - rect.left) / rect.width  * nw;
+    vb.y = my - (e.clientY - rect.top)  / rect.height * nh;
+    vb.w = nw; vb.h = nh;
+    applyVB();
+  }, { passive: false });
+
+  svgEl.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    dragging = true; lastX = e.clientX; lastY = e.clientY;
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const rect = svgEl.getBoundingClientRect();
+    vb.x -= (e.clientX - lastX) / rect.width  * vb.w;
+    vb.y -= (e.clientY - lastY) / rect.height * vb.h;
+    lastX = e.clientX; lastY = e.clientY;
+    applyVB();
+  });
+  window.addEventListener('mouseup', () => { dragging = false; });
+
+  // Double-click resets to original view
+  svgEl.addEventListener('dblclick', () => {
+    vb = { x:0, y:0, w:origW, h:origH };
+    applyVB();
+  });
+}
+
+// ── Legend renderer ───────────────────────────────────────────────────────────
+function updateLegends() {
+  const dk = isDark();
+  const zC = getZone(S.zoneCode).color;
+
+  // Plan legend varies by typology
+  const planItems =
+    S.typology === 'commercial' ? [
+      ['Lobby / Entry',      'rgba(38,110,130,0.65)',  false],
+      ['Open Plan Floor',    dk ? 'rgba(245,240,232,0.04)' : 'rgba(0,0,0,0.04)', false],
+      ['Structural Columns', dk ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.28)', false],
+      ['Service Core',       dk ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', false],
+      ['Parking',            'rgba(16,24,38,0.70)',    false],
+      ['Garden / Setback',   'rgba(26,58,42,0.55)',    false],
+    ] :
+    S.typology === 'townhouses' ? [
+      ['Living / Dining',    'rgba(200,82,26,0.55)',   false],
+      ['Kitchen',            'rgba(38,110,130,0.65)',  false],
+      ['Bedroom',            'rgba(74,112,144,0.55)',  false],
+      ['Private Garden',     'rgba(26,58,42,0.60)',    false],
+      ['Party Wall',         dk ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.38)', true],
+      ['Parking',            'rgba(16,24,38,0.70)',    false],
+    ] : [
+      ['Living / Dining',    'rgba(200,82,26,0.55)',   false],
+      ['Bedroom',            'rgba(74,112,144,0.55)',  false],
+      ['Kitchen / Wet Areas','rgba(38,110,130,0.65)',  false],
+      ['Corridor',           dk ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)', false],
+      ['Parking',            'rgba(16,24,38,0.70)',    false],
+      ['Garden / Setback',   'rgba(26,58,42,0.55)',    false],
+    ];
+
+  document.getElementById('planLegend').innerHTML = planItems.map(([lbl, fill, isWall]) =>
+    `<span class="svg-legend-item">` +
+    `<span class="svg-legend-dot${isWall?' wall':''}" style="background:${fill}"></span>${lbl}` +
+    `</span>`
+  ).join('');
+
+  // Elevation legend (same for all typologies)
+  const elevItems = [
+    ['Iron-Sheet Roof',  dk ? '#3a5038' : '#4a5e46'],
+    [`Walls (${S.zoneCode})`, zC],
+    ['Windows',          dk ? 'rgba(155,210,255,0.28)' : 'rgba(175,220,255,0.60)'],
+    ['Entry Door',       dk ? 'rgba(90,60,35,0.80)'   : 'rgba(110,75,45,0.85)'],
+    ['Floor Slabs',      dk ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.16)'],
+  ];
+  if (S.typology === 'commercial' || S.typology === 'mixed')
+    elevItems.push(['GF Glazing', dk ? 'rgba(155,210,255,0.22)' : 'rgba(175,220,255,0.55)']);
+
+  document.getElementById('elevLegend').innerHTML = elevItems.map(([lbl, fill]) =>
+    `<span class="svg-legend-item">` +
+    `<span class="svg-legend-dot" style="background:${fill}"></span>${lbl}` +
+    `</span>`
+  ).join('');
 }
 
 // ── Scenarios ──────────────────────────────────────────────────────────────────
