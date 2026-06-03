@@ -72,6 +72,7 @@ body:has(button:hover) .cursor-ring {
   padding: 0 2.5rem;
   justify-content: space-between;
   backdrop-filter: blur(12px);
+  box-shadow: 0 1px 0 rgba(212,168,50,0.08), 0 4px 24px rgba(0,0,0,0.3);
 }
 .int-nav-left { display: flex; align-items: center; gap: 1.25rem; }
 .int-nav-logo {
@@ -97,16 +98,22 @@ body:has(button:hover) .cursor-ring {
 }
 .int-nav-right { display: flex; align-items: center; gap: 0.2rem; }
 .int-nav-link {
-  color: rgba(245,240,232,0.4);
+  color: rgba(245,240,232,0.42);
   text-decoration: none;
   font-size: 0.78rem;
   padding: 0.4rem 0.85rem;
   border-radius: 2rem;
-  transition: color 0.2s, background 0.2s;
+  transition: color 0.2s, background 0.2s, box-shadow 0.2s;
   cursor: none;
+  position: relative;
 }
-.int-nav-link:hover { color: var(--cream); background: rgba(245,240,232,0.05); }
-.int-nav-link.active { color: var(--terracotta); background: rgba(200,82,26,0.1); font-weight: 500; }
+.int-nav-link:hover { color: var(--cream); background: rgba(245,240,232,0.06); }
+.int-nav-link.active {
+  color: var(--terracotta);
+  background: rgba(200,82,26,0.12);
+  font-weight: 500;
+  box-shadow: 0 0 0 1px rgba(200,82,26,0.2) inset;
+}
 .theme-toggle {
   background: rgba(245,240,232,0.04);
   border: 1px solid rgba(245,240,232,0.08);
@@ -186,9 +193,16 @@ body:has(button:hover) .cursor-ring {
   border: 1px solid rgba(245,240,232,0.07);
   border-radius: 14px;
   padding: 1.5rem;
-  transition: background 0.2s, transform 0.2s;
+  transition: background 0.22s, transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+  position: relative; overflow: hidden;
 }
-.stat-card:hover { background: rgba(245,240,232,0.05); transform: translateY(-2px); }
+.stat-card::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(135deg, rgba(212,168,50,0.03) 0%, transparent 60%);
+  pointer-events: none; opacity: 0; transition: opacity 0.22s;
+}
+.stat-card:hover { background: rgba(245,240,232,0.055); transform: translateY(-3px); border-color: rgba(245,240,232,0.12); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+.stat-card:hover::after { opacity: 1; }
 .stat-icon { font-size: 1.4rem; margin-bottom: 0.75rem; display: block; }
 .stat-val {
   font-family: 'Syne', sans-serif;
@@ -312,10 +326,16 @@ body:has(button:hover) .cursor-ring {
 @keyframes orbFloat   { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-24px) scale(1.04); } }
 @keyframes fadeUp     { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
 @keyframes blink      { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+@keyframes shimmer    { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+
+/* ─── Enhanced table rows ──────────────────────────────────────────────── */
+.listing-table tr:hover td { background: rgba(245,240,232,0.03); }
+.listing-table th { position: sticky; top: 0; background: rgba(10,10,15,0.85); backdrop-filter: blur(6px); }
+[data-theme="light"] .listing-table th { background: rgba(250,247,242,0.9); }
 
 /* ─── Light mode overrides ──────────────────────────────────────────────── */
 [data-theme="light"] body                { background: var(--warm-white); color: #1a1a24; }
-[data-theme="light"] .int-nav            { background: rgba(250,247,242,0.97); border-bottom-color: rgba(10,10,15,0.08); }
+[data-theme="light"] .int-nav            { background: rgba(250,247,242,0.97); border-bottom-color: rgba(10,10,15,0.08); box-shadow: 0 1px 0 rgba(160,120,32,0.1), 0 4px 20px rgba(0,0,0,0.07); }
 [data-theme="light"] .int-nav-logo       { color: var(--ink); }
 [data-theme="light"] .int-nav-link       { color: rgba(10,10,15,0.45); }
 [data-theme="light"] .int-nav-link:hover { color: var(--ink); background: rgba(10,10,15,0.05); }

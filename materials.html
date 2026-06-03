@@ -30,7 +30,8 @@
   .hero-sub { font-size: 0.88rem; color: rgba(245,240,232,0.5); max-width: 540px; line-height: 1.7; }
   .hero-sub strong { color: rgba(245,240,232,0.8); font-weight: 500; }
   .hero-right { flex-shrink: 0; display: flex; flex-direction: column; gap: 0.85rem; padding-top: 0.5rem; }
-  .hero-kpi { background: rgba(245,240,232,0.04); border: 1px solid rgba(245,240,232,0.07); border-radius: 12px; padding: 1rem 1.5rem; text-align: right; min-width: 200px; }
+  .hero-kpi { background: rgba(245,240,232,0.04); border: 1px solid rgba(245,240,232,0.07); border-radius: 12px; padding: 1rem 1.5rem; text-align: right; min-width: 200px; transition: background 0.2s, border-color 0.2s, transform 0.2s; }
+  .hero-kpi:hover { background: rgba(245,240,232,0.07); border-color: rgba(245,240,232,0.12); transform: translateY(-2px); }
   .hero-kpi-val { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--cream); }
   .hero-kpi-val.gold { color: var(--gold); }
   .hero-kpi-val.terra { color: var(--terracotta); }
@@ -57,7 +58,7 @@
     text-decoration: none;
   }
   .cat-pill:hover { color: var(--cream); border-color: rgba(245,240,232,0.25); }
-  .cat-pill.active { background: rgba(212,168,50,0.12); border-color: rgba(212,168,50,0.3); color: var(--gold); }
+  .cat-pill.active { background: rgba(212,168,50,0.14); border-color: rgba(212,168,50,0.35); color: var(--gold); box-shadow: 0 0 0 1px rgba(212,168,50,0.15) inset; }
   .grand-total-badge {
     font-size: 0.72rem; color: rgba(245,240,232,0.4);
     display: flex; align-items: center; gap: 0.5rem;

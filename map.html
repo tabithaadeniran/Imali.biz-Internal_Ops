@@ -34,18 +34,10 @@ html, body { height: 100%; overflow: hidden; }
 .map-meta { display: flex; align-items: center; gap: 1.25rem; font-size: 0.7rem; color: rgba(245,240,232,0.3); }
 [data-theme="light"] .map-meta { color: rgba(10,10,15,0.35); }
 .map-meta-item { display: flex; align-items: center; gap: 0.35rem; }
-.map-zoom-pill { background: rgba(245,240,232,0.04); border: 1px solid rgba(245,240,232,0.08); border-radius: 2rem; padding: 0.22rem 0.65rem; font-size: 0.67rem; color: rgba(245,240,232,0.35); min-width: 52px; text-align: center; }
-[data-theme="light"] .map-zoom-pill { background: rgba(10,10,15,0.04); border-color: rgba(10,10,15,0.08); color: rgba(10,10,15,0.4); }
 
 /* ── Leaflet map ── */
 #map { flex: 1; width: 100%; min-height: 0; }
 .leaflet-container { font-family: 'DM Sans', sans-serif; }
-.leaflet-control-zoom { border: none !important; box-shadow: none !important; margin-top: 1rem !important; margin-right: 1rem !important; }
-.leaflet-control-zoom a { font-family: 'Syne', sans-serif !important; font-weight: 700 !important; width: 34px !important; height: 34px !important; line-height: 34px !important; font-size: 1rem !important; border-radius: 10px !important; display: flex !important; align-items: center !important; justify-content: center !important; margin-bottom: 4px !important; transition: background 0.18s, color 0.18s !important; }
-[data-theme="dark"]  .leaflet-control-zoom a { background: rgba(10,10,15,0.88) !important; border: 1px solid rgba(245,240,232,0.1) !important; color: rgba(245,240,232,0.6) !important; }
-[data-theme="dark"]  .leaflet-control-zoom a:hover { background: rgba(200,82,26,0.18) !important; color: #ff7043 !important; border-color: rgba(200,82,26,0.3) !important; }
-[data-theme="light"] .leaflet-control-zoom a { background: rgba(250,247,242,0.96) !important; border: 1px solid rgba(10,10,15,0.1) !important; color: rgba(10,10,15,0.6) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important; }
-[data-theme="light"] .leaflet-control-zoom a:hover { background: rgba(200,82,26,0.1) !important; color: var(--terracotta) !important; }
 .leaflet-control-attribution { font-size: 0.6rem !important; border-top-left-radius: 6px !important; }
 [data-theme="dark"]  .leaflet-control-attribution { background: rgba(10,10,15,0.6) !important; color: rgba(245,240,232,0.3) !important; }
 [data-theme="dark"]  .leaflet-control-attribution a { color: rgba(245,240,232,0.4) !important; }
@@ -249,6 +241,7 @@ html, body { height: 100%; overflow: hidden; }
 .lp-layer-text:hover .lyr-desc { white-space: normal; overflow: visible; text-overflow: clip; color: rgba(245,240,232,0.58); }
 [data-theme="light"] .lp-layer-text:hover .lyr-desc { color: rgba(10,10,15,0.56); }
 
+
 /* Solo / eye button */
 .lp-eye-btn {
   background: none; border: none; cursor: none; padding: 0;
@@ -394,6 +387,354 @@ html, body { height: 100%; overflow: hidden; }
 }
 [data-theme="light"] .mp-id-tip-loading { color: rgba(10,10,15,0.35); }
 
+/* ══════════════════════════════════════════════════════════════
+   DEMAND INTELLIGENCE — markers & rich popups
+══════════════════════════════════════════════════════════════ */
+@keyframes intel-pulse {
+  0%   { transform: scale(0.5); opacity: 0.6; }
+  60%  { transform: scale(1.6); opacity: 0.0; }
+  100% { transform: scale(0.5); opacity: 0.6; }
+}
+.intel-marker { width: 36px; height: 36px; position: relative; display: flex; align-items: center; justify-content: center; }
+.intel-ring   { position: absolute; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--ic,#26a69a); animation: intel-pulse 3s ease-out infinite; pointer-events: none; }
+.intel-core   { width: 16px; height: 16px; border-radius: 50%; background: var(--ic,#26a69a); border: 2.5px solid rgba(10,10,15,0.85); box-shadow: 0 2px 12px rgba(0,0,0,0.5); z-index: 1; position: relative; display: flex; align-items: center; justify-content: center; }
+.intel-core svg { width: 8px; height: 8px; fill: rgba(10,10,15,0.85); }
+
+/* ── Intelligence slide-in panel (replaces popup — never clipped by map) ── */
+.intel-panel {
+  position: fixed;
+  top: 130px;                        /* below nav + map header */
+  right: -380px;                     /* hidden off-screen */
+  width: 340px;
+  max-height: calc(100vh - 195px);   /* leave room for tools bar */
+  z-index: 1002;
+  background: rgba(10,12,18,0.97);
+  border: 1px solid rgba(245,240,232,0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: right 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateZ(0);
+}
+.intel-panel.open { right: 14px; }
+[data-theme="light"] .intel-panel { background: rgba(250,247,242,0.99); border-color: rgba(10,10,15,0.09); box-shadow: 0 14px 44px rgba(0,0,0,0.15); }
+.intel-panel::before { content:''; display:block; height:2px; flex-shrink:0; background:linear-gradient(90deg,#26a69a 0%,rgba(38,166,154,0.4) 60%,transparent 100%); opacity:0.6; }
+
+.intel-panel-inner {
+  overflow-y: auto; flex: 1;
+}
+.intel-panel-inner::-webkit-scrollbar { width: 3px; }
+.intel-panel-inner::-webkit-scrollbar-thumb { background: rgba(245,240,232,0.12); border-radius: 2px; }
+[data-theme="light"] .intel-panel-inner::-webkit-scrollbar-thumb { background: rgba(10,10,15,0.12); }
+
+.intel-panel-close {
+  position: absolute; top: 10px; right: 12px;
+  background: none; border: none; font-size: 1.1rem;
+  color: rgba(245,240,232,0.3); cursor: none; z-index: 3;
+  transition: color 0.15s; line-height: 1; padding: 2px;
+}
+.intel-panel-close:hover { color: rgba(245,240,232,0.75); }
+[data-theme="light"] .intel-panel-close { color: rgba(10,10,15,0.28); }
+[data-theme="light"] .intel-panel-close:hover { color: rgba(10,10,15,0.7); }
+
+/* active marker highlight while panel is open */
+.intel-marker.selected .intel-core { outline: 2px solid rgba(255,255,255,0.5); outline-offset: 2px; }
+
+.ip-wrap { font-family: 'DM Sans', sans-serif; }
+.ip-head { padding: 1rem 1rem 0.75rem; border-bottom: 1px solid rgba(245,240,232,0.07); }
+[data-theme="light"] .ip-head { border-bottom-color: rgba(10,10,15,0.07); }
+.ip-badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.57rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; padding: 0.14rem 0.52rem; border-radius: 2rem; margin-bottom: 0.4rem; }
+.ip-badge.critical { background: rgba(239,83,80,0.12); border: 1px solid rgba(239,83,80,0.3); color: #ef9a9a; }
+.ip-badge.high     { background: rgba(255,143,0,0.12); border: 1px solid rgba(255,143,0,0.3); color: #ffcc80; }
+.ip-badge.opportunity { background: rgba(38,166,154,0.12); border: 1px solid rgba(38,166,154,0.3); color: #80cbc4; }
+[data-theme="light"] .ip-badge.critical    { color: #c62828; }
+[data-theme="light"] .ip-badge.high        { color: #e65100; }
+[data-theme="light"] .ip-badge.opportunity { color: #00695c; }
+.ip-name { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--cream); line-height: 1.2; margin-bottom: 0.1rem; }
+[data-theme="light"] .ip-name { color: var(--ink); }
+.ip-sub  { font-size: 0.62rem; color: rgba(245,240,232,0.38); }
+[data-theme="light"] .ip-sub { color: rgba(10,10,15,0.4); }
+
+.ip-body { padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.65rem; }
+
+.ip-section-label { font-size: 0.57rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; color: var(--gold); margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.3rem; }
+[data-theme="light"] .ip-section-label { color: #a07820; }
+
+.ip-demand-row { display: flex; gap: 0.4rem; margin-bottom: 0.3rem; }
+.ip-demand-kv  { flex: 1; background: rgba(245,240,232,0.03); border: 1px solid rgba(245,240,232,0.06); border-radius: 8px; padding: 0.4rem 0.55rem; }
+[data-theme="light"] .ip-demand-kv { background: rgba(10,10,15,0.03); border-color: rgba(10,10,15,0.07); }
+.ip-demand-val { font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700; color: var(--cream); display: block; line-height: 1.1; }
+[data-theme="light"] .ip-demand-val { color: var(--ink); }
+.ip-demand-lbl { font-size: 0.58rem; color: rgba(245,240,232,0.35); display: block; margin-top: 0.06rem; }
+[data-theme="light"] .ip-demand-lbl { color: rgba(10,10,15,0.38); }
+
+.ip-mat-item { display: flex; align-items: flex-start; gap: 0.45rem; padding: 0.28rem 0; border-bottom: 1px solid rgba(245,240,232,0.04); }
+[data-theme="light"] .ip-mat-item { border-bottom-color: rgba(10,10,15,0.05); }
+.ip-mat-item:last-child { border-bottom: none; }
+.ip-mat-dot  { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 0.2rem; }
+.ip-mat-text { font-size: 0.67rem; color: rgba(245,240,232,0.62); line-height: 1.45; }
+[data-theme="light"] .ip-mat-text { color: rgba(10,10,15,0.62); }
+.ip-mat-text strong { color: var(--cream); font-weight: 500; }
+[data-theme="light"] .ip-mat-text strong { color: var(--ink); }
+
+.ip-inv-bar { height: 6px; border-radius: 3px; background: rgba(245,240,232,0.08); margin-bottom: 0.3rem; overflow: hidden; }
+[data-theme="light"] .ip-inv-bar { background: rgba(10,10,15,0.08); }
+.ip-inv-fill { height: 100%; border-radius: 3px; }
+.ip-inv-meta { display: flex; justify-content: space-between; font-size: 0.62rem; color: rgba(245,240,232,0.45); }
+[data-theme="light"] .ip-inv-meta { color: rgba(10,10,15,0.45); }
+
+.ip-insight { background: rgba(38,166,154,0.07); border-left: 2px solid rgba(38,166,154,0.4); border-radius: 0 6px 6px 0; padding: 0.45rem 0.6rem; font-size: 0.65rem; color: rgba(245,240,232,0.62); line-height: 1.55; }
+[data-theme="light"] .ip-insight { background: rgba(0,105,92,0.05); border-left-color: rgba(0,105,92,0.3); color: rgba(10,10,15,0.62); }
+
+/* ══════════════════════════════════════════════════════════════
+   IMALI PIPELINE — pulsing markers & rich popups
+══════════════════════════════════════════════════════════════ */
+@keyframes imali-pulse {
+  0%   { transform: scale(0.6);  opacity: 0.55; }
+  55%  { transform: scale(1.45); opacity: 0.08; }
+  100% { transform: scale(0.6);  opacity: 0.55; }
+}
+.imali-marker {
+  width: 32px; height: 32px; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.imali-pulse {
+  position: absolute; width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid var(--mc, #d4a832); pointer-events: none;
+  animation: imali-pulse 2.8s ease-in-out infinite;
+}
+.imali-dot {
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--mc, #d4a832);
+  border: 2.5px solid rgba(10,10,15,0.9);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.45); z-index: 1; position: relative;
+}
+[data-theme="light"] .imali-dot { border-color: rgba(250,247,242,0.95); }
+
+/* Leaflet popup wrapper for Imali parcels */
+.imali-popup .leaflet-popup-content-wrapper {
+  border-radius: 14px !important; padding: 0 !important;
+  background: rgba(12,12,18,0.96) !important;
+  border: 1px solid rgba(245,240,232,0.1) !important;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.45) !important;
+}
+[data-theme="light"] .imali-popup .leaflet-popup-content-wrapper {
+  background: rgba(250,247,242,0.99) !important;
+  border-color: rgba(10,10,15,0.1) !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.14) !important;
+}
+.imali-popup .leaflet-popup-content { margin: 1rem !important; }
+.imali-popup .leaflet-popup-tip-container { display: none !important; }
+.imali-popup .leaflet-popup-close-button {
+  top: 8px !important; right: 10px !important;
+  color: rgba(245,240,232,0.35) !important; font-size: 1.1rem !important;
+  width: auto !important; height: auto !important;
+}
+[data-theme="light"] .imali-popup .leaflet-popup-close-button { color: rgba(10,10,15,0.3) !important; }
+
+/* Popup internals */
+.parcel-popup { font-family: 'DM Sans', sans-serif; min-width: 216px; }
+.parcel-popup-type-pill {
+  display: inline-flex; font-size: 0.57rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--gold); font-weight: 500;
+  background: rgba(212,168,50,0.1); border: 1px solid rgba(212,168,50,0.22);
+  padding: 0.14rem 0.5rem; border-radius: 2rem; margin-bottom: 0.32rem;
+}
+[data-theme="light"] .parcel-popup-type-pill { color: #a07820; border-color: rgba(160,120,32,0.28); background: rgba(160,120,32,0.08); }
+.parcel-popup-name {
+  font-family: 'Syne', sans-serif; font-size: 0.92rem; font-weight: 700;
+  line-height: 1.2; margin-bottom: 0.15rem; color: var(--cream);
+}
+[data-theme="light"] .parcel-popup-name { color: var(--ink); }
+.parcel-popup-loc { font-size: 0.62rem; color: rgba(245,240,232,0.42); margin-bottom: 0.7rem; }
+[data-theme="light"] .parcel-popup-loc { color: rgba(10,10,15,0.42); }
+.parcel-popup-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem 0.6rem; margin-bottom: 0.7rem;
+}
+.parcel-popup-kv { display: flex; flex-direction: column; gap: 0.04rem; }
+.parcel-popup-k {
+  font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.08em;
+  color: rgba(245,240,232,0.32);
+}
+[data-theme="light"] .parcel-popup-k { color: rgba(10,10,15,0.38); }
+.parcel-popup-v { font-size: 0.78rem; font-weight: 500; color: rgba(245,240,232,0.88); }
+[data-theme="light"] .parcel-popup-v { color: rgba(10,10,15,0.82); }
+.parcel-popup-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 0.55rem; border-top: 1px solid rgba(245,240,232,0.07);
+}
+[data-theme="light"] .parcel-popup-footer { border-top-color: rgba(10,10,15,0.07); }
+.parcel-popup-link {
+  font-size: 0.67rem; padding: 0.3rem 0.75rem; border-radius: 2rem;
+  background: rgba(200,82,26,0.14); border: 1px solid rgba(200,82,26,0.28);
+  color: var(--terracotta); text-decoration: none; transition: background 0.15s;
+  white-space: nowrap;
+}
+.parcel-popup-link:hover { background: rgba(200,82,26,0.28); }
+
+/* ══════════════════════════════════════════════════════════════
+   HEADER ZOOM BUTTONS
+══════════════════════════════════════════════════════════════ */
+.header-zoom-group {
+  display: flex; align-items: center; gap: 0.3rem;
+  border-left: 1px solid rgba(245,240,232,0.07);
+  border-right: 1px solid rgba(245,240,232,0.07);
+  padding: 0 1rem;
+}
+[data-theme="light"] .header-zoom-group { border-color: rgba(10,10,15,0.07); }
+.header-zoom-btn {
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem;
+  width: 34px; height: 34px; border-radius: 10px; border: 1px solid rgba(245,240,232,0.1);
+  background: rgba(245,240,232,0.04); color: rgba(245,240,232,0.55);
+  cursor: none; display: flex; align-items: center; justify-content: center;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+.header-zoom-btn:hover { background: rgba(200,82,26,0.18); color: #ff7043; border-color: rgba(200,82,26,0.3); }
+[data-theme="light"] .header-zoom-btn { background: rgba(10,10,15,0.04); border-color: rgba(10,10,15,0.1); color: rgba(10,10,15,0.55); }
+[data-theme="light"] .header-zoom-btn:hover { background: rgba(200,82,26,0.1); color: var(--terracotta); border-color: rgba(200,82,26,0.22); }
+.header-zoom-level {
+  font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 600;
+  color: rgba(245,240,232,0.35); min-width: 22px; text-align: center;
+}
+[data-theme="light"] .header-zoom-level { color: rgba(10,10,15,0.38); }
+
+/* ══════════════════════════════════════════════════════════════
+   QUICK PRESET BUTTONS
+══════════════════════════════════════════════════════════════ */
+.lp-presets {
+  padding: 0.5rem 0.75rem 0.4rem; display: flex; flex-wrap: wrap; gap: 0.28rem;
+  border-bottom: 1px solid rgba(245,240,232,0.05);
+}
+[data-theme="light"] .lp-presets { border-bottom-color: rgba(10,10,15,0.05); }
+.lp-preset-btn {
+  font-size: 0.59rem; font-family: 'DM Sans', sans-serif; font-weight: 500;
+  letter-spacing: 0.05em; padding: 0.23rem 0.62rem; border-radius: 2rem;
+  border: 1px solid rgba(245,240,232,0.1); background: rgba(245,240,232,0.03);
+  color: rgba(245,240,232,0.46); cursor: none; transition: all 0.18s;
+}
+.lp-preset-btn:hover {
+  border-color: rgba(200,82,26,0.42); color: var(--terracotta);
+  background: rgba(200,82,26,0.07);
+}
+.lp-preset-btn.active {
+  border-color: rgba(212,168,50,0.38); color: var(--gold);
+  background: rgba(212,168,50,0.08);
+}
+[data-theme="light"] .lp-preset-btn { border-color: rgba(10,10,15,0.1); color: rgba(10,10,15,0.42); background: rgba(10,10,15,0.025); }
+[data-theme="light"] .lp-preset-btn:hover { border-color: rgba(200,82,26,0.38); color: var(--terracotta); background: rgba(200,82,26,0.06); }
+[data-theme="light"] .lp-preset-btn.active { border-color: rgba(160,120,32,0.38); color: #a07820; background: rgba(160,120,32,0.07); }
+
+
+/* Layer panel top accent */
+.lp-card::before {
+  content: ''; display: block; height: 2px; flex-shrink: 0;
+  background: linear-gradient(90deg, var(--gold) 0%, rgba(200,82,26,0.6) 50%, transparent 100%);
+  opacity: 0.5;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BASEMAP SWITCHER — in map header
+══════════════════════════════════════════════════════════════ */
+.basemap-switcher {
+  display: flex; align-items: center; gap: 0.22rem;
+  background: rgba(245,240,232,0.04); border: 1px solid rgba(245,240,232,0.08);
+  border-radius: 2rem; padding: 0.22rem 0.3rem; flex-shrink: 0;
+}
+[data-theme="light"] .basemap-switcher { background: rgba(10,10,15,0.04); border-color: rgba(10,10,15,0.09); }
+.bm-btn {
+  font-family: 'DM Sans', sans-serif; font-size: 0.63rem; font-weight: 500;
+  padding: 0.22rem 0.7rem; border-radius: 1.5rem; border: none; cursor: none;
+  background: transparent; color: rgba(245,240,232,0.4);
+  transition: background 0.18s, color 0.18s; white-space: nowrap;
+}
+[data-theme="light"] .bm-btn { color: rgba(10,10,15,0.38); }
+.bm-btn:hover { color: rgba(245,240,232,0.72); }
+[data-theme="light"] .bm-btn:hover { color: rgba(10,10,15,0.65); }
+.bm-btn.active {
+  background: rgba(212,168,50,0.14); color: var(--gold);
+  border: 1px solid rgba(212,168,50,0.22);
+}
+[data-theme="light"] .bm-btn.active { color: #a07820; border-color: rgba(160,120,32,0.25); background: rgba(160,120,32,0.1); }
+
+/* ══════════════════════════════════════════════════════════════
+   EARTH TOOLS TOOLBAR — floating bottom-right
+══════════════════════════════════════════════════════════════ */
+.earth-tools-bar {
+  position: fixed; bottom: 3.6rem; right: 14px; z-index: 1001;
+  display: flex; align-items: center; gap: 0.2rem;
+  background: rgba(10,10,15,0.88); border: 1px solid rgba(245,240,232,0.1);
+  border-radius: 2rem; padding: 0.3rem 0.45rem;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+}
+[data-theme="light"] .earth-tools-bar { background: rgba(250,247,242,0.97); border-color: rgba(10,10,15,0.1); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.etool-btn {
+  display: flex; align-items: center; gap: 0.32rem;
+  font-family: 'DM Sans', sans-serif; font-size: 0.63rem; font-weight: 500;
+  padding: 0.3rem 0.65rem; border-radius: 1.5rem; border: none; cursor: none;
+  background: transparent; color: rgba(245,240,232,0.48);
+  transition: background 0.18s, color 0.18s; white-space: nowrap;
+}
+[data-theme="light"] .etool-btn { color: rgba(10,10,15,0.45); }
+.etool-btn:hover { background: rgba(245,240,232,0.07); color: rgba(245,240,232,0.82); }
+[data-theme="light"] .etool-btn:hover { background: rgba(10,10,15,0.05); color: rgba(10,10,15,0.72); }
+.etool-btn.active {
+  background: rgba(200,82,26,0.15); color: #ff7043;
+  border: 1px solid rgba(200,82,26,0.28);
+}
+[data-theme="light"] .etool-btn.active { background: rgba(200,82,26,0.1); color: var(--terracotta); border-color: rgba(200,82,26,0.25); }
+.etool-divider { width: 1px; height: 18px; background: rgba(245,240,232,0.1); flex-shrink: 0; }
+[data-theme="light"] .etool-divider { background: rgba(10,10,15,0.1); }
+.etool-icon { font-size: 0.85rem; line-height: 1; }
+
+/* Measure tooltip on map */
+.measure-tip {
+  background: rgba(10,10,15,0.92) !important; color: rgba(245,240,232,0.9) !important;
+  border: 1px solid rgba(212,168,50,0.3) !important; border-radius: 8px !important;
+  font-family: 'Syne', sans-serif !important; font-size: 0.73rem !important;
+  font-weight: 600 !important; padding: 0.28rem 0.65rem !important;
+  pointer-events: none !important; white-space: nowrap !important;
+}
+[data-theme="light"] .measure-tip {
+  background: rgba(250,247,242,0.97) !important; color: var(--ink) !important;
+  border-color: rgba(160,120,32,0.35) !important;
+}
+.measure-tip::before { display: none !important; }
+
+/* Pins panel — optional collapsible panel listing dropped pins */
+.pins-panel {
+  position: fixed; bottom: 7.5rem; right: 14px; z-index: 1000;
+  width: 200px; display: none;
+  background: rgba(10,10,15,0.9); border: 1px solid rgba(245,240,232,0.08);
+  border-radius: 12px; backdrop-filter: blur(16px); overflow: hidden;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+}
+.pins-panel.open { display: block; }
+[data-theme="light"] .pins-panel { background: rgba(250,247,242,0.97); border-color: rgba(10,10,15,0.09); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+.pins-head { padding: 0.55rem 0.85rem; border-bottom: 1px solid rgba(245,240,232,0.06); display: flex; align-items: center; justify-content: space-between; }
+[data-theme="light"] .pins-head { border-bottom-color: rgba(10,10,15,0.07); }
+.pins-head-title { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+[data-theme="light"] .pins-head-title { color: #a07820; }
+.pins-close-btn { background: none; border: none; font-size: 0.9rem; color: rgba(245,240,232,0.3); cursor: none; line-height: 1; padding: 0; }
+.pins-list { max-height: 180px; overflow-y: auto; padding: 0.25rem 0; }
+.pin-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.32rem 0.85rem; font-size: 0.7rem; color: rgba(245,240,232,0.7); cursor: none; transition: background 0.14s; }
+.pin-item:hover { background: rgba(245,240,232,0.04); }
+[data-theme="light"] .pin-item { color: rgba(10,10,15,0.7); }
+[data-theme="light"] .pin-item:hover { background: rgba(10,10,15,0.04); }
+.pin-item-icon { font-size: 0.75rem; flex-shrink: 0; }
+.pin-item-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pin-item-del { background: none; border: none; font-size: 0.75rem; color: rgba(245,240,232,0.2); cursor: none; padding: 0; transition: color 0.14s; }
+.pin-item-del:hover { color: var(--terracotta); }
+[data-theme="light"] .pin-item-del { color: rgba(10,10,15,0.2); }
+.pins-empty { padding: 0.75rem 0.85rem; font-size: 0.68rem; color: rgba(245,240,232,0.28); font-style: italic; }
+[data-theme="light"] .pins-empty { color: rgba(10,10,15,0.3); }
+
+/* Crosshair cursor when a tool is active */
+body.tool-active .leaflet-container { cursor: crosshair !important; }
+
 </style>
 </head>
 <body>
@@ -425,15 +766,68 @@ html, body { height: 100%; overflow: hidden; }
         <div class="map-eyebrow">GIS · Rwanda</div>
         <div class="map-title">Opportunity <em>Map</em></div>
       </div>
-      <div class="map-live-badge"><span class="live-dot"></span> Rwanda</div>
+      <div class="map-live-badge"><span class="live-dot"></span> Live</div>
     </div>
+
+    <!-- Zoom controls inline with header -->
+    <div class="header-zoom-group">
+      <button class="header-zoom-btn" title="Zoom in" onclick="map.zoomIn()">+</button>
+      <span class="header-zoom-level" id="zoomPill">8</span>
+      <button class="header-zoom-btn" title="Zoom out" onclick="map.zoomOut()">−</button>
+    </div>
+
     <div class="map-meta">
       <div class="map-meta-item">🗺 All 5 provinces</div>
-      <div class="map-meta-item">Zoom <span class="map-zoom-pill" id="zoomPill">8</span></div>
       <div class="map-meta-item" id="headerLayerCount">0 layers active</div>
+    </div>
+
+    <!-- Basemap switcher -->
+    <div class="basemap-switcher" id="basemapSwitcher">
+      <button class="bm-btn active" data-bm="default"    onclick="setBasemap('default')">Minimal</button>
+      <button class="bm-btn"        data-bm="satellite"  onclick="setBasemap('satellite')">🛰 Satellite</button>
+      <button class="bm-btn"        data-bm="hybrid"     onclick="setBasemap('hybrid')">🌍 Hybrid</button>
+      <button class="bm-btn"        data-bm="terrain"    onclick="setBasemap('terrain')">⛰ Terrain</button>
     </div>
   </div>
   <div id="map"></div>
+</div>
+
+<!-- ── Intelligence Detail Panel ── -->
+<div class="intel-panel" id="intelPanel">
+  <button class="intel-panel-close" onclick="hideIntelPanel()" title="Close">×</button>
+  <div class="intel-panel-inner" id="intelPanelInner"></div>
+</div>
+
+<!-- ── Earth Tools Toolbar ── -->
+<div class="earth-tools-bar" id="earthToolsBar">
+  <button class="etool-btn" id="toolMeasureDist" title="Measure distance — click points, double-click to finish" onclick="activateTool('distance')">
+    <span class="etool-icon">📏</span> Distance
+  </button>
+  <button class="etool-btn" id="toolMeasureArea" title="Measure area — click vertices, click start point to close" onclick="activateTool('area')">
+    <span class="etool-icon">📐</span> Area
+  </button>
+  <div class="etool-divider"></div>
+  <button class="etool-btn" id="toolDropPin" title="Drop a pin — click anywhere on the map" onclick="activateTool('pin')">
+    <span class="etool-icon">📌</span> Drop Pin
+  </button>
+  <button class="etool-btn" id="toolPinsList" title="Show dropped pins" onclick="togglePinsPanel()">
+    <span class="etool-icon">🗂</span> <span id="pinCountLabel">Pins</span>
+  </button>
+  <div class="etool-divider"></div>
+  <button class="etool-btn" id="toolClearAll" title="Clear all measurements and pins" onclick="clearAllTools()">
+    <span class="etool-icon">🗑</span> Clear
+  </button>
+</div>
+
+<!-- ── Dropped Pins Panel ── -->
+<div class="pins-panel" id="pinsPanel">
+  <div class="pins-head">
+    <span class="pins-head-title">📌 Dropped Pins</span>
+    <button class="pins-close-btn" onclick="togglePinsPanel()">×</button>
+  </div>
+  <div class="pins-list" id="pinsList">
+    <div class="pins-empty" id="pinsEmpty">No pins dropped yet.</div>
+  </div>
 </div>
 
 <!-- ── Layers Panel ── -->
@@ -449,6 +843,13 @@ html, body { height: 100%; overflow: hidden; }
     </div>
 
     <div class="lp-body" id="lpBody">
+      <div class="lp-presets">
+        <button class="lp-preset-btn active" data-preset="pipeline" onclick="applyPreset('pipeline')">⬡ Pipeline</button>
+        <button class="lp-preset-btn" data-preset="infra"    onclick="applyPreset('infra')">⊞ Infra</button>
+        <button class="lp-preset-btn" data-preset="intel"    onclick="applyPreset('intel')">⚑ Intel</button>
+        <button class="lp-preset-btn" data-preset="zoning"   onclick="applyPreset('zoning')">▩ Zoning</button>
+        <button class="lp-preset-btn" data-preset="clear"    onclick="applyPreset('clear')">✕ Clear</button>
+      </div>
       <div class="lp-search-row">
         <div class="lp-search-inner">
           <span class="lp-search-icon">⌕</span>
@@ -478,6 +879,7 @@ html, body { height: 100%; overflow: hidden; }
   </div>
 </div>
 
+
 <div class="coord-pill" id="coordPill">Hover map for coordinates</div>
 
 <!-- Hover identify tooltip — shown when cursor is over a master plan feature -->
@@ -503,7 +905,16 @@ const TILES = {
   light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
     { attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>', subdomains:'abcd', maxZoom:20 }),
   dark:  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    { attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>', subdomains:'abcd', maxZoom:20 })
+    { attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>', subdomains:'abcd', maxZoom:20 }),
+  // Google Satellite — free public tile endpoint used by many mapping apps
+  satellite: L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+    { attribution:'&copy; Google Satellite Imagery', subdomains:'0123', maxZoom:20, maxNativeZoom:20 }),
+  // Google Hybrid — satellite + road labels overlay
+  hybrid: L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    { attribution:'&copy; Google Maps Hybrid', subdomains:'0123', maxZoom:20, maxNativeZoom:20 }),
+  // Google Terrain — topographic with natural features
+  terrain: L.tileLayer('https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+    { attribution:'&copy; Google Terrain', subdomains:'0123', maxZoom:20, maxNativeZoom:20 }),
 };
 
 // ── Kigali City Master Plan server (ArcGIS REST) ──────────────────────────────
@@ -541,60 +952,156 @@ function zoningColor(zoning) {
 }
 
 // Factory: per-district DLUP using the district's own MapServer service.
-// Each district has its own MapServer at geodata.rw — server renders GIS styling
-// (matching the colours you see on the actual NSDI GIS website), visible at all
-// zoom levels, and no layerDefs filter so tile caching stays active → fast load.
-function mkDistrictZoning(mapServerUrl) {
-  return L.esri.dynamicMapLayer({
-    url: mapServerUrl,
-    opacity: 0.8,
-    f: 'image', format: 'png8', transparent: true
-  });
-}
+// ══════════════════════════════════════════════════════════════════════════════
+// ArcGISDirectLayer — CORS-safe image layer for geodata.rw
+// ══════════════════════════════════════════════════════════════════════════════
+// WHY: geodata.rw blocks CORS on JSON/XHR (fetch/XMLHttpRequest), which kills
+// L.esri.dynamicMapLayer because it always makes a ?f=json metadata request
+// before it can render anything. <img> src requests are never CORS-restricted,
+// so we call /export?f=image directly and bypass esri-leaflet's prefetch.
+// ──────────────────────────────────────────────────────────────────────────────
+// ── ArcGISDirectLayer ────────────────────────────────────────────────────────
+// Extends L.ImageOverlay so the layer is anchored to geographic (lat/lng) bounds
+// rather than screen pixels. This means it moves with the map tiles during
+// panning (correct content stays aligned with the basemap) and scales correctly
+// during Leaflet's CSS zoom animation.
+//
+// WHY NOT pixel-based: pixel-anchored images keep the content glued to the
+// screen even as the basemap pans underneath — the image looks "frozen".
+//
+// PADDING: we request 20% extra on every side so the user can pan a bit before
+// seeing blank edges; a new fetch happens on every moveend/zoomend.
+// ─────────────────────────────────────────────────────────────────────────────
+const ArcGISDirectLayer = L.ImageOverlay.extend({
+
+  initialize(serviceUrl, options) {
+    this._serviceUrl = serviceUrl;
+    // L.ImageOverlay needs a placeholder URL + bounds to initialise
+    const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+    L.ImageOverlay.prototype.initialize.call(
+      this, BLANK,
+      [[-2.84, 28.86], [-1.05, 30.90]],  // Rwanda extent — replaced on first fetch
+      { opacity: 0.8, interactive: false }
+    );
+    L.setOptions(this, { format: 'png8', layers: null, layerDefs: null });
+    L.setOptions(this, options);
+  },
+
+  onAdd(map) {
+    L.ImageOverlay.prototype.onAdd.call(this, map);
+    // Fetch a new export image after every pan or zoom settles
+    map.on('moveend zoomend', this._fetchImage, this);
+    this._fetchImage();
+    return this;
+  },
+
+  onRemove(map) {
+    if (this._prefetchImg) { this._prefetchImg.src = ''; this._prefetchImg = null; }
+    map.off('moveend zoomend', this._fetchImage, this);
+    L.ImageOverlay.prototype.onRemove.call(this, map);
+  },
+
+  // Override so our setOpacity works via the panel slider
+  setOpacity(op) {
+    L.ImageOverlay.prototype.setOpacity.call(this, op);
+    return this;
+  },
+
+  _fetchImage() {
+    if (!this._map) return;
+    const map  = this._map;
+    const vb   = map.getBounds();
+    const size = map.getSize();
+
+    // 25% padding — lets the user pan 1/4 of a viewport without seeing blank edges
+    const dLat = (vb.getNorth() - vb.getSouth()) * 0.25;
+    const dLng = (vb.getEast()  - vb.getWest())  * 0.25;
+    const reqBounds = L.latLngBounds(
+      [vb.getSouth() - dLat, vb.getWest() - dLng],
+      [vb.getNorth() + dLat, vb.getEast() + dLng]
+    );
+    const reqW = Math.round(size.x * 1.5);
+    const reqH = Math.round(size.y * 1.5);
+
+    const p = new URLSearchParams({
+      bbox:        [reqBounds.getWest(), reqBounds.getSouth(),
+                    reqBounds.getEast(), reqBounds.getNorth()].join(','),
+      bboxSR:      '4326',
+      imageSR:     '4326',
+      size:        `${reqW},${reqH}`,
+      format:      this.options.format,
+      transparent: 'true',
+      f:           'image',
+    });
+    if (this.options.layers)    p.set('layers',    'show:' + this.options.layers.join(','));
+    if (this.options.layerDefs) p.set('layerDefs', JSON.stringify(this.options.layerDefs));
+
+    const url = `${this._serviceUrl}/export?${p}`;
+    if (this._lastFetchedUrl === url) return; // already showing this view
+
+    // ── Double-buffer: pre-fetch in a hidden Image() while keeping the current
+    // image visible. Only swap when the new image is fully downloaded — this
+    // eliminates the blank-flash that happens if you update the src directly.
+    // ──────────────────────────────────────────────────────────────────────────
+    // Cancel any in-flight prefetch that is now stale
+    if (this._prefetchImg) { this._prefetchImg.src = ''; this._prefetchImg = null; }
+
+    const prefetch = new Image();
+    const capturedUrl    = url;
+    const capturedBounds = reqBounds;
+
+    prefetch.onload = () => {
+      if (!this._map) return;                        // layer removed before load completed
+      if (this._lastFetchedUrl === capturedUrl) return; // already applied (e.g. double fire)
+      this._lastFetchedUrl = capturedUrl;
+      // Reposition first so the image lands in the right place, then swap
+      this.setBounds(capturedBounds);
+      this.setUrl(capturedUrl);
+      this._prefetchImg = null;
+    };
+
+    prefetch.onerror = () => {
+      this._prefetchImg = null;
+    };
+
+    prefetch.src = capturedUrl;
+    this._prefetchImg = prefetch;
+  },
+});
 
 // ── Provincial-data URL bases ───────────────────────────────────────────────
 // National topographic admin boundaries (province + district lines, all Rwanda)
 const ADM_URL  = 'https://geodata.rw/server/rest/services/TopographicMap_Administrative_Boundaries_1k/MapServer';
-// Land use / land cover 2017–2022, village polygons with province field
-const LULC_URL = 'https://geodata.rw/server/rest/services/land_use_land_cover_20172022/MapServer';
 
-// Factory: NLUDMP2050 MapServer — server-rendered GIS styling, no per-province
-// filter. layerDefs filtering disables the server's tile cache and forces a
-// full re-render on every request, which is why filtered layers are slow.
-// Without filtering the server uses cached tiles → same speed as Kigali layer.
-// png8 format cuts image size ~70% vs png32 with no visible quality difference.
-// The user navigates the map to the province of interest; the zoom handles it.
+// District DLUP MapServer — uses ArcGISDirectLayer (not esri-leaflet) so that
+// geodata.rw's CORS restriction on JSON/XHR doesn't block the layer from loading.
+function mkDistrictZoning(mapServerUrl) {
+  return new ArcGISDirectLayer(mapServerUrl, { opacity: 0.8, format: 'png8' });
+}
+
+// National Land Use & Development Master Plan 2050 — all Rwanda
 function mkProvZoning() {
-  return L.esri.dynamicMapLayer({
-    url: `${NSDI_MP}/NLUDMP2050_FS/MapServer`,
-    opacity: 0.8,
-    f: 'image', format: 'png8', transparent: true
-  });
+  return new ArcGISDirectLayer(`${NSDI_MP}/NLUDMP2050_FS/MapServer`, { opacity: 0.8, format: 'png8' });
 }
 
-// Factory: national admin boundaries filtered to a province via layerDefs
-// Shows province boundary area + district area polygons from topographic map
+// Provincial admin boundaries — topographic admin boundary map, filtered by province name
 function mkProvAdmin(prov) {
-  return L.esri.dynamicMapLayer({
-    url: ADM_URL,
-    layers: [6, 7, 14, 15],
-    layerDefs: { '14': `pareaname = '${prov}'`, '15': `pareaname = '${prov}'` },
-    opacity: 0.8,
-    f: 'image', format: 'png32', transparent: true
+  return new ArcGISDirectLayer(ADM_URL, {
+    opacity:    0.8,
+    format:     'png32',
+    layers:     [6, 7, 14, 15],
+    layerDefs:  { '14': `pareaname = '${prov}'`, '15': `pareaname = '${prov}'` },
   });
 }
 
-// Factory: topographic land use map — vegetation, cultivation, open space, water.
-// The LULC village-boundary dataset has no land-use classification fields so we
-// use the national topographic land use map instead. Province filtering is not
-// available on this MapServer; zoom into the province of interest to see detail.
-function mkProvLULC(districts) {
-  return L.esri.dynamicMapLayer({
-    url: 'https://geodata.rw/server/rest/services/TopographicMap_Land_use_1k/MapServer',
-    layers: [88],
-    opacity: 0.7,
-    f: 'image', format: 'png32', transparent: true
-  });
+// Topographic land use / land cover — vegetation, cultivation, open space, water
+// png8 keeps file sizes small; no layers restriction so the server renders
+// its full default stack (equivalent to what the official NSDI viewer shows)
+function mkProvLULC() {
+  return new ArcGISDirectLayer(
+    'https://geodata.rw/server/rest/services/TopographicMap_Land_use_1k/MapServer',
+    { opacity: 0.7, format: 'png8' }
+  );
 }
 
 // Maps each internal layer id → the ArcGIS sub-layer ids it renders.
@@ -726,7 +1233,7 @@ const map = L.map('map', {
   layers:[TILES[initialTheme]],
   maxBounds:RWANDA_BOUNDS, maxBoundsViscosity:1.0, minZoom:8, maxZoom:20
 });
-L.control.zoom({ position:'topright' }).addTo(map);
+// Zoom control is now inline in the map header (see .header-zoom-group)
 map.fitBounds(RWANDA_BOUNDS, { padding:[52,52] });
 
 // Custom pane for border — always on top of data layers
@@ -783,6 +1290,79 @@ fetch('https://raw.githubusercontent.com/wmgeolab/geoBoundaries/main/releaseData
 // ════════════════════════════════════════════════════════════════════════════
 // LAYER SYSTEM
 // ════════════════════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════════════════
+// IMALI PIPELINE PARCELS
+// ══════════════════════════════════════════════════════════════════════════════
+
+const IMALI_PARCELS = [
+  { id:'P001', name:'Kimironko Ridge',     loc:'Gasabo / Kimironko',      ll:[-1.9215,30.1020], sqm:2400, landVal:58_000_000,  devCost:180_000_000, type:'residential', status:'listed',       zone:'R3',  units:24 },
+  { id:'P002', name:'Nyamirambo Heights',  loc:'Nyarugenge / Nyamirambo', ll:[-1.9730,30.0335], sqm:1200, landVal:42_000_000,  devCost:90_000_000,  type:'mixed-use',   status:'listed',       zone:'MU1', units:12 },
+  { id:'P003', name:'Kicukiro South Plot', loc:'Kicukiro / Kagarama',     ll:[-1.9920,30.0850], sqm:3800, landVal:72_000_000,  devCost:285_000_000, type:'residential', status:'listed',       zone:'R3',  units:38 },
+  { id:'P004', name:'Gisozi Commercial',   loc:'Gasabo / Gisozi',         ll:[-1.9035,30.0498], sqm:950,  landVal:35_000_000,  devCost:71_250_000,  type:'commercial',  status:'under_review', zone:'C1',  units:10 },
+  { id:'P005', name:'Musanze North Land',  loc:'Musanze / Muhoza',        ll:[-1.4965,29.6280], sqm:4200, landVal:22_000_000,  devCost:315_000_000, type:'residential', status:'pending',      zone:'R2',  units:42 },
+  { id:'P006', name:'Remera Infill Plot',  loc:'Gasabo / Remera',         ll:[-1.9435,30.1185], sqm:800,  landVal:31_000_000,  devCost:60_000_000,  type:'mixed-use',   status:'under_review', zone:'MU1', units:8  },
+  { id:'P007', name:'Nyarutarama Premium', loc:'Gasabo / Nyarutarama',    ll:[-1.9090,30.0920], sqm:1600, landVal:80_000_000,  devCost:120_000_000, type:'commercial',  status:'listed',       zone:'C1',  units:16 },
+];
+
+const P_TYPE_COLOR   = { residential:'#d4a832', 'mixed-use':'#ba68c8', commercial:'#ff8f00' };
+const P_STATUS_COLOR = { listed:'#26a69a', under_review:'#ffb74d', pending:'#90a4ae' };
+const P_STATUS_LABEL = { listed:'Listed', under_review:'Under Review', pending:'Pending' };
+
+function mkPipeline(p) {
+  const mc = '#d4a832';  // all Imali parcels use the same gold colour
+  const sc = P_STATUS_COLOR[p.status] || '#90a4ae';
+  const sl = P_STATUS_LABEL[p.status] || p.status;
+  const fmtM = n => (n / 1_000_000).toFixed(1) + 'M';
+  const lev  = (p.devCost / p.landVal).toFixed(1);
+
+  const icon = L.divIcon({
+    className: '',
+    html: `<div class="imali-marker" style="--mc:${mc}"><div class="imali-pulse"></div><div class="imali-dot"></div></div>`,
+    iconSize:   [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor:[0, -18],
+  });
+
+  const popup = `
+    <div class="parcel-popup">
+      <div class="parcel-popup-type-pill">${p.type} · ${p.zone}</div>
+      <div class="parcel-popup-name">${p.name}</div>
+      <div class="parcel-popup-loc">📍 ${p.loc}</div>
+      <div class="parcel-popup-grid">
+        <div class="parcel-popup-kv">
+          <span class="parcel-popup-k">Plot Area</span>
+          <span class="parcel-popup-v">${p.sqm.toLocaleString()} m²</span>
+        </div>
+        <div class="parcel-popup-kv">
+          <span class="parcel-popup-k">Units</span>
+          <span class="parcel-popup-v">${p.units} apts</span>
+        </div>
+        <div class="parcel-popup-kv">
+          <span class="parcel-popup-k">Land Value</span>
+          <span class="parcel-popup-v">${fmtM(p.landVal)} RWF</span>
+        </div>
+        <div class="parcel-popup-kv">
+          <span class="parcel-popup-k">Dev Investment</span>
+          <span class="parcel-popup-v">${fmtM(p.devCost)} RWF</span>
+        </div>
+        <div class="parcel-popup-kv">
+          <span class="parcel-popup-k">Leverage</span>
+          <span class="parcel-popup-v">${lev}× dev / land</span>
+        </div>
+        <div class="parcel-popup-kv">
+          <span class="parcel-popup-k">Land / m²</span>
+          <span class="parcel-popup-v">${Math.round(p.landVal/p.sqm).toLocaleString()} RWF</span>
+        </div>
+      </div>
+      <div class="parcel-popup-footer">
+        <span style="font-size:0.6rem;padding:0.16rem 0.5rem;border-radius:2rem;background:${sc}1a;border:1px solid ${sc}44;color:${sc}">${sl}</span>
+        <a class="parcel-popup-link" href="design-engine.html">Design Engine →</a>
+      </div>
+    </div>`;
+
+  return L.marker(p.ll, { icon }).bindPopup(popup, { maxWidth:300, className:'imali-popup' });
+}
 
 // ── Demo geo-data ─────────────────────────────────────────────────────────────
 
@@ -925,6 +1505,313 @@ const GEO = {
   ],
 };
 
+// ══════════════════════════════════════════════════════════════════════════════
+// DEMAND INTELLIGENCE DATA
+// Rwanda housing gap: 5.5M units needed by 2050 = ~211,000/yr (user cites 150k).
+// We use 150,000/yr as the baseline and distribute proportionally by sector
+// population, growth rate, urbanisation pressure, and infrastructure investment.
+// Material recommendations are based on proximity to quarries, rivers, and
+// existing supplier networks — logistics costs in Rwanda can be 30–60% of
+// total material cost for distant sites.
+// ══════════════════════════════════════════════════════════════════════════════
+const INTEL_SITES = [
+  {
+    id:'INT001', name:'Bumbogo Sector', loc:'Gasabo District, Kigali',
+    ll:[-1.8820, 30.1150], urgency:'critical',
+    demand:{
+      annual:3800, pct:'2.5%', drivers:[
+        'Fastest-growing Kigali expansion corridor',
+        'Bumbogo Industrial Park SEZ planned 2025–27',
+        'In-migration from Northern Province accelerating',
+      ],
+    },
+    materials:[
+      { available:true,  dot:'#26a69a', text:'<strong>Sand (Nyabarongo River, 12 km)</strong> — local river sand saves ~38% on walling material vs importing from Kigali centre. Recommended for block-making and mortar.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Aggregate / crushed stone (Kanzenze quarry, 18 km)</strong> — adequate supply. Use for RC columns and slab work.' },
+      { available:false, dot:'#ef5350', text:'<strong>Timber</strong> — nearest significant source is Gisagara (190 km, ~45k RWF/m³ transport premium). <em>Avoid timber-framed designs here</em>. Use RC frame with hollow-core blocks instead.' },
+    ],
+    invest:{ score:89, roi:'23–29% / 5yr', risk:'Low', land_rwf_sqm:29000,
+      reasons:['SEZ proximity drives worker housing demand', 'Road upgrade (RN4 spur) confirmed 2025', 'Land still 35% below Kimironko pricing'] },
+    insight:'Of Rwanda\'s 150,000 annual units needed, Bumbogo sector alone requires ~3,800 (2.5%) driven by the Bumbogo SEZ pipeline. The Nyabarongo River sand source 12 km away eliminates the single biggest cost driver — use sand-block walling throughout and RC frame for structure.',
+  },
+  {
+    id:'INT002', name:'Muhoza Sector', loc:'Musanze District, Northern Province',
+    ll:[-1.5090, 29.6330], urgency:'high',
+    demand:{
+      annual:2100, pct:'1.4%', drivers:[
+        'Musanze is Rwanda\'s fastest-growing secondary city',
+        'Tourism boom driving hospitality & staff housing demand',
+        'University of Rwanda campus expansion underway',
+      ],
+    },
+    materials:[
+      { available:true,  dot:'#26a69a', text:'<strong>Volcanic stone (local quarries, 2–5 km)</strong> — Musanze sits on the Virunga volcanic belt. Cut-stone walling from local quarries is 55% cheaper than fired brick from Kigali. The dominant vernacular building technique here.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Pumice aggregate (volcanic, surface-collected)</strong> — lightweight concrete blocks can be produced on-site. Excellent thermal mass — reduces cooling loads by ~18% in highland climate.' },
+      { available:false, dot:'#ff8f00', text:'<strong>River sand</strong> — limited. Nearest river sand: Nyabarongo tributaries (~35 km). Volcanic pumice can substitute for fine aggregate in non-structural mixes.' },
+    ],
+    invest:{ score:82, roi:'18–24% / 5yr', risk:'Low-Medium', land_rwf_sqm:18000,
+      reasons:['Tourism-driven premium rental yields (8–11% gross)', 'Active government investment in Musanze as economic pole', 'Land at 40% discount vs Kigali comparable zones'] },
+    insight:'Musanze needs ~2,100 units/year. The Virunga volcanic belt means cut-stone is the obvious structural solution — local quarries can supply a full development project within 5 km. Avoid importing sand; use pumice fine aggregate. Staff housing for tourism sector commands 15–20% rent premium over standard residential.',
+  },
+  {
+    id:'INT003', name:'Nyamata / Biharwe', loc:'Bugesera District, Eastern Province',
+    ll:[-2.1450, 30.1020], urgency:'critical',
+    demand:{
+      annual:2800, pct:'1.9%', drivers:[
+        'Bugesera International Airport under construction (est. 2026)',
+        'Kigali–Bugesera Expressway opening 2025–26',
+        'SEZ designation around airport corridor',
+      ],
+    },
+    materials:[
+      { available:true,  dot:'#26a69a', text:'<strong>Sand (Akagera River tributaries, 8–14 km)</strong> — good quality river sand. Logistics cost low on new expressway. Build sand-block production on-site.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Aggregate (Bugesera quarry, 11 km)</strong> — crushed basalt. High-quality for RC frame and paving.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Clay brick (local kiln, 6 km)</strong> — fired brick production near Nyamata. Good thermal performance for lowland climate.' },
+    ],
+    invest:{ score:94, roi:'28–38% / 5yr', risk:'Low', land_rwf_sqm:14000,
+      reasons:['Airport corridor: land values projected to 3× by 2027', 'SEZ designation coming Q1 2026', 'Lowest current land prices of any high-growth corridor in Rwanda'] },
+    insight:'Highest investment score in this dataset. Bugesera is the fastest land-value appreciation zone in Rwanda — the new airport transforms it from rural to peri-urban overnight. All three major material categories (sand, aggregate, brick) sourced within 14 km. Move before the expressway opens — land at 14k RWF/sqm today vs projected 45k+ post-airport.',
+  },
+  {
+    id:'INT004', name:'Gahanga Sector', loc:'Kicukiro District, Kigali',
+    ll:[-2.0060, 30.0720], urgency:'critical',
+    demand:{
+      annual:4200, pct:'2.8%', drivers:[
+        'Kigali\'s southern expansion pressure from city centre',
+        'Rwanda Coding Academy and tech cluster nearby',
+        'Middle-income housing undersupply in this zone',
+      ],
+    },
+    materials:[
+      { available:false, dot:'#ff8f00', text:'<strong>Sand</strong> — must import from Nyabarongo (25 km) or Bugesera (30 km). Transport cost adds ~22% to sand price. Partially substitute with manufactured sand from Kanzenze quarry crushing waste.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Aggregate (Kanzenze, 15 km)</strong> — strong supply. Good road connection. Bulk purchasing advantage: at 4,200 units/year demand, negotiate long-term supply contracts for 15–20% discount.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Steel / prefab (Kigali industrial zone, 8 km)</strong> — proximity to metal fabricators opens options for light-gauge steel framing. Competitive for multi-storey above G+3.' },
+    ],
+    invest:{ score:86, roi:'21–27% / 5yr', risk:'Low', land_rwf_sqm:42000,
+      reasons:['High absorption rate — units selling within 60 days in comparable zones', 'Tech sector workforce = stable, creditworthy rental demand', 'Established infrastructure (water, electricity, roads)'] },
+    insight:'Gahanga is one of Kigali\'s highest-demand sectors with 4,200 units/year needed. Despite the land premium, absorption is strong. Where sand is unavailable locally, use the dense demand as leverage — at this volume, bulk purchasing contracts with Nyabarongo suppliers can claw back most of the logistics premium.',
+  },
+  {
+    id:'INT005', name:'Kabutare / Ngoma Sector', loc:'Huye District, Southern Province',
+    ll:[-2.5960, 29.7420], urgency:'high',
+    demand:{
+      annual:1600, pct:'1.1%', drivers:[
+        'University of Rwanda main campus — 12,000+ students',
+        'Government ministries decentralised to Huye',
+        'Student housing severely undersupplied',
+      ],
+    },
+    materials:[
+      { available:true,  dot:'#26a69a', text:'<strong>Clay brick (Huye local kilns, 3 km)</strong> — Huye clay belt produces quality fired brick. Dominant low-cost walling material. 30% cheaper than block-work here.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Timber (Nyungwe Forest edge suppliers, 40 km)</strong> — closest significant timber supply in Rwanda. Suitable for roof trusses. Not efficient for walls or structure.' },
+      { available:false, dot:'#ff8f00', text:'<strong>Sand / aggregate</strong> — limited local source. Nearest river sand: Akanyaru tributaries (22 km). Factor transport into build cost.' },
+    ],
+    invest:{ score:78, roi:'16–22% / 5yr', risk:'Medium', land_rwf_sqm:12000,
+      reasons:['Student housing ROI: 11–14% gross yield on furnished rooms', 'Government anchor tenants: long-term lease security', 'Low land cost — southern Rwanda underpriced vs demand'] },
+    insight:'Huye\'s 12,000-student university creates a captive rental market that\'s chronically undersupplied. Student housing built within 2 km of campus consistently achieves 95%+ occupancy. Clay brick from local kilns makes single-storey terrace housing cost-competitive. Consider 1-bed studio blocks over family units — demand profile skews young/single.',
+  },
+  {
+    id:'INT006', name:'Gisenyi / Rubavu Sector', loc:'Rubavu District, Western Province',
+    ll:[-1.6820, 29.2580], urgency:'high',
+    demand:{
+      annual:1900, pct:'1.3%', drivers:[
+        'Kivu Belt road project — 208 km corridor, 354,000 beneficiaries',
+        'Lake Kivu tourism premium driving hospitality & mixed-use demand',
+        'DRC border trade creating commercial property demand',
+      ],
+    },
+    materials:[
+      { available:true,  dot:'#26a69a', text:'<strong>Lake Kivu sand (dredged, 1–3 km)</strong> — high-quality silica sand from lake bed. Lowest logistics cost of any site in this dataset. Ideal for mortar and block-making.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Volcanic stone (Virunga quarries, 15 km)</strong> — same volcanic belt as Musanze. Cut-stone walling gives premium aesthetic for lakeside villas and boutique hotels.' },
+      { available:false, dot:'#ff8f00', text:'<strong>Aggregate (crushed)</strong> — nearest quarry in Ngororero (55 km). Higher transport cost. Partially substitute Lake Kivu gravel for low-strength applications.' },
+    ],
+    invest:{ score:80, roi:'19–25% / 5yr', risk:'Medium', land_rwf_sqm:22000,
+      reasons:['Tourism revenue per property: highest in Rwanda after Kigali', 'Kivu Belt road infrastructure unlocking western corridor', 'Cross-border DRC trade creating commercial rental premium'] },
+    insight:'Rubavu sits at the intersection of tourism, trade, and the major Kivu Belt infrastructure investment. Lake Kivu sand at the doorstep makes construction materially cheap. Target mixed-use (ground-floor commercial + upper residential) to capture both DRC border trade and lakeside hospitality demand. Premium units at lakefront can command 2–3× the inland price per sqm.',
+  },
+  {
+    id:'INT007', name:'Rwamagana Town Sector', loc:'Rwamagana District, Eastern Province',
+    ll:[-1.9490, 30.4350], urgency:'opportunity',
+    demand:{
+      annual:2400, pct:'1.6%', drivers:[
+        'E-1 motorway interchange — logistics hub potential',
+        'Eastern Province capital: government + services demand',
+        'Underserved by formal housing supply',
+      ],
+    },
+    materials:[
+      { available:true,  dot:'#26a69a', text:'<strong>River sand (Akagera tributaries, 12 km)</strong> — good supply, low logistics cost via new E-1 road.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Aggregate (local quarry, 8 km)</strong> — basalt crush. Consistent quality.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Fired brick (Kayonza kilns, 30 km)</strong> — Eastern Rwanda clay belt. Efficient via motorway corridor.' },
+    ],
+    invest:{ score:76, roi:'15–21% / 5yr', risk:'Medium', land_rwf_sqm:9500,
+      reasons:['Land at 9,500 RWF/sqm — the cheapest formal-sector opportunity within 2hr of Kigali', 'E-1 motorway makes 45-min Kigali commute viable', 'Government offices anchor steady civil-servant demand'] },
+    insight:'Rwamagana is the sleeper pick. Land at under 10,000 RWF/sqm with a 45-minute Kigali commute via the E-1 motorway. 2,400 units/year needed but formal supply is near zero. All three material inputs (sand, aggregate, brick) available within 30 km via good roads. Develop affordable mortgage-linked units targeting Kigali commuter workforce.',
+  },
+  {
+    id:'INT008', name:'Nyagatare Town', loc:'Nyagatare District, Eastern Province',
+    ll:[-1.2870, 30.3280], urgency:'opportunity',
+    demand:{
+      annual:2200, pct:'1.5%', drivers:[
+        'Fastest population growth rate in Eastern Province',
+        'Cattle ranching → agro-processing industrial transition',
+        'Oil exploration zone (blocks awarded) driving speculative demand',
+      ],
+    },
+    materials:[
+      { available:true,  dot:'#26a69a', text:'<strong>Sand (Muvumba River, 8 km)</strong> — good volume. Recommend as primary walling material.' },
+      { available:false, dot:'#ff8f00', text:'<strong>Aggregate / cement</strong> — no local quarry. Cement and crushed stone must travel 140 km from Kigali. This is the highest logistics cost site in the dataset — factor 40% material premium into costing.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Timber (eucalyptus plantations, 15 km)</strong> — Northern border area has active eucalyptus forestry. Good for roof structure. Not for walls.' },
+    ],
+    invest:{ score:72, roi:'14–20% / 5yr', risk:'Medium-High', land_rwf_sqm:5500,
+      reasons:['Lowest land cost in this dataset at 5,500 RWF/sqm', 'Oil exploration could trigger speculative price spike', 'Long-term upside: agro-processing SEZ being studied'] },
+    insight:'Nyagatare is the highest-risk, highest-upside site. Land at 5,500 RWF/sqm — the cheapest in this analysis. The aggregate logistics cost (140 km from Kigali) is the key constraint: design for sand-block construction exclusively, minimise concrete volume. If oil blocks prove commercially viable this market transforms overnight.',
+  },
+  {
+    id:'INT009', name:'Remera / Gisozi Boundary', loc:'Gasabo District, Kigali',
+    ll:[-1.9260, 30.1060], urgency:'critical',
+    demand:{
+      annual:3200, pct:'2.1%', drivers:[
+        'Adjacent to Kigali Special Economic Zone (KSEZ)',
+        'Rwanda\'s largest tech workforce concentration',
+        'Acute shortage of mid-market 1–2 bed apartments',
+      ],
+    },
+    materials:[
+      { available:false, dot:'#ff8f00', text:'<strong>All materials must be imported</strong> — this is Kigali urban infill. Budget a 25–35% material logistics premium. Volume purchasing is the only mitigation.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Precast concrete panels (Kigali manufacturer, 6 km)</strong> — infill site economics favour precast over cast-in-situ. 20–25% faster construction reduces finance cost. Kigali precast producers competitive here.' },
+      { available:true,  dot:'#26a69a', text:'<strong>Light-gauge steel (LGS) framing</strong> — at G+5 and above, LGS from Kigali industrial zone eliminates the need for heavy aggregate-intensive RC cores. Viable for this density zone.' },
+    ],
+    invest:{ score:88, roi:'22–28% / 5yr', risk:'Low', land_rwf_sqm:68000,
+      reasons:['Tech workforce = highest income renters in Rwanda', 'Absorption in 30 days or less — proven by neighbouring completions', 'Zoning allows G+8 — land cost amortised over more units'] },
+    insight:'Remera/Gisozi is the prime infill zone for tech-sector apartments. 3,200 units/year needed but most demand is for 1-bed studios (tech workforce, young professionals) — not family units. High land cost is offset by G+8 zoning density. Use precast or LGS systems to cut construction time and finance cost. Avoid standard block-work at this density — too slow.',
+  },
+];
+
+const INTEL_COLOR = { critical:'#ef5350', high:'#ff8f00', opportunity:'#26a69a' };
+const INTEL_LABEL = { critical:'Critical Demand', high:'High Demand', opportunity:'Investment Opportunity' };
+
+function mkIntelSite(s) {
+  const ic = INTEL_COLOR[s.urgency] || '#26a69a';
+
+  const icon = L.divIcon({
+    className: '',
+    html: `<div class="intel-marker" style="--ic:${ic}">
+             <div class="intel-ring"></div>
+             <div class="intel-core">
+               <svg viewBox="0 0 10 10"><circle cx="5" cy="3.5" r="2.2"/><rect x="3.8" y="6.2" width="2.4" height="2.2" rx="0.5"/></svg>
+             </div>
+           </div>`,
+    iconSize: [36, 36], iconAnchor: [18, 18], popupAnchor: [0, -20],
+  });
+
+  // Material rows
+  const matRows = s.materials.map(m =>
+    `<div class="ip-mat-item">
+       <span class="ip-mat-dot" style="background:${m.dot}"></span>
+       <span class="ip-mat-text">${m.text}</span>
+     </div>`
+  ).join('');
+
+  // Investment score bar colour
+  const barColor = s.invest.score >= 85 ? '#26a69a' : s.invest.score >= 75 ? '#ff8f00' : '#ef5350';
+
+  const popup = `
+  <div class="ip-wrap">
+    <div class="ip-head">
+      <div class="ip-badge ${s.urgency}">${INTEL_LABEL[s.urgency]}</div>
+      <div class="ip-name">${s.name}</div>
+      <div class="ip-sub">${s.loc}</div>
+    </div>
+    <div class="ip-body">
+
+      <div>
+        <div class="ip-section-label">📊 Housing Demand (2025)</div>
+        <div class="ip-demand-row">
+          <div class="ip-demand-kv">
+            <span class="ip-demand-val">${s.demand.annual.toLocaleString()}</span>
+            <span class="ip-demand-lbl">units / year</span>
+          </div>
+          <div class="ip-demand-kv">
+            <span class="ip-demand-val">${s.demand.pct}</span>
+            <span class="ip-demand-lbl">of national need</span>
+          </div>
+        </div>
+        <div style="font-size:0.62rem;color:rgba(245,240,232,0.42);line-height:1.45;">
+          ${s.demand.drivers.map(d => `• ${d}`).join('<br>')}
+        </div>
+      </div>
+
+      <div>
+        <div class="ip-section-label">🏗️ Material Supply Intelligence</div>
+        ${matRows}
+      </div>
+
+      <div>
+        <div class="ip-section-label">💰 Investment Signal</div>
+        <div class="ip-inv-bar"><div class="ip-inv-fill" style="width:${s.invest.score}%;background:${barColor}"></div></div>
+        <div class="ip-inv-meta">
+          <span>Score <strong style="color:${barColor}">${s.invest.score}/100</strong></span>
+          <span>${s.invest.roi}</span>
+          <span>Risk: ${s.invest.risk}</span>
+        </div>
+        <div style="font-size:0.61rem;color:rgba(245,240,232,0.38);margin-top:0.3rem;line-height:1.4;">
+          ${s.invest.reasons.map(r => `• ${r}`).join('<br>')}
+        </div>
+        <div style="font-size:0.62rem;color:rgba(245,240,232,0.42);margin-top:0.18rem;">
+          Land: ~${s.invest.land_rwf_sqm.toLocaleString()} RWF/m²
+        </div>
+      </div>
+
+      <div class="ip-insight">${s.insight}</div>
+    </div>
+  </div>`;
+
+  const marker = L.marker(s.ll, { icon })
+    .bindTooltip(`<strong>${s.name}</strong><br><span style="opacity:.7">${s.demand.annual.toLocaleString()} units/yr · ${s.loc}</span>`, {
+      direction: 'top', offset: [0, -20],
+    });
+
+  // Store the built popup HTML on the marker so showIntelPanel can access it
+  marker._intelHTML  = popup;
+  marker._intelSite  = s;
+  marker.on('click', () => showIntelPanel(s, popup, marker));
+  return marker;
+}
+
+// ── Intelligence panel show/hide ──────────────────────────────────────────────
+let _activeIntelMarker = null;
+
+function showIntelPanel(s, html, marker) {
+  const inner = document.getElementById('intelPanelInner');
+  if (!inner) return;
+  inner.innerHTML = html;
+
+  // Scroll to top each time a new site is opened
+  inner.scrollTop = 0;
+
+  // Highlight the active marker
+  if (_activeIntelMarker && _activeIntelMarker._icon) {
+    _activeIntelMarker._icon.querySelector('.intel-marker')?.classList.remove('selected');
+  }
+  _activeIntelMarker = marker;
+  if (marker._icon) {
+    marker._icon.querySelector('.intel-marker')?.classList.add('selected');
+  }
+
+  document.getElementById('intelPanel').classList.add('open');
+}
+
+function hideIntelPanel() {
+  document.getElementById('intelPanel').classList.remove('open');
+  if (_activeIntelMarker?._icon) {
+    _activeIntelMarker._icon.querySelector('.intel-marker')?.classList.remove('selected');
+  }
+  _activeIntelMarker = null;
+}
+
+// Close panel if user clicks the map background
+// (only if it's not clicking a marker)
 // ── Layer builders ────────────────────────────────────────────────────────────
 function mkCircle(ll, color, r, tooltip) {
   return L.circleMarker(ll, { radius:r, fillColor:color, color:'#fff', weight:1.5, opacity:1, fillOpacity:0.85 })
@@ -937,6 +1824,13 @@ function mkCircle(ll, color, r, tooltip) {
 const CANVAS_RENDERER = L.canvas({ tolerance: 2 });
 
 const BUILDERS = {
+  imali_parcels:     () => L.layerGroup(IMALI_PARCELS.map(mkPipeline)),
+  intel_sites:       () => L.layerGroup(INTEL_SITES.map(mkIntelSite)),
+  // Placeholder layer groups — add GeoJSON data here when available
+  market_parcels:    () => L.layerGroup(), // third-party / competitor parcels
+  offplan_projects:  () => L.layerGroup(), // off-plan / pre-construction units
+  dev_opportunities: () => L.layerGroup(), // sites on the development watch list
+  comparable_sales:  () => L.layerGroup(), // recent sales comps
   existing_infra: () => L.layerGroup(GEO.existingInfra.map(d =>
     mkCircle(d.ll, '#1565c0', 6, `<strong>${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
   )),
@@ -989,38 +1883,34 @@ const BUILDERS = {
   )),
 
   // ── Socio-Economic & Zoning — live Kigali Master Plan data ──────────────────
-  // L.esri.dynamicMapLayer renders server-side images from the ArcGIS REST export
-  // endpoint; opacity is controlled via dynamicMapLayer.setOpacity() directly.
+  // Use ArcGISDirectLayer (not L.esri.dynamicMapLayer):
+  //  - double-buffer pre-fetch keeps the old image visible while the new one
+  //    loads — no blank flash, no "disappears on zoom out"
+  //  - Moves correctly with pan because it's lat/lng anchored (L.ImageOverlay)
+  //  - Server renders all styling; we pass only layer IDs, no colour overrides
 
-  kigali_zoning: () => L.esri.dynamicMapLayer({
-    url: MP_URL, layers: [117], opacity: 0.80,
-    f: 'image', format: 'png32', transparent: true
+  kigali_zoning: () => new ArcGISDirectLayer(MP_URL, {
+    opacity: 0.80, format: 'png32', layers: [117],
   }),
 
-  kigali_landuse: () => L.esri.dynamicMapLayer({
-    url: MP_URL, layers: [116], opacity: 0.75,
-    f: 'image', format: 'png32', transparent: true
+  kigali_landuse: () => new ArcGISDirectLayer(MP_URL, {
+    opacity: 0.75, format: 'png8', layers: [116],
   }),
 
-  kigali_admin: () => L.esri.dynamicMapLayer({
-    url: MP_URL, layers: [4, 5], opacity: 0.85,
-    f: 'image', format: 'png32', transparent: true
+  kigali_admin: () => new ArcGISDirectLayer(MP_URL, {
+    opacity: 0.85, format: 'png32', layers: [4, 5],
   }),
 
   // Wetland buffer · Slope overlay · Disaster risk · Urban design overlay ·
   // Incentive Zoning A & B · Tourism Promotion overlay
-  planning_overlays: () => L.esri.dynamicMapLayer({
-    url: MP_URL, layers: [82, 88, 91, 92, 94, 95, 96], opacity: 0.70,
-    f: 'image', format: 'png32', transparent: true
+  planning_overlays: () => new ArcGISDirectLayer(MP_URL, {
+    opacity: 0.70, format: 'png32', layers: [82, 88, 91, 92, 94, 95, 96],
   }),
 
   // ── Zoning & Master Plans — MapServer layers (server-rendered, no minZoom) ──
-  // National Land Use & Development Master Plan 2050 — all Rwanda, no filter
-  national_lu_2050: () => L.esri.dynamicMapLayer({
-    url: `${NSDI_MP}/NLUDMP2050_FS/MapServer`,
-    opacity: 0.7,
-    f: 'image', format: 'png8', transparent: true
-  }),
+  // National Land Use & Development Master Plan 2050 — all Rwanda
+  // Uses ArcGISDirectLayer because geodata.rw CORS blocks esri-leaflet's JSON prefetch
+  national_lu_2050: () => new ArcGISDirectLayer(`${NSDI_MP}/NLUDMP2050_FS/MapServer`, { opacity: 0.7, format: 'png8' }),
 
   // ── Proposed Zoning container + province plan containers ───────────────────
   proposed_zoning: () => L.layerGroup(),
@@ -1103,6 +1993,19 @@ const BUILDERS = {
 
 // ── Layer groups data model ───────────────────────────────────────────────────
 const LAYER_GROUPS = [
+  // ── Imali Pipeline — always first ─────────────────────────────────────────────
+  {
+    id: 'pipeline', label: 'Pipeline', color: '#d4a832', expanded: true,
+    layers: [
+      { id:'imali_parcels',     label:'Imali Parcels',         desc:'7 Imali-owned parcels across Rwanda — click a marker for details',        color:'#d4a832', opacity:100, visible:true,  leaflet:null },
+      { id:'intel_sites',       label:'Demand Intelligence',   desc:'Housing demand hotspots · material supply chains · investment signals — 9 key sites across Rwanda · click any marker for full analysis', color:'#26a69a', opacity:100, visible:false, leaflet:null },
+      { id:'market_parcels',    label:'Market Parcels',         desc:'Third-party parcels of interest — competitor sites and market comps',      color:'#90a4ae', opacity:100, visible:false, leaflet:null },
+      { id:'offplan_projects',  label:'Off-Plan Projects',      desc:'Imali off-plan and pre-construction developments — units available for reservation', color:'#c8521a', opacity:100, visible:false, leaflet:null },
+      { id:'dev_opportunities', label:'Development Watch',      desc:'Sites identified as development opportunities — not yet in active pipeline', color:'#5c6bc0', opacity:100, visible:false, leaflet:null },
+      { id:'comparable_sales',  label:'Comparable Sales',       desc:'Recent land and property transactions for valuation reference',            color:'#ba68c8', opacity:100, visible:false, leaflet:null },
+    ]
+  },
+
   {
     id: 'infrastructure', label: 'Infrastructure & Development', color: '#5c9bd6', expanded: false,
     layers: [
@@ -1139,7 +2042,7 @@ const LAYER_GROUPS = [
       { id:'national_lu_2050', label:'National Land Use Plan 2050', desc:'All-Rwanda strategic zoning · NLUDMP2050 · broad categories', color:'#00897b', opacity:70, visible:false, leaflet:null },
 
       // ── Proposed Zoning — 3-level: container → province → district ───────
-      { id:'proposed_zoning', label:'Proposed Zoning', desc:'District Land Use Plans per province · NSDI geodata.rw + Kigali City Master Plan', color:'#26a69a', opacity:70, visible:false, leaflet:null,
+      { id:'proposed_zoning', label:'Proposed Zoning', desc:'District Land Use Plans per province · geodata.rw + Kigali City Master Plan', color:'#26a69a', opacity:70, visible:false, leaflet:null,
         expanded: false,
         children: [
 
@@ -1147,56 +2050,56 @@ const LAYER_GROUPS = [
           { id:'kigali_zoning', label:'Kigali City', desc:'Official proposed zoning · Kigali City 2020 Master Plan', color:'#e91e63', opacity:80, visible:false, leaflet:null },
 
           // ── Northern Province ───────────────────────────────────────────
-          { id:'northern_plans', label:'Northern Province', desc:'Burera · Gakenke · Gicumbi · Musanze · Rulindo · DLUP', color:'#26a69a', opacity:70, visible:false, leaflet:null,
+          { id:'northern_plans', label:'Northern Province', desc:'Burera · Gakenke · Gicumbi · Musanze · Rulindo', color:'#26a69a', opacity:70, visible:false, leaflet:null,
             expanded: false,
             children: [
-              { id:'burera_dlup',  label:'Burera',  desc:'Northern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'gakenke_dlup', label:'Gakenke', desc:'Northern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'gicumbi_dlup', label:'Gicumbi', desc:'Northern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'musanze_dlup', label:'Musanze', desc:'Northern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'rulindo_dlup', label:'Rulindo', desc:'Northern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'burera_dlup',  label:'Burera',  desc:'geodata.rw/Burera_DLUP', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'gakenke_dlup', label:'Gakenke', desc:'geodata.rw/Gakenke_DLUP', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'gicumbi_dlup', label:'Gicumbi', desc:'geodata.rw/Gicumbi_DLUP', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'musanze_dlup', label:'Musanze', desc:'geodata.rw/Musanze_DLUP', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'rulindo_dlup', label:'Rulindo', desc:'geodata.rw/Rulindo_DLUP', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
             ]
           },
 
           // ── Southern Province ───────────────────────────────────────────
-          { id:'southern_plans', label:'Southern Province', desc:'Gisagara · Huye · Muhanga · Nyamagabe · Nyanza · Nyaruguru · Ruhango · DLUP', color:'#26a69a', opacity:70, visible:false, leaflet:null,
+          { id:'southern_plans', label:'Southern Province', desc:'Gisagara · Huye · Muhanga · Nyamagabe · Nyanza · Nyaruguru · Ruhango', color:'#26a69a', opacity:70, visible:false, leaflet:null,
             expanded: false,
             children: [
-              { id:'gisagara_dlup',  label:'Gisagara',  desc:'Southern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'huye_dlup',      label:'Huye',      desc:'Southern Province · DLUP · Butare area', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'muhanga_dlup',   label:'Muhanga',   desc:'Southern Province · DLUP · Gitarama',    color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'nyamagabe_dlup', label:'Nyamagabe', desc:'Southern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'nyanza_dlup',    label:'Nyanza',    desc:'Southern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'nyaruguru_dlup', label:'Nyaruguru', desc:'Southern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'ruhango_dlup',   label:'Ruhango',   desc:'Southern Province · DLUP · geodata.rw', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'gisagara_dlup',  label:'Gisagara',  desc:'geodata.rw/Gisagara_DLUP',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'huye_dlup',      label:'Huye',      desc:'geodata.rw/Huye_DLUP (Butare)', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'muhanga_dlup',   label:'Muhanga',   desc:'geodata.rw/Muhanga_DLUP (Gitarama)', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'nyamagabe_dlup', label:'Nyamagabe', desc:'geodata.rw/Nyamagabe_DLUP', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'nyanza_dlup',    label:'Nyanza',    desc:'geodata.rw/Nyanza_DLUP',    color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'nyaruguru_dlup', label:'Nyaruguru', desc:'geodata.rw/Nyaruguru_DLUP', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'ruhango_dlup',   label:'Ruhango',   desc:'geodata.rw/Ruhango_DLUP',   color:'#80cbc4', opacity:70, visible:false, leaflet:null },
             ]
           },
 
           // ── Eastern Province ────────────────────────────────────────────
-          { id:'eastern_plans', label:'Eastern Province', desc:'Bugesera · Gatsibo · Kayonza · Kirehe · Ngoma · Nyagatare · Rwamagana · DLUP', color:'#26a69a', opacity:70, visible:false, leaflet:null,
+          { id:'eastern_plans', label:'Eastern Province', desc:'Bugesera · Gatsibo · Kayonza · Kirehe · Ngoma · Nyagatare · Rwamagana', color:'#26a69a', opacity:70, visible:false, leaflet:null,
             expanded: false,
             children: [
-              { id:'bugesera_dlup',  label:'Bugesera',  desc:'Eastern Province · DLUP · near Bugesera Airport', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'gatsibo_dlup',   label:'Gatsibo',   desc:'Eastern Province · DLUP · geodata.rw',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'kayonza_dlup',   label:'Kayonza',   desc:'Eastern Province · DLUP · geodata.rw',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'kirehe_dlup',    label:'Kirehe',    desc:'Eastern Province · DLUP · geodata.rw',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'ngoma_dlup',     label:'Ngoma',     desc:'Eastern Province · DLUP · geodata.rw',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'nyagatare_dlup', label:'Nyagatare', desc:'Eastern Province · DLUP · geodata.rw',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'rwamagana_dlup', label:'Rwamagana', desc:'Eastern Province · DLUP · geodata.rw',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'bugesera_dlup',  label:'Bugesera',  desc:'geodata.rw/Bugesera_DLUP (near Bugesera Airport)', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'gatsibo_dlup',   label:'Gatsibo',   desc:'geodata.rw/Gatsibo_DLUP',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'kayonza_dlup',   label:'Kayonza',   desc:'geodata.rw/Kayonza_DLUP',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'kirehe_dlup',    label:'Kirehe',    desc:'geodata.rw/Kirehe_DLUP',   color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'ngoma_dlup',     label:'Ngoma',     desc:'geodata.rw/Ngoma_DLUP',    color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'nyagatare_dlup', label:'Nyagatare', desc:'geodata.rw/Nyagatare_DLUP', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'rwamagana_dlup', label:'Rwamagana', desc:'geodata.rw/Rwamagana_DLUP', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
             ]
           },
 
           // ── Western Province ────────────────────────────────────────────
-          { id:'western_plans', label:'Western Province', desc:'Karongi · Ngororero · Nyabihu · Nyamasheke · Rubavu · Rutsiro · Rusizi · DLUP', color:'#26a69a', opacity:70, visible:false, leaflet:null,
+          { id:'western_plans', label:'Western Province', desc:'Karongi · Ngororero · Nyabihu · Nyamasheke · Rubavu · Rutsiro · Rusizi', color:'#26a69a', opacity:70, visible:false, leaflet:null,
             expanded: false,
             children: [
-              { id:'karongi_dlup',    label:'Karongi',    desc:'Western Province · DLUP · Lake Kivu',          color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'ngororero_dlup',  label:'Ngororero',  desc:'Western Province · DLUP · geodata.rw',          color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'nyabihu_dlup',    label:'Nyabihu',    desc:'Western Province · DLUP · geodata.rw',          color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'nyamasheke_dlup', label:'Nyamasheke', desc:'Western Province · DLUP · Lake Kivu',           color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'rubavu_dlup',     label:'Rubavu',     desc:'Western Province · DLUP · Gisenyi / Lake Kivu', color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'rutsiro_dlup',    label:'Rutsiro',    desc:'Western Province · DLUP · Kivu Belt',           color:'#80cbc4', opacity:70, visible:false, leaflet:null },
-              { id:'rusizi_dlup',     label:'Rusizi',     desc:'Western Province · DLUP · Kivu Belt south',     color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'karongi_dlup',    label:'Karongi',    desc:'geodata.rw/Karongi_DLUP (Lake Kivu)',          color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'ngororero_dlup',  label:'Ngororero',  desc:'geodata.rw/Ngororero_DLUP',                    color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'nyabihu_dlup',    label:'Nyabihu',    desc:'geodata.rw/Nyabihu_DLUP',                      color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'nyamasheke_dlup', label:'Nyamasheke', desc:'geodata.rw/Nyamasheke_DLUP (Lake Kivu)',        color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'rubavu_dlup',     label:'Rubavu',     desc:'geodata.rw/Rubavu_DLUP (Gisenyi / Lake Kivu)',  color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'rutsiro_dlup',    label:'Rutsiro',    desc:'geodata.rw/Rutsiro_DLUP (Kivu Belt)',           color:'#80cbc4', opacity:70, visible:false, leaflet:null },
+              { id:'rusizi_dlup',     label:'Rusizi',     desc:'geodata.rw/Rusizi_DLUP (Kivu Belt south)',      color:'#80cbc4', opacity:70, visible:false, leaflet:null },
             ]
           },
 
@@ -1207,11 +2110,11 @@ const LAYER_GROUPS = [
       { id:'admin_bounds', label:'Administrative Boundaries', desc:'Province & district boundaries · national topographic map', color:'#455a64', opacity:85, visible:false, leaflet:null,
         expanded: false,
         children: [
-          { id:'kigali_admin',    label:'Kigali City',       desc:'Official district & sector boundaries · Kigali City Master Plan',  color:'#455a64', opacity:85, visible:false, leaflet:null },
-          { id:'northern_admin',  label:'Northern Province', desc:'District boundaries · Burera, Gakenke, Gicumbi, Musanze, Rulindo', color:'#546e7a', opacity:80, visible:false, leaflet:null },
-          { id:'southern_admin',  label:'Southern Province', desc:'District boundaries · 8 southern districts',                       color:'#546e7a', opacity:80, visible:false, leaflet:null },
-          { id:'eastern_admin',   label:'Eastern Province',  desc:'District boundaries · 7 eastern districts',                        color:'#546e7a', opacity:80, visible:false, leaflet:null },
-          { id:'western_admin',   label:'Western Province',  desc:'District boundaries · 7 western districts',                        color:'#546e7a', opacity:80, visible:false, leaflet:null },
+          { id:'kigali_admin',    label:'Kigali City',       desc:'Official district & sector boundaries · Kigali City Master Plan · public ✓',  color:'#455a64', opacity:85, visible:false, leaflet:null },
+          { id:'northern_admin',  label:'Northern Province', desc:'District boundaries · geodata.rw', color:'#546e7a', opacity:80, visible:false, leaflet:null },
+          { id:'southern_admin',  label:'Southern Province', desc:'District boundaries · geodata.rw', color:'#546e7a', opacity:80, visible:false, leaflet:null },
+          { id:'eastern_admin',   label:'Eastern Province',  desc:'District boundaries · geodata.rw', color:'#546e7a', opacity:80, visible:false, leaflet:null },
+          { id:'western_admin',   label:'Western Province',  desc:'District boundaries · geodata.rw', color:'#546e7a', opacity:80, visible:false, leaflet:null },
         ]
       },
 
@@ -1292,6 +2195,9 @@ function collectLeaves(layer) {
 function ensureBuilt(layer) {
   if (!layer.leaflet && BUILDERS[layer.id]) {
     layer.leaflet = BUILDERS[layer.id]();
+    if (layer.leaflet && layer.leaflet.options !== undefined) {
+      layer.leaflet.options._layerId = layer.id;
+    }
   }
 }
 function setVisible(layer, vis) {
@@ -1388,6 +2294,50 @@ function applySolo(id) {
     btn.classList.toggle('soloed', btn.dataset.layer===soloedId);
   });
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// QUICK PRESETS
+// ══════════════════════════════════════════════════════════════════════════════
+
+const PRESETS = {
+  pipeline: ['imali_parcels', 'intel_sites'],
+  infra:    ['existing_infra', 'planned_infra', 'road_networks'],
+  intel:    ['hospitality_gaps', 'missing_links', 'residential_sat'],
+  zoning:   ['kigali_zoning'],
+};
+
+function applyPreset(name) {
+  if (name === 'clear') {
+    LAYER_GROUPS.forEach(g => {
+      allLeafLayers(g).forEach(l => {
+        if (l.visible) { l.visible = false; setVisible(l, false); }
+        const cb = document.getElementById(`lcb-${l.id}`);
+        if (cb) { cb.checked = false; cb.indeterminate = false; }
+      });
+      syncAllParentCbs(g); syncGroupCb(g.id);
+    });
+    document.querySelectorAll('.lp-preset-btn[data-preset]').forEach(b => b.classList.remove('active'));
+    updateActiveCounts();
+    return;
+  }
+  const ids = PRESETS[name] || [];
+  const btn = document.querySelector(`.lp-preset-btn[data-preset="${name}"]`);
+  const turnOn = btn ? !btn.classList.contains('active') : true;
+
+  ids.forEach(id => {
+    const found = findLayer(id);
+    if (!found) return;
+    found.layer.visible = turnOn;
+    setVisible(found.layer, turnOn);
+    const cb = document.getElementById(`lcb-${id}`);
+    if (cb) { cb.checked = turnOn; cb.indeterminate = false; }
+    syncGroupCb(found.group.id);
+    syncAllParentCbs(found.group);
+  });
+  if (btn) btn.classList.toggle('active', turnOn);
+  updateActiveCounts();
+}
+
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PANEL RENDERING
@@ -1636,19 +2586,363 @@ document.getElementById('lpCollapseBtn').addEventListener('click', () => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
-// THEME / TILES / MISC
+// THEME / TILES / BASEMAP SWITCHER
 // ══════════════════════════════════════════════════════════════════════════════
-let activeTile=TILES[initialTheme];
-function swapTiles(theme) { map.removeLayer(activeTile); activeTile=TILES[theme]; activeTile.addTo(map); }
+let activeTile = TILES[initialTheme];
+let activeBasemap = 'default'; // 'default' | 'satellite' | 'hybrid' | 'terrain'
+
+function swapTiles(theme) {
+  // Only swap if we're in default (CartoDB) mode — satellite modes ignore theme
+  if (activeBasemap === 'default') {
+    map.removeLayer(activeTile);
+    activeTile = TILES[theme];
+    activeTile.addTo(map);
+  }
+}
+
+function setBasemap(mode) {
+  activeBasemap = mode;
+  map.removeLayer(activeTile);
+  const theme = document.documentElement.getAttribute('data-theme') || 'light';
+  if (mode === 'default') {
+    activeTile = TILES[theme];
+  } else {
+    activeTile = TILES[mode];
+  }
+  activeTile.addTo(map);
+  // Send base tile to the very bottom
+  activeTile.setZIndex(0);
+  // Update button states
+  document.querySelectorAll('.bm-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.bm === mode);
+  });
+}
 
 function toggleTheme() {
-  const html=document.documentElement;
-  const next=html.getAttribute('data-theme')==='dark'?'light':'dark';
-  html.setAttribute('data-theme',next);
-  localStorage.setItem('imali-theme',next);
-  document.querySelector('.theme-toggle').textContent=next==='dark'?'☀ Light':'☾ Dark';
-  swapTiles(next); applyBorderStyle(next);
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('imali-theme', next);
+  document.querySelector('.theme-toggle').textContent = next === 'dark' ? '☀ Light' : '☾ Dark';
+  swapTiles(next);
+  applyBorderStyle(next);
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EARTH TOOLS — MEASURE DISTANCE, MEASURE AREA, DROP PINS
+// ══════════════════════════════════════════════════════════════════════════════
+
+let activeTool = null; // 'distance' | 'area' | 'pin' | null
+
+// -- Measurement state --------------------------------------------------------
+const measureLayers  = [];  // all drawn measurement Leaflet objects
+const measurePoints  = [];  // current working points (latlng[])
+let measurePolyline  = null; // live polyline while drawing
+let measurePolygon   = null; // live polygon while drawing area
+let measureMouseLine = null; // rubber-band line from last point to cursor
+let measureTooltip   = null; // live tooltip on cursor
+
+// -- Pin state ----------------------------------------------------------------
+const droppedPins = []; // { id, name, latlng, marker }
+let pinCounter = 0;
+
+// Haversine distance in metres between two latlng objects
+function haverDist(a, b) { return map.distance(a, b); }
+
+// Spherical area (m²) of a polygon defined by latlng array — shoelace on sphere
+function sphericalArea(latlngs) {
+  if (latlngs.length < 3) return 0;
+  const R = 6371009; // earth radius in metres
+  let area = 0;
+  const n = latlngs.length;
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    const φ1 = latlngs[i].lat * Math.PI / 180;
+    const φ2 = latlngs[j].lat * Math.PI / 180;
+    const λ1 = latlngs[i].lng * Math.PI / 180;
+    const λ2 = latlngs[j].lng * Math.PI / 180;
+    area += (λ2 - λ1) * (2 + Math.sin(φ1) + Math.sin(φ2));
+  }
+  return Math.abs(area * R * R / 2);
+}
+
+function fmtDist(m) {
+  if (m < 1000) return `${m.toFixed(0)} m`;
+  return `${(m / 1000).toFixed(2)} km`;
+}
+function fmtArea(m2) {
+  if (m2 < 10000) return `${m2.toFixed(0)} m²`;
+  if (m2 < 1000000) return `${(m2 / 10000).toFixed(2)} ha`;
+  return `${(m2 / 1000000).toFixed(3)} km²`;
+}
+
+function activateTool(tool) {
+  if (activeTool === tool) { deactivateTool(); return; }
+  deactivateTool();
+  activeTool = tool;
+  document.body.classList.add('tool-active');
+  map.doubleClickZoom.disable(); // prevent zoom on finish double-click
+
+  document.getElementById('toolMeasureDist').classList.toggle('active', tool === 'distance');
+  document.getElementById('toolMeasureArea').classList.toggle('active', tool === 'area');
+  document.getElementById('toolDropPin').classList.toggle('active', tool === 'pin');
+
+  if (tool === 'pin') {
+    map.once('click', onMapClickPin);
+  }
+}
+
+function deactivateTool() {
+  activeTool = null;
+  document.body.classList.remove('tool-active');
+  map.doubleClickZoom.enable();
+  document.getElementById('toolMeasureDist').classList.remove('active');
+  document.getElementById('toolMeasureArea').classList.remove('active');
+  document.getElementById('toolDropPin').classList.remove('active');
+  map.off('click', onMapClickPin);
+  cleanupLiveDrawing();
+}
+
+function cleanupLiveDrawing() {
+  if (measureMouseLine) { map.removeLayer(measureMouseLine); measureMouseLine = null; }
+  if (measureTooltip)   { measureTooltip.remove(); measureTooltip = null; }
+  measurePoints.length = 0;
+  if (measurePolyline)  { map.removeLayer(measurePolyline); measurePolyline = null; }
+  if (measurePolygon)   { map.removeLayer(measurePolygon); measurePolygon = null; }
+}
+
+// Close intel panel when clicking blank map space
+map.on('click', () => {
+  if (document.getElementById('intelPanel')?.classList.contains('open')) {
+    hideIntelPanel();
+  }
+});
+
+// Persistent map click for measure tools — delayed slightly so dblclick can cancel it
+let _measureClickTimer = null;
+map.on('click', e => {
+  if (!activeTool || activeTool === 'pin') return;
+  clearTimeout(_measureClickTimer);
+  _measureClickTimer = setTimeout(() => {
+    if (activeTool === 'distance') onMapClickDistance(e);
+    else if (activeTool === 'area') onMapClickArea(e);
+  }, 200); // 200ms: if a dblclick fires, clearTimeout prevents this from running
+});
+
+// Double-click to finish drawing
+map.on('dblclick', e => {
+  if (!activeTool) return;
+  clearTimeout(_measureClickTimer); // cancel the pending single-click
+  if (activeTool === 'distance' && measurePoints.length >= 2) finishDistance();
+  else if (activeTool === 'area' && measurePoints.length >= 3) finishArea();
+});
+
+// Rubber-band line follows the cursor while drawing
+map.on('mousemove', e => {
+  if (!activeTool || activeTool === 'pin' || !measurePoints.length) return;
+  const pts = [...measurePoints, e.latlng];
+  // Update rubber-band line
+  if (!measureMouseLine) {
+    measureMouseLine = L.polyline(pts, {
+      color: '#d4a832', weight: 1.5, dashArray: '5,6', opacity: 0.7
+    }).addTo(map);
+  } else {
+    measureMouseLine.setLatLngs(pts);
+  }
+  // Live distance tooltip
+  if (activeTool === 'distance') {
+    let total = 0;
+    for (let i = 1; i < pts.length; i++) total += haverDist(pts[i-1], pts[i]);
+    showMeasureTip(e.latlng, fmtDist(total));
+  } else if (activeTool === 'area' && pts.length >= 3) {
+    showMeasureTip(e.latlng, fmtArea(sphericalArea(pts)));
+  }
+});
+
+function showMeasureTip(latlng, text) {
+  if (!measureTooltip) {
+    measureTooltip = L.tooltip({ permanent: true, direction: 'right', offset: [12, 0], className: 'measure-tip' })
+      .setContent(text).setLatLng(latlng).addTo(map);
+  } else {
+    measureTooltip.setContent(text).setLatLng(latlng);
+  }
+}
+
+// Distance tool
+function onMapClickDistance(e) {
+  measurePoints.push(e.latlng);
+  // Draw permanent dot marker
+  const dot = L.circleMarker(e.latlng, {
+    radius: 5, fillColor: '#d4a832', fillOpacity: 1,
+    color: 'rgba(10,10,15,0.8)', weight: 2
+  }).addTo(map);
+  measureLayers.push(dot);
+
+  if (measurePoints.length >= 2) {
+    // Draw the segment
+    const seg = L.polyline([measurePoints[measurePoints.length-2], e.latlng], {
+      color: '#d4a832', weight: 2.5, opacity: 0.85
+    }).addTo(map);
+    measureLayers.push(seg);
+
+    // Segment distance label at midpoint
+    const mid = L.latLng(
+      (measurePoints[measurePoints.length-2].lat + e.latlng.lat) / 2,
+      (measurePoints[measurePoints.length-2].lng + e.latlng.lng) / 2
+    );
+    const segDist = haverDist(measurePoints[measurePoints.length-2], e.latlng);
+    const segLabel = L.tooltip({ permanent: true, direction: 'top', offset: [0, -4], className: 'measure-tip' })
+      .setContent(fmtDist(segDist)).setLatLng(mid).addTo(map);
+    measureLayers.push(segLabel);
+  }
+}
+
+function finishDistance() {
+  // Show total at last point
+  let total = 0;
+  for (let i = 1; i < measurePoints.length; i++) total += haverDist(measurePoints[i-1], measurePoints[i]);
+  const lastPt = measurePoints[measurePoints.length - 1];
+  const totalLabel = L.tooltip({ permanent: true, direction: 'top', offset: [0, -12], className: 'measure-tip' })
+    .setContent(`📏 Total: ${fmtDist(total)}`).setLatLng(lastPt).addTo(map);
+  measureLayers.push(totalLabel);
+  cleanupLiveDrawing();
+  deactivateTool();
+}
+
+// Area tool
+function onMapClickArea(e) {
+  // If clicking near the first point — close the polygon
+  if (measurePoints.length >= 3) {
+    const firstPt = measurePoints[0];
+    const px1 = map.latLngToContainerPoint(firstPt);
+    const px2 = map.latLngToContainerPoint(e.latlng);
+    const dist = Math.hypot(px1.x - px2.x, px1.y - px2.y);
+    if (dist < 16) { finishArea(); return; }
+  }
+
+  measurePoints.push(e.latlng);
+  const dot = L.circleMarker(e.latlng, {
+    radius: e.latlng === measurePoints[0] ? 6 : 4,
+    fillColor: '#c8521a', fillOpacity: 1,
+    color: 'rgba(10,10,15,0.8)', weight: 2
+  }).addTo(map);
+  measureLayers.push(dot);
+
+  // Update live polygon fill
+  if (measurePoints.length >= 3) {
+    if (!measurePolygon) {
+      measurePolygon = L.polygon(measurePoints, {
+        color: '#c8521a', weight: 2, fillColor: '#c8521a', fillOpacity: 0.12, dashArray: '6,5'
+      }).addTo(map);
+    } else {
+      measurePolygon.setLatLngs(measurePoints);
+    }
+  }
+}
+
+function finishArea() {
+  const area = sphericalArea(measurePoints);
+  // Draw final filled polygon
+  const poly = L.polygon(measurePoints, {
+    color: '#c8521a', weight: 2, fillColor: '#c8521a', fillOpacity: 0.18
+  }).addTo(map);
+  measureLayers.push(poly);
+
+  // Area label at centroid
+  let clat = 0, clng = 0;
+  measurePoints.forEach(p => { clat += p.lat; clng += p.lng; });
+  const centroid = L.latLng(clat / measurePoints.length, clng / measurePoints.length);
+  const areaLabel = L.tooltip({ permanent: true, direction: 'center', className: 'measure-tip' })
+    .setContent(`📐 ${fmtArea(area)}`).setLatLng(centroid).addTo(map);
+  measureLayers.push(areaLabel);
+  cleanupLiveDrawing();
+  deactivateTool();
+}
+
+// Drop Pin tool
+function onMapClickPin(e) {
+  deactivateTool(); // re-activates mode for next click handled by activateTool
+  const id = ++pinCounter;
+  const defaultName = `Pin ${id}`;
+  const name = prompt(`Name this pin (leave blank for "${defaultName}"):`)?.trim() || defaultName;
+
+  const pinIcon = L.divIcon({
+    className: '',
+    html: `<div style="font-size:1.5rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));cursor:default;">📌</div>`,
+    iconSize: [24, 24], iconAnchor: [4, 22], popupAnchor: [0, -22],
+  });
+  const marker = L.marker(e.latlng, { icon: pinIcon })
+    .bindPopup(`<div style="font-family:'DM Sans',sans-serif;font-size:0.8rem;line-height:1.4;">
+      <strong style="font-family:'Syne',sans-serif;">${name}</strong><br>
+      <span style="color:#6b6560;font-size:0.72rem;">${e.latlng.lat.toFixed(5)}°, ${e.latlng.lng.toFixed(5)}°</span><br>
+      <button onclick="removePin(${id})" style="margin-top:0.4rem;font-size:0.68rem;background:rgba(200,82,26,0.12);border:1px solid rgba(200,82,26,0.25);color:#c8521a;padding:0.18rem 0.5rem;border-radius:4px;cursor:pointer;">Remove pin</button>
+    </div>`, { className: 'imali-popup', minWidth: 160 })
+    .addTo(map);
+
+  droppedPins.push({ id, name, latlng: e.latlng, marker });
+  updatePinsPanel();
+  marker.openPopup();
+}
+
+function removePin(id) {
+  const idx = droppedPins.findIndex(p => p.id === id);
+  if (idx === -1) return;
+  map.closePopup();
+  map.removeLayer(droppedPins[idx].marker);
+  droppedPins.splice(idx, 1);
+  updatePinsPanel();
+}
+
+function updatePinsPanel() {
+  const count = droppedPins.length;
+  document.getElementById('pinCountLabel').textContent = count ? `Pins (${count})` : 'Pins';
+  const list = document.getElementById('pinsList');
+  const empty = document.getElementById('pinsEmpty');
+  empty.style.display = count ? 'none' : '';
+  // Remove old pin-items
+  list.querySelectorAll('.pin-item').forEach(el => el.remove());
+  droppedPins.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'pin-item';
+    item.innerHTML = `<span class="pin-item-icon">📌</span>
+      <span class="pin-item-name" title="${p.name}">${p.name}</span>
+      <button class="pin-item-del" title="Remove" onclick="removePin(${p.id})">✕</button>`;
+    // Click to fly to pin
+    item.querySelector('.pin-item-name').style.cursor = 'none';
+    item.querySelector('.pin-item-name').addEventListener('click', () => {
+      map.flyTo(p.latlng, 17, { duration: 1.0 });
+      setTimeout(() => p.marker.openPopup(), 1100);
+    });
+    list.appendChild(item);
+  });
+}
+
+function togglePinsPanel() {
+  document.getElementById('pinsPanel').classList.toggle('open');
+}
+
+function clearAllTools() {
+  deactivateTool();
+  // Remove all measurement layers
+  measureLayers.forEach(l => { try { map.removeLayer(l); } catch(e){} });
+  measureLayers.length = 0;
+  cleanupLiveDrawing();
+  // Remove all pins
+  droppedPins.forEach(p => map.removeLayer(p.marker));
+  droppedPins.length = 0;
+  pinCounter = 0;
+  updatePinsPanel();
+  document.getElementById('pinsPanel').classList.remove('open');
+}
+
+// ESC key cancels active tool
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && activeTool) {
+    if (activeTool === 'distance' && measurePoints.length >= 2) finishDistance();
+    else if (activeTool === 'area' && measurePoints.length >= 3) finishArea();
+    else deactivateTool();
+  }
+});
 
 const coordPill=document.getElementById('coordPill');
 map.on('mousemove', e => {
@@ -1818,6 +3112,20 @@ function renderMPTip(clientX, clientY, results) {
 // ── Boot ──────────────────────────────────────────────────────────────────────
 renderPanel();
 updateActiveCounts();
+
+// ── Auto-activate Imali pipeline parcels on load ───────────────────────────
+(function bootPipeline() {
+  const f = findLayer('imali_parcels');
+  if (!f) return;
+  ensureBuilt(f.layer);
+  f.layer.visible = true;
+  map.addLayer(f.layer.leaflet);
+  const cb = document.getElementById('lcb-imali_parcels');
+  if (cb) cb.checked = true;
+  syncGroupCb('pipeline');
+  syncAllParentCbs(LAYER_GROUPS.find(g => g.id === 'pipeline'));
+  updateActiveCounts();
+})();
 
 // Wire legend-section chevron
 document.getElementById('legChevron').addEventListener('click', function() {
