@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<script>(function(){var t=localStorage.getItem('imali-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Catalogue — Imali.biz Internal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   HOME CATALOGUE — PAGE STYLES
+═══════════════════════════════════════════════════════════════ */
+
+.cat-page { padding-top: var(--nav-h); min-height: 100vh; }
+
+/* ── Hero ─────────────────────────────────────────────────────── */
+.cat-hero {
+  position: relative; overflow: hidden;
+  padding: 4rem 2.5rem 3rem;
+  background: var(--ink);
+  border-bottom: 1px solid rgba(245,240,232,0.06);
+}
+[data-theme="light"] .cat-hero { background: #faf7f2; }
+
+.cat-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(212,168,50,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,168,50,0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  animation: gridShift 18s linear infinite;
+}
+@keyframes gridShift { 0%{background-position:0 0} 100%{background-position:48px 48px} }
+
+.cat-hero-inner { position: relative; max-width: 860px; }
+.cat-hero-eyebrow {
+  font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--gold); font-weight: 500; margin-bottom: 0.75rem;
+  display: flex; align-items: center; gap: 0.6rem;
+}
+[data-theme="light"] .cat-hero-eyebrow { color: #a07820; }
+.cat-hero-eyebrow::before {
+  content: ''; width: 24px; height: 1px;
+  background: var(--gold); opacity: 0.7; display: block;
+}
+.cat-hero-title {
+  font-family: 'Syne', sans-serif; font-size: clamp(2.2rem, 5vw, 3.4rem);
+  font-weight: 800; line-height: 1.08; color: var(--cream); margin-bottom: 1rem;
+}
+[data-theme="light"] .cat-hero-title { color: var(--ink); }
+.cat-hero-title em { font-family: 'Instrument Serif', serif; font-style: italic; color: var(--terracotta); font-weight: 400; }
+.cat-hero-sub {
+  font-size: 0.92rem; color: rgba(245,240,232,0.5); max-width: 560px; line-height: 1.65;
+}
+[data-theme="light"] .cat-hero-sub { color: rgba(10,10,15,0.5); }
+.cat-hero-stats {
+  display: flex; gap: 2rem; margin-top: 2rem; flex-wrap: wrap;
+}
+.cat-hs { display: flex; flex-direction: column; gap: 0.1rem; }
+.cat-hs-val {
+  font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--gold); line-height: 1;
+}
+[data-theme="light"] .cat-hs-val { color: #a07820; }
+.cat-hs-lbl { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.35); }
+[data-theme="light"] .cat-hs-lbl { color: rgba(10,10,15,0.38); }
+
+/* ── Tier selector strip ─────────────────────────────────────── */
+.cat-selector {
+  position: sticky; top: var(--nav-h); z-index: 100;
+  background: rgba(10,10,15,0.95); backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(245,240,232,0.06);
+  padding: 0 2.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.cat-selector::-webkit-scrollbar { display: none; }
+[data-theme="light"] .cat-selector { background: rgba(250,247,242,0.98); border-bottom-color: rgba(10,10,15,0.08); }
+
+.cat-tier-pills {
+  display: flex; gap: 0; min-width: max-content;
+}
+.cat-tier-pill {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 0.9rem 1.4rem; cursor: none;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.2s, background 0.2s;
+  min-width: 110px; position: relative;
+}
+.cat-tier-pill:hover { background: rgba(245,240,232,0.03); }
+[data-theme="light"] .cat-tier-pill:hover { background: rgba(10,10,15,0.03); }
+.cat-tier-pill.active { border-bottom-color: var(--terracotta); }
+.ctp-price {
+  font-family: 'Syne', sans-serif; font-size: 1.0rem; font-weight: 700;
+  color: rgba(245,240,232,0.5); transition: color 0.2s;
+}
+[data-theme="light"] .ctp-price { color: rgba(10,10,15,0.45); }
+.cat-tier-pill.active .ctp-price { color: var(--terracotta); }
+.ctp-name {
+  font-size: 0.63rem; color: rgba(245,240,232,0.28); white-space: nowrap;
+  transition: color 0.2s;
+}
+[data-theme="light"] .ctp-name { color: rgba(10,10,15,0.35); }
+.cat-tier-pill.active .ctp-name { color: rgba(245,240,232,0.55); }
+[data-theme="light"] .cat-tier-pill.active .ctp-name { color: rgba(10,10,15,0.55); }
+.ctp-sqm {
+  font-size: 0.58rem; letter-spacing: 0.08em; color: rgba(245,240,232,0.18);
+  margin-top: 0.08rem;
+}
+[data-theme="light"] .ctp-sqm { color: rgba(10,10,15,0.22); }
+
+/* ── Main content area ───────────────────────────────────────── */
+.cat-content { padding: 2.5rem; max-width: 1300px; margin: 0 auto; }
+
+.cat-tier-panel { display: none; }
+.cat-tier-panel.active {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  animation: fadeInUp 0.3s ease;
+}
+@media (max-width: 900px) {
+  .cat-tier-panel.active { grid-template-columns: 1fr; }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Left column: visuals ────────────────────────────────────── */
+.cat-visuals { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.cat-vis-card {
+  background: rgba(245,240,232,0.02); border: 1px solid rgba(245,240,232,0.06);
+  border-radius: 16px; overflow: hidden;
+}
+[data-theme="light"] .cat-vis-card { background: white; border-color: rgba(10,10,15,0.08); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+
+.cat-vis-label {
+  font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(245,240,232,0.28); padding: 0.65rem 1rem 0.45rem;
+  border-bottom: 1px solid rgba(245,240,232,0.05);
+  font-weight: 500;
+}
+[data-theme="light"] .cat-vis-label { color: rgba(10,10,15,0.32); border-bottom-color: rgba(10,10,15,0.06); }
+
+.cat-iso-wrap {
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(27,30,42,0.8) 0%, rgba(10,10,15,0.6) 100%);
+  display: flex; justify-content: center; align-items: center; min-height: 220px;
+}
+[data-theme="light"] .cat-iso-wrap {
+  background: linear-gradient(135deg, #e8f0f5 0%, #f2f6f8 100%);
+}
+
+.cat-plan-wrap {
+  padding: 1.25rem;
+  background: #ffffff;
+  display: flex; justify-content: center; align-items: center; min-height: 180px;
+}
+
+/* ── Right column: info ──────────────────────────────────────── */
+.cat-info { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.cat-tier-header {}
+.cat-tier-tag {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.57rem; letter-spacing: 0.1em; text-transform: uppercase;
+  font-weight: 500; padding: 0.2rem 0.6rem; border-radius: 2rem;
+  margin-bottom: 0.6rem;
+  background: rgba(200,82,26,0.1); border: 1px solid rgba(200,82,26,0.22); color: var(--terracotta);
+}
+[data-theme="light"] .cat-tier-tag { background: rgba(200,82,26,0.07); }
+.cat-tier-name {
+  font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800;
+  color: var(--cream); line-height: 1.1; margin-bottom: 0.2rem;
+}
+[data-theme="light"] .cat-tier-name { color: var(--ink); }
+.cat-tier-tagline {
+  font-family: 'Instrument Serif', serif; font-style: italic;
+  font-size: 0.88rem; color: rgba(245,240,232,0.45); margin-bottom: 0.6rem;
+}
+[data-theme="light"] .cat-tier-tagline { color: rgba(10,10,15,0.4); }
+.cat-tier-price-row {
+  display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap;
+}
+.cat-tier-usd {
+  font-family: 'Syne', sans-serif; font-size: 1.9rem; font-weight: 700; color: var(--gold);
+}
+[data-theme="light"] .cat-tier-usd { color: #a07820; }
+.cat-tier-rwf { font-size: 0.78rem; color: rgba(245,240,232,0.38); }
+[data-theme="light"] .cat-tier-rwf { color: rgba(10,10,15,0.38); }
+
+.cat-about {
+  font-size: 0.82rem; color: rgba(245,240,232,0.55); line-height: 1.7;
+  border-left: 2px solid rgba(212,168,50,0.3); padding-left: 0.9rem;
+}
+[data-theme="light"] .cat-about { color: rgba(10,10,15,0.55); border-left-color: rgba(160,120,32,0.3); }
+
+/* ── Section cards ───────────────────────────────────────────── */
+.cat-section {
+  background: rgba(245,240,232,0.02); border: 1px solid rgba(245,240,232,0.06);
+  border-radius: 14px; overflow: hidden;
+}
+[data-theme="light"] .cat-section { background: white; border-color: rgba(10,10,15,0.08); box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+.cat-sec-head {
+  font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+  font-weight: 500; color: var(--gold); padding: 0.7rem 1rem 0.5rem;
+  border-bottom: 1px solid rgba(245,240,232,0.05);
+  display: flex; align-items: center; gap: 0.4rem;
+}
+[data-theme="light"] .cat-sec-head { color: #a07820; border-bottom-color: rgba(10,10,15,0.06); }
+.cat-sec-body { padding: 0.85rem 1rem; }
+
+/* Rooms & specs grid */
+.cat-spec-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1.2rem;
+}
+.cat-spec-row { display: flex; flex-direction: column; padding: 0.32rem 0; border-bottom: 1px solid rgba(245,240,232,0.04); }
+[data-theme="light"] .cat-spec-row { border-bottom-color: rgba(10,10,15,0.05); }
+.cat-spec-row:last-child { border-bottom: none; }
+.cat-spec-k { font-size: 0.6rem; letter-spacing: 0.06em; color: rgba(245,240,232,0.32); text-transform: uppercase; }
+[data-theme="light"] .cat-spec-k { color: rgba(10,10,15,0.35); }
+.cat-spec-v { font-size: 0.75rem; color: rgba(245,240,232,0.8); font-weight: 500; margin-top: 0.1rem; }
+[data-theme="light"] .cat-spec-v { color: rgba(10,10,15,0.78); }
+
+/* Rooms list */
+.cat-rooms { display: flex; flex-direction: column; gap: 0.35rem; }
+.cat-room-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.32rem 0; border-bottom: 1px solid rgba(245,240,232,0.04);
+}
+[data-theme="light"] .cat-room-item { border-bottom-color: rgba(10,10,15,0.05); }
+.cat-room-item:last-child { border-bottom: none; }
+.cat-room-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-right: 0.5rem; }
+.cat-room-name { flex: 1; font-size: 0.76rem; color: rgba(245,240,232,0.72); }
+[data-theme="light"] .cat-room-name { color: rgba(10,10,15,0.72); }
+.cat-room-sqm { font-size: 0.68rem; color: rgba(245,240,232,0.38); font-family: 'Syne', sans-serif; }
+[data-theme="light"] .cat-room-sqm { color: rgba(10,10,15,0.4); }
+
+/* Material cost bar */
+.cat-mat-bar { height: 26px; border-radius: 8px; display: flex; overflow: hidden; margin-bottom: 0.85rem; gap: 1px; }
+.cat-mat-seg { height: 100%; transition: flex 0.3s; }
+.cat-mat-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 0.32rem 1rem; }
+.cat-mat-leg-item { display: flex; align-items: center; gap: 0.4rem; }
+.cat-mat-leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.cat-mat-leg-text { font-size: 0.63rem; color: rgba(245,240,232,0.5); }
+[data-theme="light"] .cat-mat-leg-text { color: rgba(10,10,15,0.52); }
+.cat-mat-leg-pct { font-size: 0.6rem; color: rgba(245,240,232,0.28); margin-left: auto; font-family: 'Syne', sans-serif; }
+[data-theme="light"] .cat-mat-leg-pct { color: rgba(10,10,15,0.3); }
+
+/* Key stats strip */
+.cat-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; }
+.cat-stat-card {
+  background: rgba(245,240,232,0.02); border: 1px solid rgba(245,240,232,0.06);
+  border-radius: 10px; padding: 0.65rem 0.75rem; text-align: center;
+  transition: border-color 0.18s, background 0.18s;
+}
+.cat-stat-card:hover { background: rgba(245,240,232,0.04); border-color: rgba(212,168,50,0.2); }
+[data-theme="light"] .cat-stat-card { background: #f8f6f2; border-color: rgba(10,10,15,0.08); }
+.cat-stat-val {
+  font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700;
+  color: var(--cream); display: block; line-height: 1.1;
+}
+[data-theme="light"] .cat-stat-val { color: var(--ink); }
+.cat-stat-lbl { font-size: 0.56rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,240,232,0.3); display: block; margin-top: 0.18rem; }
+[data-theme="light"] .cat-stat-lbl { color: rgba(10,10,15,0.38); }
+
+/* ── Footer ──────────────────────────────────────────────────── */
+.cat-footer { padding: 2rem 2.5rem; border-top: 1px solid rgba(245,240,232,0.06); margin-top: 1rem; }
+[data-theme="light"] .cat-footer { border-top-color: rgba(10,10,15,0.07); }
+.cat-footer-note { font-size: 0.7rem; color: rgba(245,240,232,0.22); line-height: 1.6; max-width: 680px; }
+[data-theme="light"] .cat-footer-note { color: rgba(10,10,15,0.28); }
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav class="int-nav">
+  <div class="int-nav-left">
+    <a href="index.html" class="int-nav-logo">Imali<span>.</span>biz</a>
+    <div class="int-nav-divider"></div>
+    <span class="int-nav-badge">Internal Ops</span>
+  </div>
+  <div class="int-nav-right">
+    <a href="index.html"        class="int-nav-link">Overview</a>
+    <a href="inventory.html"    class="int-nav-link">Inventory</a>
+    <a href="materials.html"    class="int-nav-link">Materials</a>
+    <a href="map.html"          class="int-nav-link">Opportunity Map</a>
+    <a href="design-engine.html"class="int-nav-link">Design Engine</a>
+    <a href="units.html"        class="int-nav-link active">Home Catalogue</a>
+    <a href="valuation.html"    class="int-nav-link">Valuation</a>
+    <button class="theme-toggle" onclick="toggleTheme()">☾ Dark</button>
+  </div>
+</nav>
+
+<div class="cat-page">
+
+  <!-- Hero -->
+  <section class="cat-hero">
+    <div class="cat-hero-inner">
+      <div class="cat-hero-eyebrow">Rwanda Affordable Housing · 2025</div>
+      <h1 class="cat-hero-title">Home <em>Catalogue</em></h1>
+      <p class="cat-hero-sub">Six build tiers from micro-studio to premium family home — each with floor plans, 3D views, material breakdowns and investment metrics. All costs are all-in build price excluding land, in Rwanda context.</p>
+      <div class="cat-hero-stats">
+        <div class="cat-hs"><span class="cat-hs-val">6</span><span class="cat-hs-lbl">Home Types</span></div>
+        <div class="cat-hs"><span class="cat-hs-val">15–168</span><span class="cat-hs-lbl">sqm Range</span></div>
+        <div class="cat-hs"><span class="cat-hs-val">150k</span><span class="cat-hs-lbl">Units Needed/yr</span></div>
+        <div class="cat-hs"><span class="cat-hs-val">75k RWF</span><span class="cat-hs-lbl">Avg Cost/sqm</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tier Selector -->
+  <div class="cat-selector">
+    <div class="cat-tier-pills" id="tierPills"></div>
+  </div>
+
+  <!-- Content -->
+  <div class="cat-content">
+    <div id="tierStage">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <footer class="cat-footer">
+    <p class="cat-footer-note">Build costs are estimates in Rwanda context (2025) using local materials and labour. Costs include materials, labour, and basic finishes; exclude land, legal/survey fees, and utility connection charges. Exchange rate: 1 USD ≈ 1,300 RWF. All floor areas are gross internal area (GIA). Actual costs will vary by site, specification, and contractor. All floor plans are schematic and indicative only.</p>
+  </footer>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   TIER DATA
+══════════════════════════════════════════════════════════════ */
+const TIERS = [
+  /* ── T1: $5,000 ────────────────────────────────────────────── */
+  {
+    id:'t1', price_usd:5000, price_rwf:6_500_000,
+    label:'$5,000', rwf_label:'6.5M RWF',
+    name:'Micro Studio', tag:'Essential',
+    tagline:'Maximum habitability on minimum footprint',
+    sqm:15, floors:1,
+    dims:{ W:4.0, D:4.0, H:2.5, roofH:0.75, isoScale:26 },
+    about:'A compact, dignified single-room dwelling with integrated wet room. Earth or sand blocks on a strip foundation, corrugated iron roof on timber rafters. Fully habitable with WC, cold shower, and basic electrical. Fits a 4m × 4m plot and can be expanded later.',
+    rooms:[
+      { label:'Studio (bed/sit/cook)', sqm:10.5, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Wet room (WC + shower)', sqm:2.5, fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Kitchenette alcove', sqm:2.0, fill:'#e8f5e9', dot:'#66bb6a' },
+    ],
+    spec:{
+      'Wall type':'Earth/sand blocks',
+      'Roof type':'Corrugated iron (g28)',
+      'Floor finish':'Concrete screed',
+      'Foundation':'Strip, 450mm deep',
+      'Ceiling':'Open to rafters',
+      'Build time':'4 – 6 weeks',
+      'Doors':'1 × external',
+      'Windows':'2 × single-glazed',
+      'Plumbing':'Cold water, WC, shower',
+      'Electrical':'2 sockets, 2 light points',
+    },
+    materials:[
+      { label:'Foundation & slab',  pct:14, rwf:910000,  color:'#8d6e63' },
+      { label:'Walling',            pct:20, rwf:1300000, color:'#a1887f' },
+      { label:'Roof structure',     pct:15, rwf:975000,  color:'#78909c' },
+      { label:'Doors & windows',    pct:7,  rwf:455000,  color:'#90a4ae' },
+      { label:'Plumbing',           pct:8,  rwf:520000,  color:'#4db6ac' },
+      { label:'Electrical',         pct:5,  rwf:325000,  color:'#ffa726' },
+      { label:'Finishes',           pct:3,  rwf:195000,  color:'#ce93d8' },
+      { label:'Labour',             pct:28, rwf:1820000, color:'#ef9a9a' },
+    ],
+    stats:[
+      { val:'$333',    lbl:'Cost / m²' },
+      { val:'5 wks',   lbl:'Build time' },
+      { val:'14–18%',  lbl:'Rental yield' },
+      { val:'R1 / R2', lbl:'Zoning' },
+    ],
+    floorPlan:{
+      W:4.0, D:4.0,
+      rooms:[
+        { x:0.25, y:0.25, w:2.25, h:3.5,  label:'Studio', sub:'10.5m²', fill:'#fdf3e3' },
+        { x:2.75, y:0.25, w:1.0,  h:1.5,  label:'WC+SH',  sub:'',      fill:'#e0f7fa' },
+        { x:2.75, y:2.0,  w:1.0,  h:1.75, label:'Kitchen', sub:'',      fill:'#e8f5e9' },
+      ],
+      partitions:[
+        { x1:2.5, y1:0.25, x2:2.5,  y2:3.75 },
+        { x1:2.5, y1:2.0,  x2:3.75, y2:2.0  },
+      ],
+      doors:[{ wall:'bottom', x:0.6, w:0.85, hinge:'r' }],
+      windows:[
+        { wall:'top',   x:0.8,  w:0.7 },
+        { wall:'right', y:0.5,  w:0.6 },
+      ],
+    },
+  },
+
+  /* ── T2: $10,000 ───────────────────────────────────────────── */
+  {
+    id:'t2', price_usd:10000, price_rwf:13_000_000,
+    label:'$10,000', rwf_label:'13M RWF',
+    name:'Starter Studio', tag:'Accessible',
+    tagline:'One bedroom, proper kitchen, full bathroom',
+    sqm:32, floors:1,
+    dims:{ W:8.0, D:4.5, H:2.6, roofH:0.9, isoScale:17 },
+    about:'A proper single-person or couple home: a bedroom/living area that can be screened with a partition, a separate kitchen with worktop, and a bathroom with shower, WC, and basin. Hollow concrete blocks, fibre-cement or iron-sheet roof with ceiling boards.',
+    rooms:[
+      { label:'Main room (bed/living)', sqm:19.5, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Kitchen',               sqm:6.0,  fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Bathroom',              sqm:3.5,  fill:'#e0f7fa', dot:'#26a69a' },
+    ],
+    spec:{
+      'Wall type':'Hollow concrete blocks',
+      'Roof type':'Iron sheets / fibre-cement',
+      'Floor finish':'Ceramic tiles (wet areas)',
+      'Foundation':'Strip, 500mm deep',
+      'Ceiling':'Timber boards + insulation',
+      'Build time':'6 – 8 weeks',
+      'Doors':'2 × (external + bathroom)',
+      'Windows':'4 × single-glazed',
+      'Plumbing':'Hot + cold water, WC, shower, basin',
+      'Electrical':'4 sockets, 4 light points, MCB board',
+    },
+    materials:[
+      { label:'Foundation & slab',   pct:12, rwf:1560000, color:'#8d6e63' },
+      { label:'Walling',             pct:18, rwf:2340000, color:'#a1887f' },
+      { label:'Roof + ceiling',      pct:16, rwf:2080000, color:'#78909c' },
+      { label:'Doors & windows',     pct:7,  rwf:910000,  color:'#90a4ae' },
+      { label:'Plumbing',            pct:9,  rwf:1170000, color:'#4db6ac' },
+      { label:'Kitchen fittings',    pct:5,  rwf:650000,  color:'#66bb6a' },
+      { label:'Electrical',          pct:5,  rwf:650000,  color:'#ffa726' },
+      { label:'Finishes',            pct:4,  rwf:520000,  color:'#ce93d8' },
+      { label:'Labour',              pct:24, rwf:3120000, color:'#ef9a9a' },
+    ],
+    stats:[
+      { val:'$313',    lbl:'Cost / m²' },
+      { val:'7 wks',   lbl:'Build time' },
+      { val:'12–16%',  lbl:'Rental yield' },
+      { val:'R2',      lbl:'Zoning' },
+    ],
+    floorPlan:{
+      W:8.0, D:4.5,
+      rooms:[
+        { x:0.25, y:0.25, w:4.5,  h:4.0,  label:'Main Room', sub:'19.5m²', fill:'#fdf3e3' },
+        { x:5.0,  y:0.25, w:2.75, h:2.0,  label:'Kitchen',   sub:'6m²',    fill:'#e8f5e9' },
+        { x:5.0,  y:2.5,  w:2.75, h:1.75, label:'Bathroom',  sub:'3.5m²',  fill:'#e0f7fa' },
+      ],
+      partitions:[
+        { x1:4.75, y1:0.25, x2:4.75, y2:4.25 },
+        { x1:4.75, y1:2.25, x2:7.75, y2:2.25 },
+      ],
+      doors:[
+        { wall:'bottom', x:0.8, w:0.9, hinge:'r' },
+        { wall:'right-inner', x:2.5, w:0.8, hinge:'l', onPartition:true, partX:4.75, y:2.8 },
+      ],
+      windows:[
+        { wall:'top',    x:1.0, w:1.0 },
+        { wall:'top',    x:3.2, w:0.8 },
+        { wall:'right',  y:0.5, w:0.9 },
+        { wall:'bottom', x:5.5, w:0.8 },
+      ],
+    },
+  },
+
+  /* ── T3: $20,000 ───────────────────────────────────────────── */
+  {
+    id:'t3', price_usd:20000, price_rwf:26_000_000,
+    label:'$20,000', rwf_label:'26M RWF',
+    name:'2-Bed Starter', tag:'Family Entry',
+    tagline:'Two bedrooms, living room, full kitchen',
+    sqm:58, floors:1,
+    dims:{ W:10.0, D:6.0, H:2.7, roofH:1.0, isoScale:14 },
+    about:'A proper family starter home with two bedrooms, a separate living room, full kitchen and bathroom. RC columns on strip foundations, sand/concrete block walls, concrete interlocking tiles. Plastered exterior, screeded floors with tiles in wet areas.',
+    rooms:[
+      { label:'Bedroom 1',   sqm:10.5, fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Bedroom 2',   sqm:9.0,  fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Living room', sqm:16.0, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Kitchen',     sqm:8.0,  fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Bathroom',    sqm:4.0,  fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Hall',        sqm:5.0,  fill:'#f5f5f5', dot:'#90a4ae' },
+    ],
+    spec:{
+      'Wall type':'Sand/concrete blocks, plastered',
+      'Roof type':'Interlocking concrete tiles',
+      'Floor finish':'Ceramic tiles throughout',
+      'Foundation':'RC strip, 600mm deep',
+      'Ceiling':'Timber boards + PVC ceiling',
+      'Build time':'10 – 14 weeks',
+      'Doors':'4 × (external + internal)',
+      'Windows':'6 × louvre + sliding',
+      'Plumbing':'Full hot & cold, WC, shower, basin',
+      'Electrical':'6 sockets/room, consumer unit',
+    },
+    materials:[
+      { label:'Foundation & slab',  pct:12, rwf:3120000, color:'#8d6e63' },
+      { label:'RC frame (columns)', pct:7,  rwf:1820000, color:'#5c9bd6' },
+      { label:'Walling + plaster',  pct:16, rwf:4160000, color:'#a1887f' },
+      { label:'Roof',               pct:13, rwf:3380000, color:'#78909c' },
+      { label:'Doors & windows',    pct:9,  rwf:2340000, color:'#90a4ae' },
+      { label:'Plumbing + kitchen', pct:11, rwf:2860000, color:'#4db6ac' },
+      { label:'Electrical',         pct:5,  rwf:1300000, color:'#ffa726' },
+      { label:'Finishes + ceiling', pct:9,  rwf:2340000, color:'#ce93d8' },
+      { label:'Labour',             pct:18, rwf:4680000, color:'#ef9a9a' },
+    ],
+    stats:[
+      { val:'$345',   lbl:'Cost / m²' },
+      { val:'12 wks', lbl:'Build time' },
+      { val:'10–14%', lbl:'Rental yield' },
+      { val:'R2/R3',  lbl:'Zoning' },
+    ],
+    floorPlan:{
+      W:10.0, D:6.0,
+      rooms:[
+        { x:0.25, y:0.25, w:3.25, h:3.0,  label:'Bed 1',    sub:'10.5m²', fill:'#dce8f5' },
+        { x:0.25, y:3.5,  w:3.25, h:2.25, label:'Bed 2',    sub:'9m²',    fill:'#dce8f5' },
+        { x:3.75, y:0.25, w:4.0,  h:5.5,  label:'Living',   sub:'16m²',   fill:'#fdf3e3' },
+        { x:8.0,  y:0.25, w:1.75, h:3.0,  label:'Kitchen',  sub:'8m²',    fill:'#e8f5e9' },
+        { x:8.0,  y:3.5,  w:1.75, h:2.25, label:'Bath',     sub:'4m²',    fill:'#e0f7fa' },
+        { x:3.5,  y:2.75, w:0.5,  h:0.5,  label:'',         sub:'',       fill:'#f0f0f0' },
+      ],
+      partitions:[
+        { x1:3.5,  y1:0.25, x2:3.5,  y2:5.75 },
+        { x1:0.25, y1:3.25, x2:3.5,  y2:3.25 },
+        { x1:7.75, y1:0.25, x2:7.75, y2:5.75 },
+        { x1:7.75, y1:3.25, x2:9.75, y2:3.25 },
+      ],
+      doors:[
+        { wall:'bottom', x:1.5,  w:0.9, hinge:'r' },
+        { wall:'bottom', x:4.5,  w:0.9, hinge:'r' },
+      ],
+      windows:[
+        { wall:'left',   y:0.8,  w:0.9 },
+        { wall:'left',   y:3.9,  w:0.9 },
+        { wall:'top',    x:4.5,  w:1.2 },
+        { wall:'right',  y:0.7,  w:0.8 },
+        { wall:'right',  y:3.8,  w:0.8 },
+        { wall:'bottom', x:5.5,  w:1.0 },
+      ],
+    },
+  },
+
+  /* ── T4: $35,000 ───────────────────────────────────────────── */
+  {
+    id:'t4', price_usd:35000, price_rwf:45_500_000,
+    label:'$35,000', rwf_label:'45.5M RWF',
+    name:'3-Bed Family', tag:'Mid-Market',
+    tagline:'Three bedrooms, two bathrooms, veranda',
+    sqm:85, floors:1,
+    dims:{ W:12.0, D:7.5, H:2.8, roofH:1.1, isoScale:11 },
+    about:'A full family home with three bedrooms, a master ensuite, second bathroom, living room, dining area, kitchen and covered veranda. Full RC frame on strip footings, quality block walls, clay roof tiles, plastered and painted throughout, ceramic tiles on all floors.',
+    rooms:[
+      { label:'Master bed',   sqm:12.0, fill:'#dce8f5', dot:'#3a7bd5' },
+      { label:'Ensuite',      sqm:3.0,  fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Bedroom 2',    sqm:10.0, fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Bedroom 3',    sqm:9.0,  fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Living / dining', sqm:22.0, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Kitchen',      sqm:9.0,  fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Bathroom 2',   sqm:4.0,  fill:'#e0f7fa', dot:'#80cbc4' },
+      { label:'Hall',         sqm:7.0,  fill:'#f5f5f5', dot:'#90a4ae' },
+      { label:'Veranda',      sqm:9.0,  fill:'#f9f7f0', dot:'#bcaaa4' },
+    ],
+    spec:{
+      'Wall type':'Concrete blocks, plastered + painted',
+      'Roof type':'Clay tiles on timber truss',
+      'Floor finish':'Ceramic tiles, all rooms',
+      'Foundation':'RC strip, 700mm deep',
+      'Ceiling':'PVC ceiling boards',
+      'Build time':'14 – 18 weeks',
+      'Doors':'7 × (external + internal)',
+      'Windows':'8 × aluminium sliding',
+      'Plumbing':'Full hot & cold, 2 WCs, 2 showers',
+      'Electrical':'Full wiring, MCB, outdoor point',
+    },
+    materials:[
+      { label:'Foundation & slab',   pct:12, rwf:5460000,  color:'#8d6e63' },
+      { label:'RC frame',            pct:15, rwf:6825000,  color:'#5c9bd6' },
+      { label:'Walling + plaster',   pct:16, rwf:7280000,  color:'#a1887f' },
+      { label:'Roof (clay tiles)',    pct:13, rwf:5915000,  color:'#78909c' },
+      { label:'Doors & windows',     pct:9,  rwf:4095000,  color:'#90a4ae' },
+      { label:'Plumbing + kitchen',  pct:11, rwf:5005000,  color:'#4db6ac' },
+      { label:'Electrical',          pct:4,  rwf:1820000,  color:'#ffa726' },
+      { label:'Finishes + ceiling',  pct:8,  rwf:3640000,  color:'#ce93d8' },
+      { label:'Labour',              pct:12, rwf:5460000,  color:'#ef9a9a' },
+    ],
+    stats:[
+      { val:'$412',   lbl:'Cost / m²' },
+      { val:'16 wks', lbl:'Build time' },
+      { val:'9–13%',  lbl:'Rental yield' },
+      { val:'R3',     lbl:'Zoning' },
+    ],
+    floorPlan:{
+      W:12.0, D:7.5,
+      rooms:[
+        { x:0.25, y:0.25, w:3.75, h:4.0,  label:'Master',  sub:'12m²',  fill:'#dce8f5' },
+        { x:0.25, y:4.5,  w:1.75, h:2.75, label:'Ensuite', sub:'3m²',   fill:'#e0f7fa' },
+        { x:4.25, y:0.25, w:3.5,  h:3.5,  label:'Bed 2',   sub:'10m²',  fill:'#dce8f5' },
+        { x:4.25, y:4.0,  w:3.0,  h:3.25, label:'Bed 3',   sub:'9m²',   fill:'#dce8f5' },
+        { x:8.0,  y:0.25, w:3.75, h:4.75, label:'Living',  sub:'22m²',  fill:'#fdf3e3' },
+        { x:8.0,  y:5.25, w:3.75, h:2.0,  label:'Kitchen', sub:'9m²',   fill:'#e8f5e9' },
+        { x:2.25, y:4.5,  w:1.75, h:2.75, label:'Bath 2',  sub:'4m²',   fill:'#e0f7fa' },
+        { x:0.25, y:0.0,  w:11.5, h:0.0,  label:'',        sub:'',      fill:'#f9f7f0' },
+      ],
+      partitions:[
+        { x1:4.0,  y1:0.25, x2:4.0,  y2:7.25 },
+        { x1:7.75, y1:0.25, x2:7.75, y2:7.25 },
+        { x1:0.25, y1:4.25, x2:4.0,  y2:4.25 },
+        { x1:4.0,  y1:3.75, x2:7.75, y2:3.75 },
+        { x1:7.75, y1:5.0,  x2:11.75,y2:5.0  },
+        { x1:0.25, y1:4.25, x2:0.25, y2:4.25 },
+        { x1:2.0,  y1:4.25, x2:2.0,  y2:7.25 },
+      ],
+      doors:[
+        { wall:'top',    x:5.0,  w:0.9, hinge:'r' },
+        { wall:'bottom', x:9.5,  w:0.9, hinge:'l' },
+      ],
+      windows:[
+        { wall:'left',   y:1.0,  w:1.2 },
+        { wall:'left',   y:5.0,  w:0.9 },
+        { wall:'top',    x:4.8,  w:1.0 },
+        { wall:'top',    x:9.0,  w:1.2 },
+        { wall:'right',  y:1.2,  w:1.2 },
+        { wall:'right',  y:5.5,  w:0.9 },
+        { wall:'bottom', x:5.5,  w:1.0 },
+        { wall:'bottom', x:10.0, w:0.9 },
+      ],
+    },
+  },
+
+  /* ── T5: $50,000 ───────────────────────────────────────────── */
+  {
+    id:'t5', price_usd:50000, price_rwf:65_000_000,
+    label:'$50,000', rwf_label:'65M RWF',
+    name:'3-Bed Quality', tag:'Premium Mid',
+    tagline:'Master ensuite · open-plan living · covered veranda',
+    sqm:112, floors:1,
+    dims:{ W:14.0, D:8.5, H:3.0, roofH:1.2, isoScale:9 },
+    about:'A high-quality family home with master bed plus ensuite, two further bedrooms, open-plan living and dining, fitted kitchen, second bathroom, and a 14m-wide covered veranda. Full RC frame, porcelain floor tiles, fitted kitchen, aluminium double-glazed windows, quality clay tile roof.',
+    rooms:[
+      { label:'Master bed',    sqm:14.0, fill:'#dce8f5', dot:'#3a7bd5' },
+      { label:'Master ensuite',sqm:4.5,  fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Bedroom 2',     sqm:12.0, fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Bedroom 3',     sqm:11.0, fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Living',        sqm:22.0, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Dining',        sqm:12.0, fill:'#fdf3e3', dot:'#ffcc80' },
+      { label:'Kitchen',       sqm:12.0, fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Bathroom 2',    sqm:5.0,  fill:'#e0f7fa', dot:'#80cbc4' },
+      { label:'Hall / circ.',  sqm:8.0,  fill:'#f5f5f5', dot:'#90a4ae' },
+      { label:'Veranda',       sqm:14.0, fill:'#f9f7f0', dot:'#bcaaa4' },
+    ],
+    spec:{
+      'Wall type':'RC frame, quality block, render',
+      'Roof type':'Clay tiles, hip roof',
+      'Floor finish':'Porcelain tiles throughout',
+      'Foundation':'RC raft slab, 200mm',
+      'Ceiling':'Suspended plasterboard',
+      'Build time':'18 – 22 weeks',
+      'Doors':'8 × (external + internal)',
+      'Windows':'10 × aluminium double-glazed',
+      'Plumbing':'Full hot & cold, 2 WC, 2 showers, bath',
+      'Electrical':'Full wiring, load centre, outdoor lighting',
+    },
+    materials:[
+      { label:'Foundation & raft',    pct:11, rwf:7150000,  color:'#8d6e63' },
+      { label:'RC frame',             pct:16, rwf:10400000, color:'#5c9bd6' },
+      { label:'Walling + render',     pct:14, rwf:9100000,  color:'#a1887f' },
+      { label:'Roof (clay hip)',       pct:13, rwf:8450000,  color:'#78909c' },
+      { label:'Doors & windows',      pct:10, rwf:6500000,  color:'#90a4ae' },
+      { label:'Plumbing + kitchen',   pct:14, rwf:9100000,  color:'#4db6ac' },
+      { label:'Electrical + data',    pct:6,  rwf:3900000,  color:'#ffa726' },
+      { label:'Finishes + ceilings',  pct:9,  rwf:5850000,  color:'#ce93d8' },
+      { label:'Labour',               pct:7,  rwf:4550000,  color:'#ef9a9a' },
+    ],
+    stats:[
+      { val:'$446',   lbl:'Cost / m²' },
+      { val:'20 wks', lbl:'Build time' },
+      { val:'8–11%',  lbl:'Rental yield' },
+      { val:'R3/R4',  lbl:'Zoning' },
+    ],
+    floorPlan:{
+      W:14.0, D:8.5,
+      rooms:[
+        { x:0.25, y:0.25, w:4.5,  h:4.5,  label:'Master',   sub:'14m²',  fill:'#dce8f5' },
+        { x:0.25, y:5.0,  w:2.25, h:3.25, label:'Ensuite',  sub:'4.5m²', fill:'#e0f7fa' },
+        { x:5.0,  y:0.25, w:3.75, h:4.0,  label:'Bed 2',    sub:'12m²',  fill:'#dce8f5' },
+        { x:5.0,  y:4.5,  w:3.5,  h:3.75, label:'Bed 3',    sub:'11m²',  fill:'#dce8f5' },
+        { x:9.0,  y:0.25, w:4.75, h:4.0,  label:'Living',   sub:'22m²',  fill:'#fdf3e3' },
+        { x:9.0,  y:4.5,  w:2.5,  h:3.75, label:'Dining',   sub:'12m²',  fill:'#fdf3e3' },
+        { x:11.75,y:4.5,  w:2.0,  h:3.75, label:'Kitchen',  sub:'12m²',  fill:'#e8f5e9' },
+        { x:2.75, y:5.0,  w:2.0,  h:3.25, label:'Bath 2',   sub:'5m²',   fill:'#e0f7fa' },
+      ],
+      partitions:[
+        { x1:4.75, y1:0.25, x2:4.75, y2:8.25 },
+        { x1:8.75, y1:0.25, x2:8.75, y2:8.25 },
+        { x1:0.25, y1:4.75, x2:4.75, y2:4.75 },
+        { x1:4.75, y1:4.25, x2:8.75, y2:4.25 },
+        { x1:8.75, y1:4.25, x2:13.75,y2:4.25 },
+        { x1:11.5, y1:4.25, x2:11.5, y2:8.25 },
+        { x1:0.25, y1:4.75, x2:0.25, y2:4.75 },
+        { x1:2.5,  y1:4.75, x2:2.5,  y2:8.25 },
+      ],
+      doors:[
+        { wall:'top',    x:6.0,  w:0.9, hinge:'r' },
+        { wall:'bottom', x:10.5, w:0.9, hinge:'l' },
+      ],
+      windows:[
+        { wall:'left',   y:1.2,  w:1.5 },
+        { wall:'left',   y:5.5,  w:1.0 },
+        { wall:'top',    x:1.5,  w:1.2 },
+        { wall:'top',    x:6.2,  w:1.2 },
+        { wall:'top',    x:10.5, w:1.5 },
+        { wall:'right',  y:1.5,  w:1.5 },
+        { wall:'right',  y:5.5,  w:1.0 },
+        { wall:'bottom', x:6.2,  w:1.0 },
+        { wall:'bottom', x:10.5, w:1.2 },
+        { wall:'bottom', x:12.5, w:1.0 },
+      ],
+    },
+  },
+
+  /* ── T6: $100,000 ──────────────────────────────────────────── */
+  {
+    id:'t6', price_usd:100000, price_rwf:130_000_000,
+    label:'$100,000', rwf_label:'130M RWF',
+    name:'4-Bed Premium', tag:'Premium',
+    tagline:'Four bedrooms · three bathrooms · carport · premium finishes',
+    sqm:168, floors:1,
+    dims:{ W:17.0, D:10.5, H:3.0, roofH:1.3, isoScale:7 },
+    about:'A premium family residence with four bedrooms (master plus two ensuites), open-plan lounge and dining, study/home office, fitted kitchen with island, utility room, three bathrooms, a deep covered veranda and double carport. Full RC frame, premium porcelain and granite finishes, fitted joinery throughout.',
+    rooms:[
+      { label:'Master + WIC',   sqm:18.0, fill:'#dce8f5', dot:'#3a7bd5' },
+      { label:'Master ensuite', sqm:6.5,  fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Bedroom 2 + ensuite', sqm:16.0, fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Bedroom 3',      sqm:13.0, fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Bedroom 4 / study', sqm:12.0, fill:'#dce8f5', dot:'#7986cb' },
+      { label:'Lounge',         sqm:28.0, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Dining',         sqm:16.0, fill:'#fdf3e3', dot:'#ffcc80' },
+      { label:'Kitchen',        sqm:16.0, fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Bathroom 3',     sqm:6.0,  fill:'#e0f7fa', dot:'#80cbc4' },
+      { label:'Hall + circ.',   sqm:14.0, fill:'#f5f5f5', dot:'#90a4ae' },
+      { label:'Utility room',   sqm:4.0,  fill:'#fafafa', dot:'#bdbdbd' },
+      { label:'Veranda',        sqm:20.0, fill:'#f9f7f0', dot:'#bcaaa4' },
+      { label:'Carport',        sqm:18.0, fill:'#eeeeee', dot:'#9e9e9e' },
+    ],
+    spec:{
+      'Wall type':'RC frame, quality block, premium render',
+      'Roof type':'Clay/concrete tiles, hip + flat pergola',
+      'Floor finish':'Porcelain (living) · granite (kitchen)',
+      'Foundation':'RC raft slab, 250mm',
+      'Ceiling':'Suspended plasterboard + coving',
+      'Build time':'24 – 32 weeks',
+      'Doors':'10 × (ext. pivot + int. solid)',
+      'Windows':'14 × aluminium double-glazed (large)',
+      'Plumbing':'3 full bathrooms, kitchen island, utility',
+      'Electrical':'Smart wiring, solar-ready, security circuit',
+    },
+    materials:[
+      { label:'Foundation & raft',       pct:10, rwf:13000000, color:'#8d6e63' },
+      { label:'RC frame + beams',        pct:17, rwf:22100000, color:'#5c9bd6' },
+      { label:'Walling + premium render',pct:14, rwf:18200000, color:'#a1887f' },
+      { label:'Roof + pergola',          pct:13, rwf:16900000, color:'#78909c' },
+      { label:'Doors & windows',         pct:9,  rwf:11700000, color:'#90a4ae' },
+      { label:'Plumbing + kitchen',      pct:15, rwf:19500000, color:'#4db6ac' },
+      { label:'Electrical + data',       pct:7,  rwf:9100000,  color:'#ffa726' },
+      { label:'Finishes + joinery',      pct:9,  rwf:11700000, color:'#ce93d8' },
+      { label:'Carport + landscaping',   pct:3,  rwf:3900000,  color:'#a5d6a7' },
+      { label:'Labour',                  pct:3,  rwf:3900000,  color:'#ef9a9a' },
+    ],
+    stats:[
+      { val:'$595',   lbl:'Cost / m²' },
+      { val:'28 wks', lbl:'Build time' },
+      { val:'6–9%',   lbl:'Rental yield' },
+      { val:'R4 / C', lbl:'Zoning' },
+    ],
+    floorPlan:{
+      W:17.0, D:10.5,
+      rooms:[
+        { x:0.25, y:0.25, w:5.0,  h:5.25, label:'Master',   sub:'18m²',  fill:'#dce8f5' },
+        { x:0.25, y:5.75, w:3.0,  h:4.5,  label:'Ensuite',  sub:'6.5m²', fill:'#e0f7fa' },
+        { x:5.5,  y:0.25, w:4.0,  h:4.75, label:'Bed 2',    sub:'16m²',  fill:'#dce8f5' },
+        { x:5.5,  y:5.25, w:3.75, h:5.0,  label:'Bed 3',    sub:'13m²',  fill:'#dce8f5' },
+        { x:9.75, y:0.25, w:3.5,  h:4.0,  label:'Bed 4',    sub:'12m²',  fill:'#dce8f5' },
+        { x:9.75, y:4.5,  w:7.0,  h:5.75, label:'Lounge',   sub:'28m²',  fill:'#fdf3e3' },
+        { x:13.5, y:0.25, w:3.25, h:4.0,  label:'Dining',   sub:'16m²',  fill:'#fdf3e3' },
+        { x:13.5, y:4.5,  w:3.25, h:2.5,  label:'Kitchen',  sub:'16m²',  fill:'#e8f5e9' },
+        { x:3.25, y:5.75, w:2.0,  h:4.5,  label:'Bath 3',   sub:'6m²',   fill:'#e0f7fa' },
+        { x:13.5, y:7.25, w:3.25, h:3.0,  label:'Utility',  sub:'4m²',   fill:'#fafafa' },
+      ],
+      partitions:[
+        { x1:5.25, y1:0.25, x2:5.25,  y2:10.25 },
+        { x1:9.5,  y1:0.25, x2:9.5,   y2:10.25 },
+        { x1:13.25,y1:0.25, x2:13.25, y2:10.25 },
+        { x1:0.25, y1:5.5,  x2:5.25,  y2:5.5   },
+        { x1:5.25, y1:5.0,  x2:9.5,   y2:5.0   },
+        { x1:9.5,  y1:4.25, x2:13.25, y2:4.25  },
+        { x1:13.25,y1:4.25, x2:16.75, y2:4.25  },
+        { x1:13.25,y1:7.0,  x2:16.75, y2:7.0   },
+        { x1:3.0,  y1:5.5,  x2:3.0,   y2:10.25 },
+      ],
+      doors:[
+        { wall:'top',    x:7.5,  w:1.0, hinge:'r' },
+        { wall:'bottom', x:12.0, w:1.0, hinge:'l' },
+      ],
+      windows:[
+        { wall:'left',   y:1.5,  w:1.5 },
+        { wall:'left',   y:6.5,  w:1.2 },
+        { wall:'top',    x:1.5,  w:1.5 },
+        { wall:'top',    x:6.5,  w:1.2 },
+        { wall:'top',    x:10.5, w:1.2 },
+        { wall:'top',    x:14.5, w:1.5 },
+        { wall:'right',  y:1.5,  w:1.5 },
+        { wall:'right',  y:5.5,  w:1.5 },
+        { wall:'right',  y:8.5,  w:1.2 },
+        { wall:'bottom', x:2.0,  w:1.0 },
+        { wall:'bottom', x:7.5,  w:1.2 },
+        { wall:'bottom', x:10.5, w:1.5 },
+        { wall:'bottom', x:14.0, w:1.5 },
+        { wall:'bottom', x:12.0, w:1.0 },
+      ],
+    },
+  },
+];
+
+/* ══════════════════════════════════════════════════════════════
+   RENDER FUNCTIONS
+══════════════════════════════════════════════════════════════ */
+
+function renderPills() {
+  const el = document.getElementById('tierPills');
+  el.innerHTML = TIERS.map(t => `
+    <button class="cat-tier-pill" data-id="${t.id}" onclick="selectTier('${t.id}')">
+      <span class="ctp-price">${t.label}</span>
+      <span class="ctp-name">${t.name}</span>
+      <span class="ctp-sqm">${t.sqm} m²</span>
+    </button>`).join('');
+}
+
+function selectTier(id) {
+  document.querySelectorAll('.cat-tier-pill').forEach(p =>
+    p.classList.toggle('active', p.dataset.id === id));
+  const tier = TIERS.find(t => t.id === id);
+  if (!tier) return;
+  renderTierContent(tier);
+}
+
+function fmtRWF(n) {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M RWF';
+  return (n / 1000).toFixed(0) + 'k RWF';
+}
+
+function renderTierContent(tier) {
+  const stage = document.getElementById('tierStage');
+
+  // Build rooms HTML
+  const roomsHTML = tier.rooms.map(r =>
+    `<div class="cat-room-item">
+       <span class="cat-room-dot" style="background:${r.dot}"></span>
+       <span class="cat-room-name">${r.label}</span>
+       <span class="cat-room-sqm">${r.sqm}m²</span>
+     </div>`).join('');
+
+  // Build spec grid HTML
+  const specHTML = Object.entries(tier.spec).map(([k,v]) =>
+    `<div class="cat-spec-row"><span class="cat-spec-k">${k}</span><span class="cat-spec-v">${v}</span></div>`
+  ).join('');
+
+  // Build material bar + legend
+  const matBarHTML = tier.materials.map(m =>
+    `<div class="cat-mat-seg" style="flex:${m.pct};background:${m.color}"></div>`).join('');
+  const matLegHTML = tier.materials.map(m =>
+    `<div class="cat-mat-leg-item">
+       <span class="cat-mat-leg-dot" style="background:${m.color}"></span>
+       <span class="cat-mat-leg-text">${m.label}</span>
+       <span class="cat-mat-leg-pct">${m.pct}%</span>
+     </div>`).join('');
+
+  // Build stats
+  const statsHTML = tier.stats.map(s =>
+    `<div class="cat-stat-card">
+       <span class="cat-stat-val">${s.val}</span>
+       <span class="cat-stat-lbl">${s.lbl}</span>
+     </div>`).join('');
+
+  stage.innerHTML = `
+  <div class="cat-tier-panel active" id="panel-${tier.id}">
+
+    <!-- LEFT: Visuals -->
+    <div class="cat-visuals">
+      <div class="cat-vis-card">
+        <div class="cat-vis-label">3D Isometric View</div>
+        <div class="cat-iso-wrap">
+          <svg id="iso-svg-${tier.id}" viewBox="0 0 440 340" style="width:100%;max-width:440px;height:auto"></svg>
+        </div>
+      </div>
+      <div class="cat-vis-card">
+        <div class="cat-vis-label">Floor Plan — Schematic</div>
+        <div class="cat-plan-wrap">
+          <svg id="plan-svg-${tier.id}" style="width:100%;height:auto;max-width:420px"></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Info -->
+    <div class="cat-info">
+      <div class="cat-tier-header">
+        <div class="cat-tier-tag">${tier.tag}</div>
+        <div class="cat-tier-name">${tier.name}</div>
+        <div class="cat-tier-tagline">${tier.tagline}</div>
+        <div class="cat-tier-price-row">
+          <span class="cat-tier-usd">${tier.label}</span>
+          <span class="cat-tier-rwf">≈ ${tier.rwf_label}</span>
+        </div>
+      </div>
+
+      <p class="cat-about">${tier.about}</p>
+
+      <div class="cat-section">
+        <div class="cat-sec-head">🏠 Rooms &amp; Areas</div>
+        <div class="cat-sec-body">
+          <div class="cat-rooms">${roomsHTML}</div>
+          <div style="margin-top:0.6rem;font-size:0.63rem;color:rgba(245,240,232,0.28);font-style:italic;">
+            Total gross internal area: <strong style="color:rgba(245,240,232,0.5)">${tier.sqm} m²</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="cat-section">
+        <div class="cat-sec-head">⚙️ Construction Specification</div>
+        <div class="cat-sec-body">
+          <div class="cat-spec-grid">${specHTML}</div>
+        </div>
+      </div>
+
+      <div class="cat-section">
+        <div class="cat-sec-head">🧱 Build Cost Breakdown</div>
+        <div class="cat-sec-body">
+          <div class="cat-mat-bar">${matBarHTML}</div>
+          <div class="cat-mat-legend">${matLegHTML}</div>
+          <div style="margin-top:0.75rem;font-size:0.65rem;color:rgba(245,240,232,0.32);">
+            Total build cost: <span style="color:var(--gold);font-family:'Syne',sans-serif;font-weight:700">${tier.label}</span>
+            &nbsp;·&nbsp; ${tier.rwf_label}
+            &nbsp;·&nbsp; $${Math.round(tier.price_usd/tier.sqm).toLocaleString()}/m²
+          </div>
+        </div>
+      </div>
+
+      <div class="cat-section">
+        <div class="cat-sec-head">📊 Key Metrics</div>
+        <div class="cat-sec-body">
+          <div class="cat-stats-row">${statsHTML}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // Render the visuals
+  drawIso(document.getElementById(`iso-svg-${tier.id}`), tier);
+  drawFloorPlan(document.getElementById(`plan-svg-${tier.id}`), tier.floorPlan);
+}
+
+/* ── 3D Building View ────────────────────────────────────────────
+   Uses CAVALIER OBLIQUE projection — the same technique used in
+   architectural illustrations and property infographics.
+
+   WHY not isometric:
+   Standard isometric has x-right-down, y-left-down, z-up.
+   For a wide flat building, moving "into" the scene (larger y)
+   causes screen-y to INCREASE (go DOWN), fighting against the
+   roof height going UP. For any building where D/4 > roofH the
+   ridge appears BELOW the wall tops — producing the broken shapes
+   seen previously.
+
+   CAVALIER OBLIQUE:
+   • Front face: drawn straight (no horizontal distortion)
+   • Depth axis: goes to the UPPER-right at 30°, ½ scale
+                 → going backward always moves things UP on screen
+   • This guarantees roof peak > wall plate for ALL building sizes.
+
+   Screen formula (ox,oy = front-left-bottom corner):
+     sx = ox  +  x·s  +  d·Dx·s
+     sy = oy  −  z·s  −  d·Dy·s    (depth pushes things UP)
+
+   where Dx = cos30°·0.5 = 0.433,  Dy = sin30°·0.5 = 0.25
+   ─────────────────────────────────────────────────────────────── */
+function drawIso(svgEl, tier) {
+  const { W, D, H } = tier.dims;
+  // Roof height: exaggerate slightly so it reads clearly at small sizes
+  const rH = Math.max(tier.dims.roofH * 1.8, H * 0.55);
+
+  const SVG_W = 440, SVG_H = 320, PAD = 34;
+
+  // Depth-axis components (cavalier 30°, 0.5× compression)
+  const Dx = 0.433; // screen-x shift per metre of depth per unit scale
+  const Dy = 0.25;  // screen-y shift UP per metre of depth per unit scale
+
+  // Total canvas footprint of the building
+  const totW = W + D * Dx;                  // horizontal span
+  const totH = H + rH + D * Dy;            // vertical span (bottom to peak)
+
+  const s = Math.min(
+    (SVG_W - PAD * 2) / totW,
+    (SVG_H - PAD * 2) / totH,
+    42   // cap so small houses don't become enormous
+  );
+
+  // Front-left-bottom corner of the building in screen space
+  const ox = PAD;
+  const oy = SVG_H - PAD;
+
+  // 3D → screen   (x = left→right, d = front→back, z = bottom→top)
+  function P(x, d, z) {
+    return `${(ox + x*s + d*Dx*s).toFixed(1)},${(oy - z*s - d*Dy*s).toFixed(1)}`;
+  }
+
+  function poly(pts, fill, stroke = 'rgba(0,0,0,0.22)', sw = 1) {
+    return `<polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  }
+  function seg(a, b, stroke = 'rgba(0,0,0,0.28)', sw = 0.9) {
+    const [ax,ay] = a.split(','), [bx,by] = b.split(',');
+    return `<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round"/>`;
+  }
+
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  // Palette
+  const WF  = dark ? '#8ab4cc' : '#a8c8de'; // front wall
+  const WR  = dark ? '#5a8298' : '#7aa2b8'; // right / depth face (darker)
+  const RF  = '#b89870';                     // roof front face (warm tan)
+  const RR  = '#8a6c48';                     // roof right face (darker tan)
+  const DC  = '#3e2a10';                     // door
+  const WG  = '#b8def2';                     // window glass
+  const WFr = '#4a7a94';                     // window frame
+
+  let svg = '';
+
+  // Ground shadow (ellipse under building)
+  const shX = (ox + W*s/2 + D*Dx*s/2).toFixed(0);
+  const shY = (oy + 6).toFixed(0);
+  svg += `<ellipse cx="${shX}" cy="${shY}" rx="${(W*s*0.52).toFixed(0)}" ry="${(8+D*Dy*s*0.4).toFixed(0)}" fill="rgba(0,0,0,0.10)" filter="url(#oblBlur)"/>`;
+
+  // ── Right / depth face ──────────────────────────────────────────
+  // Vertices: FRB → BRB → BRT → FRT
+  svg += poly([P(W,0,0), P(W,D,0), P(W,D,H), P(W,0,H)].join(' '), WR);
+
+  // Windows on right face
+  const nRW  = Math.max(1, Math.round(D / 3));
+  const rWStep = (D - 0.6) / nRW;
+  for (let i = 0; i < nRW; i++) {
+    const wd = 0.35 + i * rWStep;
+    const ww = Math.min(rWStep * 0.6, 1.0);
+    if (wd + ww < D - 0.2 && ww > 0.3) {
+      svg += poly([P(W,wd,0.85), P(W,wd+ww,0.85), P(W,wd+ww,1.85), P(W,wd,1.85)].join(' '), WG, WFr, 0.9);
+      svg += seg(P(W,wd+ww/2,0.85), P(W,wd+ww/2,1.85), WFr, 0.5);
+      svg += seg(P(W,wd,1.35),       P(W,wd+ww,1.35),   WFr, 0.5);
+    }
+  }
+
+  // ── Front face (fully facing viewer — no x distortion) ─────────
+  // Vertices: FLB → FRB → FRT → FLT
+  svg += poly([P(0,0,0), P(W,0,0), P(W,0,H), P(0,0,H)].join(' '), WF);
+
+  // Door
+  const dw = Math.min(0.9, W * 0.13), dh = Math.min(2.1, H * 0.84), dxL = W * 0.10;
+  svg += poly([P(dxL,0,0), P(dxL+dw,0,0), P(dxL+dw,0,dh), P(dxL,0,dh)].join(' '), DC, 'rgba(0,0,0,0.4)', 1);
+  // Door handle
+  svg += `<circle cx="${(ox+(dxL+dw*0.75)*s).toFixed(1)}" cy="${(oy-dh*s*0.45).toFixed(1)}" r="2.5" fill="rgba(255,230,160,0.85)"/>`;
+
+  // Front windows
+  const fwS  = dxL + dw + 0.35;
+  const fwR  = W - fwS - 0.25;
+  const nFW  = Math.max(1, Math.round(fwR / 2.5));
+  const fwSt = fwR / nFW;
+  for (let i = 0; i < nFW; i++) {
+    const wx = fwS + i * fwSt;
+    const ww = Math.min(fwSt * 0.65, 1.1);
+    if (wx + ww < W - 0.15) {
+      svg += poly([P(wx,0,0.85), P(wx+ww,0,0.85), P(wx+ww,0,1.85), P(wx,0,1.85)].join(' '), WG, WFr, 0.9);
+      svg += seg(P(wx+ww/2,0,0.85), P(wx+ww/2,0,1.85), WFr, 0.5);
+      svg += seg(P(wx,0,1.35),       P(wx+ww,0,1.35),   WFr, 0.5);
+    }
+  }
+
+  // Corner edges for crispness
+  svg += seg(P(0,0,0), P(0,0,H), 'rgba(0,0,0,0.32)', 1.2);
+  svg += seg(P(W,0,0), P(W,0,H), 'rgba(0,0,0,0.32)', 1.2);
+
+  // ── Hip (pyramid) roof ──────────────────────────────────────────
+  // Peak at centre of roof plan: (W/2, D/2, H+rH)
+  // With cavalier oblique, the peak is ALWAYS above all wall tops:
+  //   peak_sy = oy - (H+rH)*s - D/2*Dy*s  < oy - H*s = any wall top ✓
+
+  // Front face of roof (triangle): FLT → FRT → peak
+  svg += poly([P(0,0,H), P(W,0,H), P(W/2,D/2,H+rH)].join(' '), RF);
+
+  // Right face of roof (triangle): FRT → BRT → peak
+  svg += poly([P(W,0,H), P(W,D,H), P(W/2,D/2,H+rH)].join(' '), RR);
+
+  // Roof edge lines
+  svg += seg(P(0,0,H),       P(W,0,H),         'rgba(0,0,0,0.3)', 1);
+  svg += seg(P(0,0,H),       P(W/2,D/2,H+rH),  'rgba(0,0,0,0.3)', 1);
+  svg += seg(P(W,0,H),       P(W/2,D/2,H+rH),  'rgba(0,0,0,0.3)', 1);
+  svg += seg(P(W,D,H),       P(W/2,D/2,H+rH),  'rgba(0,0,0,0.28)', 0.8);
+
+  // ── Veranda for larger homes ────────────────────────────────────
+  if (W >= 10) {
+    const vd = 1.5; // veranda depth in metres (extends FORWARD, so d < 0)
+    // Veranda slab (negative depth = in front of building)
+    svg += poly([P(0,-vd,0.06), P(W,-vd,0.06), P(W,0,0.06), P(0,0,0.06)].join(' '),
+      'rgba(190,175,155,0.4)', 'rgba(140,120,90,0.4)', 0.7);
+    // Posts
+    const nP = Math.ceil(W / 3.5);
+    for (let i = 0; i <= nP; i++) {
+      const px = (W / nP) * i;
+      svg += seg(P(px,-vd,0.06), P(px,-vd,H*0.85), 'rgba(120,95,60,0.75)', 1.3);
+    }
+    svg += seg(P(0,-vd,H*0.85), P(W,-vd,H*0.85), 'rgba(120,95,60,0.55)', 1);
+  }
+
+  // Ground line
+  svg += seg(P(0,0,0), P(W,0,0), 'rgba(0,0,0,0.28)', 1.2);
+
+  // ── Sky + ground backgrounds ────────────────────────────────────
+  const skyA = dark ? '#1a2d3d' : '#cce4f5';
+  const skyB = dark ? '#0d1822' : '#e8f5fc';
+  const gnd  = dark ? '#192418' : '#c8ddc0';
+
+  svgEl.innerHTML = `
+  <defs>
+    <filter id="oblBlur"><feGaussianBlur stdDeviation="5"/></filter>
+    <linearGradient id="oblSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${skyA}"/>
+      <stop offset="100%" stop-color="${skyB}"/>
+    </linearGradient>
+  </defs>
+  <rect width="${SVG_W}" height="${SVG_H}" fill="url(#oblSky)"/>
+  <rect x="0" y="${oy}" width="${SVG_W}" height="${SVG_H - oy}" fill="${gnd}" opacity="0.35"/>
+  ${svg}`;
+}
+
+/* ── Floor Plan ──────────────────────────────────────────────── */
+function drawFloorPlan(svgEl, plan) {
+  const maxW_px = 400, maxH_px = 280;
+  const pad = 28;
+  const scaleX = (maxW_px - pad*2) / plan.W;
+  const scaleY = (maxH_px - pad*2) / plan.D;
+  const s = Math.min(scaleX, scaleY, 42);
+  const totalW = plan.W * s + pad*2;
+  const totalH = plan.D * s + pad*2;
+  const wt = Math.max(5, s * 0.22); // wall thickness
+  const halfWt = wt / 2;
+
+  svgEl.setAttribute('viewBox', `0 0 ${totalW.toFixed(0)} ${totalH.toFixed(0)}`);
+
+  function sx(x) { return pad + x * s; }
+  function sy(y) { return pad + y * s; }
+
+  let out = '';
+
+  // White background
+  out += `<rect x="0" y="0" width="${totalW.toFixed(0)}" height="${totalH.toFixed(0)}" fill="white"/>`;
+
+  // Hatch pattern for exterior
+  out += `<defs>
+    <pattern id="hatch" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(0,0,0,0.12)" stroke-width="1.5"/>
+    </pattern>
+    <pattern id="hatch2" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(38,166,154,0.15)" stroke-width="2"/>
+    </pattern>
+  </defs>`;
+
+  // Exterior shaded area (wall thickness indicator)
+  out += `<rect x="${(pad-halfWt/2).toFixed(1)}" y="${(pad-halfWt/2).toFixed(1)}" width="${(plan.W*s+halfWt).toFixed(1)}" height="${(plan.D*s+halfWt).toFixed(1)}" fill="url(#hatch)" rx="1"/>`;
+
+  // Room fills
+  for (const r of plan.rooms) {
+    if (!r.w || !r.h) continue;
+    out += `<rect x="${sx(r.x).toFixed(1)}" y="${sy(r.y).toFixed(1)}" width="${(r.w*s).toFixed(1)}" height="${(r.h*s).toFixed(1)}" fill="${r.fill}" stroke="none"/>`;
+  }
+
+  // Partition walls
+  for (const p of (plan.partitions || [])) {
+    out += `<line x1="${sx(p.x1).toFixed(1)}" y1="${sy(p.y1).toFixed(1)}" x2="${sx(p.x2).toFixed(1)}" y2="${sy(p.y2).toFixed(1)}" stroke="#1a1a2e" stroke-width="${(wt*0.55).toFixed(1)}" stroke-linecap="square"/>`;
+  }
+
+  // Outer boundary
+  out += `<rect x="${pad.toFixed(1)}" y="${pad.toFixed(1)}" width="${(plan.W*s).toFixed(1)}" height="${(plan.D*s).toFixed(1)}" fill="none" stroke="#1a1a2e" stroke-width="${wt.toFixed(1)}"/>`;
+
+  // Windows (on outer walls — drawn as gap + hatching)
+  for (const w of (plan.windows || [])) {
+    const ww = (w.w || 0.8) * s;
+    if (w.wall === 'top') {
+      const wx = sx(w.x||0);
+      out += `<line x1="${wx.toFixed(1)}" y1="${pad.toFixed(1)}" x2="${(wx+ww).toFixed(1)}" y2="${pad.toFixed(1)}" stroke="white" stroke-width="${wt.toFixed(1)}"/>`;
+      out += `<line x1="${wx.toFixed(1)}" y1="${(pad-1).toFixed(1)}" x2="${(wx+ww).toFixed(1)}" y2="${(pad-1).toFixed(1)}" stroke="#3a8fc0" stroke-width="2"/>`;
+      out += `<line x1="${(wx+ww/2).toFixed(1)}" y1="${(pad-4).toFixed(1)}" x2="${(wx+ww/2).toFixed(1)}" y2="${(pad+3).toFixed(1)}" stroke="#3a8fc0" stroke-width="0.7"/>`;
+    } else if (w.wall === 'bottom') {
+      const wy = sy(plan.D), wx = sx(w.x||0);
+      out += `<line x1="${wx.toFixed(1)}" y1="${wy.toFixed(1)}" x2="${(wx+ww).toFixed(1)}" y2="${wy.toFixed(1)}" stroke="white" stroke-width="${wt.toFixed(1)}"/>`;
+      out += `<line x1="${wx.toFixed(1)}" y1="${(wy+1).toFixed(1)}" x2="${(wx+ww).toFixed(1)}" y2="${(wy+1).toFixed(1)}" stroke="#3a8fc0" stroke-width="2"/>`;
+      out += `<line x1="${(wx+ww/2).toFixed(1)}" y1="${(wy-3).toFixed(1)}" x2="${(wx+ww/2).toFixed(1)}" y2="${(wy+4).toFixed(1)}" stroke="#3a8fc0" stroke-width="0.7"/>`;
+    } else if (w.wall === 'left') {
+      const wy = sy(w.y||0), wh = (w.w||0.8)*s;
+      out += `<line x1="${pad.toFixed(1)}" y1="${wy.toFixed(1)}" x2="${pad.toFixed(1)}" y2="${(wy+wh).toFixed(1)}" stroke="white" stroke-width="${wt.toFixed(1)}"/>`;
+      out += `<line x1="${(pad-1).toFixed(1)}" y1="${wy.toFixed(1)}" x2="${(pad-1).toFixed(1)}" y2="${(wy+wh).toFixed(1)}" stroke="#3a8fc0" stroke-width="2"/>`;
+    } else if (w.wall === 'right') {
+      const wx = sx(plan.W), wy = sy(w.y||0), wh = (w.w||0.8)*s;
+      out += `<line x1="${wx.toFixed(1)}" y1="${wy.toFixed(1)}" x2="${wx.toFixed(1)}" y2="${(wy+wh).toFixed(1)}" stroke="white" stroke-width="${wt.toFixed(1)}"/>`;
+      out += `<line x1="${(wx+1).toFixed(1)}" y1="${wy.toFixed(1)}" x2="${(wx+1).toFixed(1)}" y2="${(wy+wh).toFixed(1)}" stroke="#3a8fc0" stroke-width="2"/>`;
+    }
+  }
+
+  // Doors (gap + quarter-circle arc)
+  for (const d of (plan.doors || [])) {
+    const dw = (d.w||0.9) * s;
+    const r = dw;
+    if (d.wall === 'bottom') {
+      const dx = sx(d.x||0), dy = sy(plan.D);
+      out += `<line x1="${dx.toFixed(1)}" y1="${dy.toFixed(1)}" x2="${(dx+dw).toFixed(1)}" y2="${dy.toFixed(1)}" stroke="white" stroke-width="${(wt+2).toFixed(1)}"/>`;
+      if (d.hinge === 'r') {
+        out += `<path d="M${dx.toFixed(1)},${(dy-1).toFixed(1)} L${dx.toFixed(1)},${(dy-r).toFixed(1)}" stroke="#555" stroke-width="1" fill="none"/>`;
+        out += `<path d="M${dx.toFixed(1)},${(dy-r).toFixed(1)} A${r.toFixed(1)},${r.toFixed(1)} 0 0,1 ${(dx+dw).toFixed(1)},${(dy-1).toFixed(1)}" stroke="#555" stroke-width="0.8" fill="rgba(200,200,200,0.15)" stroke-dasharray="2,1"/>`;
+      } else {
+        out += `<path d="M${(dx+dw).toFixed(1)},${(dy-1).toFixed(1)} L${(dx+dw).toFixed(1)},${(dy-r).toFixed(1)}" stroke="#555" stroke-width="1" fill="none"/>`;
+        out += `<path d="M${(dx+dw).toFixed(1)},${(dy-r).toFixed(1)} A${r.toFixed(1)},${r.toFixed(1)} 0 0,0 ${dx.toFixed(1)},${(dy-1).toFixed(1)}" stroke="#555" stroke-width="0.8" fill="rgba(200,200,200,0.15)" stroke-dasharray="2,1"/>`;
+      }
+    } else if (d.wall === 'top') {
+      const dx = sx(d.x||0), dy = sy(0);
+      out += `<line x1="${dx.toFixed(1)}" y1="${dy.toFixed(1)}" x2="${(dx+dw).toFixed(1)}" y2="${dy.toFixed(1)}" stroke="white" stroke-width="${(wt+2).toFixed(1)}"/>`;
+      if (d.hinge === 'r') {
+        out += `<path d="M${dx.toFixed(1)},${(dy+1).toFixed(1)} L${dx.toFixed(1)},${(dy+r).toFixed(1)}" stroke="#555" stroke-width="1" fill="none"/>`;
+        out += `<path d="M${dx.toFixed(1)},${(dy+r).toFixed(1)} A${r.toFixed(1)},${r.toFixed(1)} 0 0,0 ${(dx+dw).toFixed(1)},${(dy+1).toFixed(1)}" stroke="#555" stroke-width="0.8" fill="rgba(200,200,200,0.15)" stroke-dasharray="2,1"/>`;
+      }
+    }
+  }
+
+  // Room labels
+  for (const r of plan.rooms) {
+    if (!r.w || !r.h || r.w < 0.5 || r.h < 0.5) continue;
+    const cx = sx(r.x + r.w/2), cy = sy(r.y + r.h/2);
+    const fs = Math.min(11, Math.max(7, r.w*s/6, r.h*s/5));
+    out += `<text x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" dominant-baseline="middle" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="${fs}px" fill="rgba(0,0,0,0.55)" font-weight="500">${r.label}</text>`;
+    if (r.sub && r.h*s > 30) {
+      out += `<text x="${cx.toFixed(1)}" y="${(cy+fs+2).toFixed(1)}" dominant-baseline="middle" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="${(fs-2).toFixed(0)}px" fill="rgba(0,0,0,0.3)">${r.sub}</text>`;
+    }
+  }
+
+  // Dimension annotations
+  const dOffset = 14;
+  out += `<line x1="${pad}" y1="${(pad-dOffset).toFixed(1)}" x2="${(pad+plan.W*s).toFixed(1)}" y2="${(pad-dOffset).toFixed(1)}" stroke="rgba(0,0,0,0.3)" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>`;
+  out += `<text x="${(pad + plan.W*s/2).toFixed(1)}" y="${(pad-dOffset-4).toFixed(1)}" text-anchor="middle" font-family="DM Sans" font-size="9px" fill="rgba(0,0,0,0.45)">${plan.W}m</text>`;
+
+  out += `<line x1="${(pad-dOffset).toFixed(1)}" y1="${pad}" x2="${(pad-dOffset).toFixed(1)}" y2="${(pad+plan.D*s).toFixed(1)}" stroke="rgba(0,0,0,0.3)" stroke-width="1"/>`;
+  out += `<text x="${(pad-dOffset-3).toFixed(1)}" y="${(pad + plan.D*s/2).toFixed(1)}" text-anchor="middle" font-family="DM Sans" font-size="9px" fill="rgba(0,0,0,0.45)" writing-mode="tb-rl" transform="rotate(-90, ${(pad-dOffset-3).toFixed(1)}, ${(pad+plan.D*s/2).toFixed(1)})">${plan.D}m</text>`;
+
+  // Compass indicator
+  const cx0 = totalW - 22, cy0 = totalH - 22;
+  out += `<circle cx="${cx0}" cy="${cy0}" r="12" fill="rgba(0,0,0,0.08)" stroke="rgba(0,0,0,0.2)" stroke-width="0.8"/>`;
+  out += `<path d="M${cx0},${cy0-9} L${cx0+4},${cy0+2} L${cx0},${cy0+1} L${cx0-4},${cy0+2}Z" fill="rgba(200,82,26,0.7)"/>`;
+  out += `<text x="${cx0}" y="${cy0-11}" text-anchor="middle" font-size="7px" fill="rgba(0,0,0,0.5)" font-family="DM Sans" font-weight="500">N</text>`;
+
+  svgEl.innerHTML = out;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CURSOR + THEME
+══════════════════════════════════════════════════════════════ */
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => {
+  mx=e.clientX-5; my=e.clientY-5;
+  cursor.style.transform=`translate(${mx}px,${my}px)`;
+});
+(function ar(){rx+=(mx-rx-18)*.12;ry+=(my-ry-18)*.12;ring.style.transform=`translate(${rx}px,${ry}px)`;requestAnimationFrame(ar);})();
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('imali-theme', next);
+  document.querySelector('.theme-toggle').textContent = next === 'dark' ? '☀ Light' : '☾ Dark';
+  // Re-render active tier to update ISO sky gradient
+  const activePill = document.querySelector('.cat-tier-pill.active');
+  if (activePill) selectTier(activePill.dataset.id);
+}
+
+/* ── Init ─────────────────────────────────────────────────────── */
+document.querySelector('.theme-toggle').textContent =
+  (localStorage.getItem('imali-theme')||'dark') === 'dark' ? '☀ Light' : '☾ Dark';
+
+renderPills();
+selectTier('t1'); // default to $5k on load
+</script>
+</body>
+</html>
