@@ -337,10 +337,10 @@
     <div class="cat-hero-inner">
       <div class="cat-hero-eyebrow">Rwanda Affordable Housing · 2025</div>
       <h1 class="cat-hero-title">Home <em>Catalogue</em></h1>
-      <p class="cat-hero-sub">Six build tiers from micro-studio to premium family home — each with floor plans, 3D views, material breakdowns and investment metrics. All costs are all-in build price excluding land, in Rwanda context.</p>
+      <p class="cat-hero-sub">Eight apartment types from micro-studio to premium family home — each with floor plans, 3D views, material breakdowns and investment metrics. All costs are all-in build price excluding land, in Rwanda context.</p>
       <div class="cat-hero-stats">
-        <div class="cat-hs"><span class="cat-hs-val">6</span><span class="cat-hs-lbl">Home Types</span></div>
-        <div class="cat-hs"><span class="cat-hs-val">15–168</span><span class="cat-hs-lbl">sqm Range</span></div>
+        <div class="cat-hs"><span class="cat-hs-val">8</span><span class="cat-hs-lbl">Home Types</span></div>
+        <div class="cat-hs"><span class="cat-hs-val">14–107</span><span class="cat-hs-lbl">sqm Range</span></div>
         <div class="cat-hs"><span class="cat-hs-val">150k</span><span class="cat-hs-lbl">Units Needed/yr</span></div>
         <div class="cat-hs"><span class="cat-hs-val">75k RWF</span><span class="cat-hs-lbl">Avg Cost/sqm</span></div>
       </div>
@@ -374,31 +374,31 @@ const TIERS = [
     id:'t1', price_usd:5000, price_rwf:6_500_000,
     label:'$5,000', rwf_label:'6.5M RWF',
     name:'Micro Studio', tag:'Essential',
-    tagline:'Maximum habitability on minimum footprint',
-    sqm:15, floors:2,
-    dims:{ W:3.0, D:3.5, H:4.8, roofH:0.8, isoScale:26 },
-    about:'Two vertically stacked micro-units (ideal for dense urban zones or as rental income generators). Each level is ~7.5m² with sleeping area, compact kitchen and wet room. Earth or sand blocks, corrugated iron roof. Land-efficient solution for high-density contexts.',
+    tagline:'A compact one-room home for one person',
+    sqm:14, floors:1,
+    dims:{ W:3.5, D:4.0, H:2.8, roofH:0.3 },
+    about:'A small one-room apartment with a combined living and sleeping area, a kitchenette and a bathroom. Concrete block walls and a flat concrete roof keep it simple and affordable. Ideal as a starter home or rental unit.',
     rooms:[
-      { label:'Studio (bed/sit/cook)', sqm:10.5, fill:'#fdf3e3', dot:'#d4a832' },
-      { label:'Wet room (WC + shower)', sqm:2.5, fill:'#e0f7fa', dot:'#26a69a' },
-      { label:'Kitchenette alcove', sqm:2.0, fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Living / Sleeping', sqm:9.0, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Kitchenette',       sqm:2.5, fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Bathroom',          sqm:2.5, fill:'#e0f7fa', dot:'#26a69a' },
     ],
     spec:{
-      'Wall type':'Earth/sand blocks',
-      'Roof type':'Corrugated iron (g28)',
-      'Floor finish':'Concrete screed',
-      'Foundation':'Strip, 450mm deep',
-      'Ceiling':'Open to rafters',
+      'Wall type':'Concrete blocks, plastered',
+      'Roof type':'Flat concrete slab',
+      'Floor finish':'Cement screed',
+      'Foundation':'Strip footing, 450mm',
+      'Ceiling':'Painted concrete soffit',
       'Build time':'4 – 6 weeks',
-      'Doors':'1 × external',
-      'Windows':'2 × single-glazed',
+      'Doors':'1 external + 1 bathroom',
+      'Windows':'2 × aluminium sliding',
       'Plumbing':'Cold water, WC, shower',
-      'Electrical':'2 sockets, 2 light points',
+      'Electrical':'4 sockets, 3 light points',
     },
     materials:[
       { label:'Foundation & slab',  pct:14, rwf:910000,  color:'#8d6e63' },
       { label:'Walling',            pct:20, rwf:1300000, color:'#a1887f' },
-      { label:'Roof structure',     pct:15, rwf:975000,  color:'#78909c' },
+      { label:'Roof',               pct:15, rwf:975000,  color:'#78909c' },
       { label:'Doors & windows',    pct:7,  rwf:455000,  color:'#90a4ae' },
       { label:'Plumbing',           pct:8,  rwf:520000,  color:'#4db6ac' },
       { label:'Electrical',         pct:5,  rwf:325000,  color:'#ffa726' },
@@ -406,136 +406,93 @@ const TIERS = [
       { label:'Labour',             pct:28, rwf:1820000, color:'#ef9a9a' },
     ],
     stats:[
-      { val:'$333',    lbl:'Cost / m²' },
+      { val:'$357',    lbl:'Cost / m²' },
       { val:'5 wks',   lbl:'Build time' },
       { val:'14–18%',  lbl:'Rental yield' },
       { val:'R1 / R2', lbl:'Zoning' },
     ],
     floorPlans:[
       {
-        name:'Ground Floor',
-        W:3.0, D:3.5,
+        name:'Floor Plan',
+        W:3.5, D:4.0,
         rooms:[
-          { x:0.2, y:0.2, w:2.0, h:2.95, label:'Studio', sub:'', fill:'#fdf3e3' },
-          { x:2.25, y:0.2, w:0.75, h:1.4, label:'WC+SH', sub:'', fill:'#e0f7fa' },
-          { x:2.25, y:1.7, w:0.75, h:1.45, label:'Kitchen', sub:'', fill:'#e8f5e9' },
+          { x:0.2, y:0.2, w:1.1, h:1.7, label:'Bathroom', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:2.1, w:1.1, h:1.7, label:'Kitchen', sub:'', fill:'#e8f5e9' },
+          { x:1.5, y:0.2, w:1.8, h:3.6, label:'Living / Sleeping', sub:'', fill:'#fdf3e3' },
         ],
         partitions:[
-          { x1:2.2, y1:0.2, x2:2.2, y2:3.3 },
-          { x1:2.2, y1:1.65, x2:3.0, y2:1.65 },
+          { x1:1.5, y1:0.2, x2:1.5, y2:3.8 },
+          { x1:0.2, y1:2.0, x2:1.5, y2:2.0 },
         ],
-        doors:[{ wall:'bottom', x:0.5, w:0.75, hinge:'r' }],
+        doors:[{ wall:'bottom', x:2.0, w:0.8, hinge:'r' }],
         windows:[
-          { wall:'top', x:0.6, w:0.6 },
-          { wall:'right', y:0.4, w:0.5 },
-        ],
-      },
-      {
-        name:'First Floor (Loft)',
-        W:3.0, D:3.5,
-        rooms:[
-          { x:0.2, y:0.2, w:2.6, h:3.1, label:'Sleeping Loft', sub:'', fill:'#dce8f5' },
-        ],
-        partitions:[
-          { x1:0.2, y1:1.8, x2:2.8, y2:1.8 },
-        ],
-        doors:[{ wall:'left-inner', x:0.8, w:0.6, hinge:'l', onPartition:true, partX:0.2, y:1.5 }],
-        windows:[
-          { wall:'top', x:1.0, w:0.7 },
-          { wall:'right', y:0.8, w:0.5 },
+          { wall:'top', x:2.0, w:1.2 },
+          { wall:'right', y:1.0, w:1.2 },
         ],
       },
     ],
   },
 
-  /* ── T2: $10,000 ───────────────────────────────────────────── */
+  /* ── T2: $8,000 ────────────────────────────────────────────── */
   {
-    id:'t2', price_usd:10000, price_rwf:13_000_000,
-    label:'$10,000', rwf_label:'13M RWF',
-    name:'Starter Studio', tag:'Accessible',
-    tagline:'One bedroom, proper kitchen, full bathroom',
-    sqm:32, floors:2,
-    dims:{ W:4.5, D:4.0, H:5.4, roofH:0.9, isoScale:17 },
-    about:'Two-storey starter unit. Each level features bedroom/living area (screened or open), kitchen with worktop, and bathroom with shower & WC. Hollow concrete blocks, RC columns, fibre-cement roof. Compact footprint with generous vertical space for family or rental growth.',
+    id:'t2', price_usd:8000, price_rwf:10_400_000,
+    label:'$8,000', rwf_label:'10.4M RWF',
+    name:'Studio', tag:'Essential',
+    tagline:'A larger studio with a proper kitchen and bathroom',
+    sqm:16, floors:1,
+    dims:{ W:4.0, D:4.0, H:2.8, roofH:0.3 },
+    about:'A bigger one-room apartment with a combined living and sleeping space, a proper kitchen and a bathroom. Good natural light from windows on two sides. Concrete block walls and a flat concrete roof.',
     rooms:[
-      { label:'Main room (bed/living)', sqm:19.5, fill:'#fdf3e3', dot:'#d4a832' },
-      { label:'Kitchen',               sqm:6.0,  fill:'#e8f5e9', dot:'#66bb6a' },
-      { label:'Bathroom',              sqm:3.5,  fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Living / Sleeping', sqm:8.5, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Kitchen',           sqm:4.0, fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Bathroom',          sqm:3.5, fill:'#e0f7fa', dot:'#26a69a' },
     ],
     spec:{
-      'Wall type':'Hollow concrete blocks',
-      'Roof type':'Iron sheets / fibre-cement',
-      'Floor finish':'Ceramic tiles (wet areas)',
-      'Foundation':'Strip, 500mm deep',
-      'Ceiling':'Timber boards + insulation',
-      'Build time':'6 – 8 weeks',
-      'Doors':'2 × (external + bathroom)',
-      'Windows':'4 × single-glazed',
+      'Wall type':'Concrete blocks, plastered + painted',
+      'Roof type':'Flat concrete slab',
+      'Floor finish':'Ceramic tiles',
+      'Foundation':'Strip footing, 500mm',
+      'Ceiling':'Painted concrete soffit',
+      'Build time':'5 – 7 weeks',
+      'Doors':'2 (external + bathroom)',
+      'Windows':'3 × aluminium sliding',
       'Plumbing':'Hot + cold water, WC, shower, basin',
-      'Electrical':'4 sockets, 4 light points, MCB board',
+      'Electrical':'6 sockets, 4 light points',
     },
     materials:[
-      { label:'Foundation & slab',   pct:12, rwf:1560000, color:'#8d6e63' },
-      { label:'Walling',             pct:18, rwf:2340000, color:'#a1887f' },
-      { label:'Roof + ceiling',      pct:16, rwf:2080000, color:'#78909c' },
-      { label:'Doors & windows',     pct:7,  rwf:910000,  color:'#90a4ae' },
-      { label:'Plumbing',            pct:9,  rwf:1170000, color:'#4db6ac' },
-      { label:'Kitchen fittings',    pct:5,  rwf:650000,  color:'#66bb6a' },
-      { label:'Electrical',          pct:5,  rwf:650000,  color:'#ffa726' },
-      { label:'Finishes',            pct:4,  rwf:520000,  color:'#ce93d8' },
-      { label:'Labour',              pct:24, rwf:3120000, color:'#ef9a9a' },
+      { label:'Foundation & slab',  pct:13, rwf:1352000, color:'#8d6e63' },
+      { label:'Walling',            pct:19, rwf:1976000, color:'#a1887f' },
+      { label:'Roof',               pct:14, rwf:1456000, color:'#78909c' },
+      { label:'Doors & windows',    pct:7,  rwf:728000,  color:'#90a4ae' },
+      { label:'Plumbing',           pct:9,  rwf:936000,  color:'#4db6ac' },
+      { label:'Electrical',         pct:5,  rwf:520000,  color:'#ffa726' },
+      { label:'Finishes',           pct:5,  rwf:520000,  color:'#ce93d8' },
+      { label:'Labour',             pct:28, rwf:2912000, color:'#ef9a9a' },
     ],
     stats:[
-      { val:'$313',    lbl:'Cost / m²' },
-      { val:'7 wks',   lbl:'Build time' },
-      { val:'12–16%',  lbl:'Rental yield' },
-      { val:'R2',      lbl:'Zoning' },
+      { val:'$500',   lbl:'Cost / m²' },
+      { val:'6 wks',  lbl:'Build time' },
+      { val:'13–17%', lbl:'Rental yield' },
+      { val:'R1 / R2', lbl:'Zoning' },
     ],
     floorPlans:[
       {
-        name:'Ground Floor',
-        W:4.5, D:4.0,
+        name:'Floor Plan',
+        W:4.0, D:4.0,
         rooms:[
-          { x:0.2, y:0.2, w:4.1, h:1.8, label:'Main Living', sub:'', fill:'#fdf3e3' },
-          { x:0.2, y:2.1, w:2.2, h:1.8, label:'Kitchen', sub:'', fill:'#e8f5e9' },
-          { x:2.5, y:2.1, w:1.8, h:1.8, label:'WC', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:0.2, w:2.4, h:1.9, label:'Living / Sleeping', sub:'', fill:'#fdf3e3' },
+          { x:0.2, y:2.1, w:2.4, h:1.7, label:'Kitchen', sub:'', fill:'#e8f5e9' },
+          { x:2.8, y:0.2, w:1.0, h:3.6, label:'Bathroom', sub:'', fill:'#e0f7fa' },
         ],
         partitions:[
-          { x1:0.2, y1:2.0, x2:4.3, y2:2.0 },
-          { x1:2.4, y1:2.1, x2:2.4, y2:3.9 },
+          { x1:2.6, y1:0.2, x2:2.6, y2:3.8 },
+          { x1:0.2, y1:2.0, x2:2.6, y2:2.0 },
         ],
-        doors:[
-          { wall:'bottom', x:0.6, w:0.8, hinge:'r' },
-          { wall:'right-inner', x:1.0, w:0.7, hinge:'l', onPartition:true, partX:2.4, y:2.5 },
-        ],
+        doors:[{ wall:'bottom', x:1.0, w:0.9, hinge:'r' }],
         windows:[
-          { wall:'top', x:0.7, w:0.8 },
-          { wall:'top', x:2.2, w:0.8 },
-          { wall:'right', y:0.5, w:0.7 },
-          { wall:'bottom', x:3.0, w:0.7 },
-        ],
-      },
-      {
-        name:'First Floor',
-        W:4.5, D:4.0,
-        rooms:[
-          { x:0.2, y:0.2, w:2.0, h:1.8, label:'Bedroom', sub:'', fill:'#dce8f5' },
-          { x:2.3, y:0.2, w:2.0, h:1.8, label:'Living', sub:'', fill:'#fdf3e3' },
-          { x:0.2, y:2.1, w:4.1, h:1.8, label:'Bathroom', sub:'', fill:'#e0f7fa' },
-        ],
-        partitions:[
-          { x1:2.2, y1:0.2, x2:2.2, y2:2.0 },
-          { x1:0.2, y1:2.0, x2:4.3, y2:2.0 },
-        ],
-        doors:[
-          { wall:'top', x:1.0, w:0.8, hinge:'r' },
-          { wall:'right-inner', x:0.8, w:0.7, hinge:'l', onPartition:true, partX:2.2, y:1.0 },
-        ],
-        windows:[
-          { wall:'left', y:0.5, w:0.7 },
-          { wall:'top', x:2.8, w:0.8 },
-          { wall:'right', y:0.5, w:0.7 },
-          { wall:'bottom', x:2.2, w:0.7 },
+          { wall:'top', x:0.8, w:1.4 },
+          { wall:'right', y:1.0, w:1.2 },
+          { wall:'left', y:1.0, w:1.0 },
         ],
       },
     ],
@@ -546,228 +503,175 @@ const TIERS = [
     id:'t3', price_usd:20000, price_rwf:26_000_000,
     label:'$20,000', rwf_label:'26M RWF',
     name:'2-Bed Starter', tag:'Family Entry',
-    tagline:'Two bedrooms, living room, full kitchen',
-    sqm:58, floors:2,
-    dims:{ W:5.5, D:5.0, H:5.8, roofH:1.0, isoScale:14 },
-    about:'Two-storey family starter. Ground floor: living/dining + kitchen + WC. First floor: two bedrooms + bathroom. Sand/concrete blocks, RC columns, interlocking concrete tile roof. Ideal footprint for constrained urban lots while providing full family accommodation.',
+    tagline:'A master bedroom and second bedroom over a shared living level',
+    sqm:31, floors:2,
+    dims:{ W:3.88, D:4.0, H:5.3, roofH:0.3 },
+    about:'A two-storey, two-bedroom apartment. The ground floor has an open living and dining area, a kitchen and a bathroom, with stairs leading up. Upstairs are a master bedroom and a second bedroom, sharing a landing. Concrete block walls, flat concrete roof, tiled floors.',
     rooms:[
-      { label:'Bedroom 1',   sqm:10.5, fill:'#dce8f5', dot:'#5c9bd6' },
-      { label:'Bedroom 2',   sqm:9.0,  fill:'#dce8f5', dot:'#5c9bd6' },
-      { label:'Living room', sqm:16.0, fill:'#fdf3e3', dot:'#d4a832' },
-      { label:'Kitchen',     sqm:8.0,  fill:'#e8f5e9', dot:'#66bb6a' },
-      { label:'Bathroom',    sqm:4.0,  fill:'#e0f7fa', dot:'#26a69a' },
-      { label:'Hall',        sqm:5.0,  fill:'#f5f5f5', dot:'#90a4ae' },
+      { label:'Master Bedroom', sqm:8.0, fill:'#dce8f5', dot:'#3a7bd5' },
+      { label:'Bedroom',        sqm:5.0, fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Living / Dining', sqm:9.0, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Kitchen',        sqm:3.0, fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Bathroom',       sqm:2.0, fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Landing',        sqm:4.0, fill:'#f5f5f5', dot:'#90a4ae' },
     ],
     spec:{
-      'Wall type':'Sand/concrete blocks, plastered',
-      'Roof type':'Interlocking concrete tiles',
+      'Wall type':'Concrete blocks, plastered + painted',
+      'Roof type':'Flat concrete slab',
       'Floor finish':'Ceramic tiles throughout',
-      'Foundation':'RC strip, 600mm deep',
-      'Ceiling':'Timber boards + PVC ceiling',
-      'Build time':'10 – 14 weeks',
-      'Doors':'4 × (external + internal)',
-      'Windows':'6 × louvre + sliding',
-      'Plumbing':'Full hot & cold, WC, shower, basin',
-      'Electrical':'6 sockets/room, consumer unit',
+      'Foundation':'RC strip, 550mm',
+      'Ceiling':'Painted concrete soffit',
+      'Build time':'8 – 10 weeks',
+      'Doors':'3 (external + internal)',
+      'Windows':'5 × aluminium sliding',
+      'Plumbing':'Hot + cold water, WC, shower, basin',
+      'Electrical':'Full wiring, consumer unit',
     },
     materials:[
-      { label:'Foundation & slab',  pct:12, rwf:3120000, color:'#8d6e63' },
-      { label:'RC frame (columns)', pct:7,  rwf:1820000, color:'#5c9bd6' },
-      { label:'Walling + plaster',  pct:16, rwf:4160000, color:'#a1887f' },
-      { label:'Roof',               pct:13, rwf:3380000, color:'#78909c' },
-      { label:'Doors & windows',    pct:9,  rwf:2340000, color:'#90a4ae' },
-      { label:'Plumbing + kitchen', pct:11, rwf:2860000, color:'#4db6ac' },
+      { label:'Foundation & slab',  pct:13, rwf:3380000, color:'#8d6e63' },
+      { label:'Walling',            pct:18, rwf:4680000, color:'#a1887f' },
+      { label:'Roof',               pct:14, rwf:3640000, color:'#78909c' },
+      { label:'Doors & windows',    pct:8,  rwf:2080000, color:'#90a4ae' },
+      { label:'Plumbing',           pct:9,  rwf:2340000, color:'#4db6ac' },
       { label:'Electrical',         pct:5,  rwf:1300000, color:'#ffa726' },
-      { label:'Finishes + ceiling', pct:9,  rwf:2340000, color:'#ce93d8' },
-      { label:'Labour',             pct:18, rwf:4680000, color:'#ef9a9a' },
+      { label:'Finishes',           pct:6,  rwf:1560000, color:'#ce93d8' },
+      { label:'Labour',             pct:27, rwf:7020000, color:'#ef9a9a' },
     ],
     stats:[
-      { val:'$345',   lbl:'Cost / m²' },
-      { val:'12 wks', lbl:'Build time' },
-      { val:'10–14%', lbl:'Rental yield' },
-      { val:'R2/R3',  lbl:'Zoning' },
+      { val:'$645',   lbl:'Cost / m²' },
+      { val:'9 wks',  lbl:'Build time' },
+      { val:'11–15%', lbl:'Rental yield' },
+      { val:'R2',     lbl:'Zoning' },
     ],
     floorPlans:[
       {
         name:'Ground Floor',
-        W:5.5, D:5.0,
+        W:3.88, D:4.0,
         rooms:[
-          { x:0.2, y:0.2, w:3.1, h:2.8, label:'Living/Dining', sub:'', fill:'#fdf3e3' },
-          { x:3.4, y:0.2, w:2.1, h:2.3, label:'Kitchen', sub:'', fill:'#e8f5e9' },
-          { x:3.4, y:2.6, w:2.1, h:2.2, label:'WC', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:0.2, w:3.48, h:2.4, label:'Living / Dining', sub:'', fill:'#fdf3e3' },
+          { x:0.2, y:2.6, w:1.0, h:1.2, label:'Bathroom', sub:'', fill:'#e0f7fa' },
+          { x:1.4, y:2.6, w:2.28, h:1.2, label:'Kitchen', sub:'', fill:'#e8f5e9' },
         ],
         partitions:[
-          { x1:3.3, y1:0.2, x2:3.3, y2:4.9 },
-          { x1:3.3, y1:2.5, x2:5.5, y2:2.5 },
+          { x1:0.2, y1:2.6, x2:3.68, y2:2.6 },
+          { x1:1.2, y1:2.6, x2:1.2, y2:3.8 },
         ],
-        doors:[
-          { wall:'bottom', x:1.0, w:0.8, hinge:'r' },
-          { wall:'right-inner', x:1.2, w:0.7, hinge:'l', onPartition:true, partX:3.3, y:3.0 },
-        ],
+        doors:[{ wall:'bottom', x:1.2, w:0.9, hinge:'r' }],
         windows:[
-          { wall:'left', y:0.8, w:0.8 },
-          { wall:'top', x:1.5, w:0.9 },
-          { wall:'top', x:3.7, w:0.7 },
-          { wall:'right', y:0.7, w:0.7 },
-          { wall:'bottom', x:3.8, w:0.7 },
+          { wall:'top', x:1.8, w:1.4 },
+          { wall:'right', y:1.0, w:1.4 },
         ],
       },
       {
         name:'First Floor',
-        W:5.5, D:5.0,
+        W:3.88, D:4.0,
         rooms:[
-          { x:0.2, y:0.2, w:2.5, h:2.3, label:'Bedroom 1', sub:'', fill:'#dce8f5' },
-          { x:2.8, y:0.2, w:2.5, h:2.3, label:'Bedroom 2', sub:'', fill:'#dce8f5' },
-          { x:0.2, y:2.6, w:5.1, h:2.2, label:'Bathroom', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:0.2, w:1.0, h:3.6, label:'Bedroom', sub:'', fill:'#dce8f5' },
+          { x:1.2, y:0.2, w:2.28, h:2.0, label:'Landing', sub:'', fill:'#f5f5f5' },
+          { x:1.2, y:2.4, w:2.28, h:1.4, label:'Master Bedroom', sub:'', fill:'#dce8f5' },
         ],
         partitions:[
-          { x1:2.7, y1:0.2, x2:2.7, y2:2.5 },
-          { x1:0.2, y1:2.5, x2:5.3, y2:2.5 },
+          { x1:1.0, y1:0.2, x2:1.0, y2:3.8 },
+          { x1:1.2, y1:2.2, x2:3.68, y2:2.2 },
         ],
-        doors:[
-          { wall:'top', x:1.0, w:0.8, hinge:'r' },
-          { wall:'top', x:3.0, w:0.8, hinge:'r' },
-          { wall:'bottom', x:2.5, w:0.8, hinge:'l' },
-        ],
+        doors:[{ wall:'top', x:1.6, w:0.9, hinge:'r' }],
         windows:[
-          { wall:'left', y:0.6, w:0.8 },
-          { wall:'left', y:3.0, w:0.7 },
-          { wall:'top', x:3.5, w:0.9 },
-          { wall:'right', y:0.6, w:0.8 },
-          { wall:'right', y:3.0, w:0.7 },
+          { wall:'left', y:1.0, w:1.4 },
+          { wall:'right', y:1.0, w:1.4 },
+          { wall:'right', y:3.0, w:1.0 },
         ],
       },
     ],
   },
 
-  /* ── T4: $35,000 ───────────────────────────────────────────── */
+  /* ── T4: $30,000 ───────────────────────────────────────────── */
   {
-    id:'t4', price_usd:35000, price_rwf:45_500_000,
-    label:'$35,000', rwf_label:'45.5M RWF',
-    name:'3-Bed Family', tag:'Mid-Market',
-    tagline:'Three bedrooms, two bathrooms, veranda',
-    sqm:85, floors:3,
-    dims:{ W:6.5, D:5.5, H:8.2, roofH:1.1, isoScale:11 },
-    about:'Three-storey family home. Ground floor: living/dining + kitchen + WC. First floor: two bedrooms + bathroom. Second floor: master bedroom + ensuite. Full RC frame, quality block walls, clay roof. Maximises living space on tight urban plots.',
+    id:'t4', price_usd:30000, price_rwf:39_000_000,
+    label:'$30,000', rwf_label:'39M RWF',
+    name:'2-Bed Plus', tag:'Family',
+    tagline:'Two bedrooms, two bathrooms and an open living level',
+    sqm:43, floors:2,
+    dims:{ W:5.0, D:4.3, H:5.3, roofH:0.3 },
+    about:'A two-storey, two-bedroom apartment with more space than the Starter. The ground floor has an open living and dining area with a kitchen and bathroom. Upstairs are the master bedroom, a second bedroom, a second bathroom and a landing. Concrete block walls, flat concrete roof, tiled floors throughout.',
     rooms:[
-      { label:'Master bed',   sqm:12.0, fill:'#dce8f5', dot:'#3a7bd5' },
-      { label:'Ensuite',      sqm:3.0,  fill:'#e0f7fa', dot:'#26a69a' },
-      { label:'Bedroom 2',    sqm:10.0, fill:'#dce8f5', dot:'#5c9bd6' },
-      { label:'Bedroom 3',    sqm:9.0,  fill:'#dce8f5', dot:'#5c9bd6' },
-      { label:'Living / dining', sqm:22.0, fill:'#fdf3e3', dot:'#d4a832' },
-      { label:'Kitchen',      sqm:9.0,  fill:'#e8f5e9', dot:'#66bb6a' },
-      { label:'Bathroom 2',   sqm:4.0,  fill:'#e0f7fa', dot:'#80cbc4' },
-      { label:'Hall',         sqm:7.0,  fill:'#f5f5f5', dot:'#90a4ae' },
-      { label:'Veranda',      sqm:9.0,  fill:'#f9f7f0', dot:'#bcaaa4' },
+      { label:'Master Bedroom', sqm:9.0, fill:'#dce8f5', dot:'#3a7bd5' },
+      { label:'Bedroom',        sqm:7.0,  fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Living / Dining', sqm:14.0, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Kitchen',        sqm:4.0,  fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Bathroom (Ground)', sqm:3.0,  fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Bathroom (Upper)',  sqm:2.5,  fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Landing',        sqm:3.5,  fill:'#f5f5f5', dot:'#90a4ae' },
     ],
     spec:{
       'Wall type':'Concrete blocks, plastered + painted',
-      'Roof type':'Clay tiles on timber truss',
-      'Floor finish':'Ceramic tiles, all rooms',
-      'Foundation':'RC strip, 700mm deep',
-      'Ceiling':'PVC ceiling boards',
-      'Build time':'14 – 18 weeks',
-      'Doors':'7 × (external + internal)',
-      'Windows':'8 × aluminium sliding',
-      'Plumbing':'Full hot & cold, 2 WCs, 2 showers',
-      'Electrical':'Full wiring, MCB, outdoor point',
+      'Roof type':'Flat concrete slab',
+      'Floor finish':'Ceramic tiles throughout',
+      'Foundation':'RC strip, 600mm',
+      'Ceiling':'Painted concrete soffit',
+      'Build time':'10 – 12 weeks',
+      'Doors':'4 (external + internal)',
+      'Windows':'6 × aluminium sliding',
+      'Plumbing':'Hot + cold water, WC, shower, basin',
+      'Electrical':'Full wiring, consumer unit',
     },
     materials:[
-      { label:'Foundation & slab',   pct:12, rwf:5460000,  color:'#8d6e63' },
-      { label:'RC frame',            pct:15, rwf:6825000,  color:'#5c9bd6' },
-      { label:'Walling + plaster',   pct:16, rwf:7280000,  color:'#a1887f' },
-      { label:'Roof (clay tiles)',    pct:13, rwf:5915000,  color:'#78909c' },
-      { label:'Doors & windows',     pct:9,  rwf:4095000,  color:'#90a4ae' },
-      { label:'Plumbing + kitchen',  pct:11, rwf:5005000,  color:'#4db6ac' },
-      { label:'Electrical',          pct:4,  rwf:1820000,  color:'#ffa726' },
-      { label:'Finishes + ceiling',  pct:8,  rwf:3640000,  color:'#ce93d8' },
-      { label:'Labour',              pct:12, rwf:5460000,  color:'#ef9a9a' },
+      { label:'Foundation & slab',  pct:13, rwf:5070000,  color:'#8d6e63' },
+      { label:'Walling',            pct:17, rwf:6630000,  color:'#a1887f' },
+      { label:'Roof',               pct:13, rwf:5070000,  color:'#78909c' },
+      { label:'Doors & windows',    pct:8,  rwf:3120000,  color:'#90a4ae' },
+      { label:'Plumbing',           pct:9,  rwf:3510000,  color:'#4db6ac' },
+      { label:'Electrical',         pct:5,  rwf:1950000,  color:'#ffa726' },
+      { label:'Finishes',           pct:7,  rwf:2730000,  color:'#ce93d8' },
+      { label:'Labour',             pct:28, rwf:10920000, color:'#ef9a9a' },
     ],
     stats:[
-      { val:'$412',   lbl:'Cost / m²' },
-      { val:'16 wks', lbl:'Build time' },
-      { val:'9–13%',  lbl:'Rental yield' },
-      { val:'R3',     lbl:'Zoning' },
+      { val:'$698',   lbl:'Cost / m²' },
+      { val:'11 wks', lbl:'Build time' },
+      { val:'10–14%', lbl:'Rental yield' },
+      { val:'R2',     lbl:'Zoning' },
     ],
     floorPlans:[
       {
         name:'Ground Floor',
-        W:6.5, D:5.5,
+        W:5.0, D:4.3,
         rooms:[
-          { x:0.2, y:0.2, w:4.0, h:2.8, label:'Living/Dining', sub:'', fill:'#fdf3e3' },
-          { x:4.3, y:0.2, w:2.0, h:2.3, label:'Kitchen', sub:'', fill:'#e8f5e9' },
-          { x:4.3, y:2.6, w:2.0, h:2.7, label:'WC', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:0.2, w:4.6, h:2.6, label:'Living / Dining', sub:'', fill:'#fdf3e3' },
+          { x:0.2, y:3.0, w:1.5, h:1.1, label:'Kitchen', sub:'', fill:'#e8f5e9' },
+          { x:3.3, y:3.0, w:1.5, h:1.1, label:'Bathroom', sub:'', fill:'#e0f7fa' },
         ],
         partitions:[
-          { x1:4.2, y1:0.2, x2:4.2, y2:5.3 },
-          { x1:4.2, y1:2.5, x2:6.3, y2:2.5 },
+          { x1:0.2, y1:2.8, x2:4.8, y2:2.8 },
+          { x1:1.7, y1:2.8, x2:1.7, y2:4.1 },
+          { x1:3.3, y1:2.8, x2:3.3, y2:4.1 },
         ],
-        doors:[
-          { wall:'bottom', x:1.0, w:0.8, hinge:'r' },
-          { wall:'right-inner', x:1.3, w:0.7, hinge:'l', onPartition:true, partX:4.2, y:3.0 },
-        ],
+        doors:[{ wall:'bottom', x:2.3, w:0.9, hinge:'r' }],
         windows:[
-          { wall:'left', y:0.8, w:0.8 },
-          { wall:'left', y:3.0, w:0.7 },
-          { wall:'top', x:1.5, w:0.9 },
-          { wall:'top', x:4.8, w:0.7 },
-          { wall:'right', y:0.8, w:0.8 },
-          { wall:'bottom', x:5.0, w:0.7 },
+          { wall:'top', x:1.0, w:1.6 },
+          { wall:'top', x:3.0, w:1.2 },
+          { wall:'left', y:1.0, w:1.4 },
+          { wall:'right', y:1.0, w:1.4 },
         ],
       },
       {
         name:'First Floor',
-        W:6.5, D:5.5,
+        W:5.0, D:4.3,
         rooms:[
-          { x:0.2, y:0.2, w:2.0, h:2.3, label:'Bedroom 1', sub:'', fill:'#dce8f5' },
-          { x:2.3, y:0.2, w:2.0, h:2.3, label:'Bedroom 2', sub:'', fill:'#dce8f5' },
-          { x:4.4, y:0.2, w:1.9, h:2.3, label:'Hall', sub:'', fill:'#f5f5f5' },
-          { x:0.2, y:2.6, w:6.1, h:2.7, label:'Bathroom', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:0.2, w:1.5, h:1.6, label:'Bathroom', sub:'', fill:'#e0f7fa' },
+          { x:1.9, y:0.2, w:2.9, h:1.6, label:'Landing', sub:'', fill:'#f5f5f5' },
+          { x:0.2, y:2.0, w:2.3, h:2.1, label:'Master Bedroom', sub:'', fill:'#dce8f5' },
+          { x:2.7, y:2.0, w:2.1, h:2.1, label:'Bedroom', sub:'', fill:'#dce8f5' },
         ],
         partitions:[
-          { x1:2.2, y1:0.2, x2:2.2, y2:2.5 },
-          { x1:4.3, y1:0.2, x2:4.3, y2:2.5 },
-          { x1:0.2, y1:2.5, x2:6.3, y2:2.5 },
+          { x1:1.7, y1:0.2, x2:1.7, y2:1.8 },
+          { x1:0.2, y1:1.8, x2:4.8, y2:1.8 },
+          { x1:2.5, y1:2.0, x2:2.5, y2:4.1 },
         ],
-        doors:[
-          { wall:'top', x:0.8, w:0.8, hinge:'r' },
-          { wall:'top', x:2.8, w:0.8, hinge:'r' },
-          { wall:'top', x:4.8, w:0.7, hinge:'r' },
-          { wall:'bottom', x:3.0, w:0.8, hinge:'l' },
-        ],
+        doors:[{ wall:'top', x:3.0, w:0.9, hinge:'r' }],
         windows:[
-          { wall:'left', y:0.8, w:0.8 },
-          { wall:'left', y:3.0, w:0.7 },
-          { wall:'top', x:1.5, w:0.7 },
-          { wall:'top', x:3.5, w:0.7 },
-          { wall:'right', y:0.8, w:0.7 },
-          { wall:'right', y:3.0, w:0.7 },
-        ],
-      },
-      {
-        name:'Second Floor',
-        W:6.5, D:5.5,
-        rooms:[
-          { x:0.2, y:0.2, w:3.5, h:2.3, label:'Master Bed', sub:'', fill:'#dce8f5' },
-          { x:3.8, y:0.2, w:2.5, h:2.3, label:'Ensuite', sub:'', fill:'#e0f7fa' },
-          { x:0.2, y:2.6, w:6.1, h:2.7, label:'Landing/Study', sub:'', fill:'#f9f7f0' },
-        ],
-        partitions:[
-          { x1:3.7, y1:0.2, x2:3.7, y2:2.5 },
-          { x1:0.2, y1:2.5, x2:6.3, y2:2.5 },
-        ],
-        doors:[
-          { wall:'top', x:1.2, w:0.9, hinge:'r' },
-          { wall:'top', x:4.5, w:0.7, hinge:'r' },
-          { wall:'right-inner', x:1.0, w:0.8, hinge:'l', onPartition:true, partX:3.7, y:1.3 },
-        ],
-        windows:[
-          { wall:'left', y:0.8, w:0.9 },
-          { wall:'left', y:3.0, w:0.8 },
-          { wall:'top', x:2.0, w:0.9 },
-          { wall:'top', x:4.8, w:0.7 },
-          { wall:'right', y:0.8, w:0.8 },
-          { wall:'right', y:3.0, w:0.8 },
+          { wall:'left', y:0.8, w:1.2 },
+          { wall:'left', y:2.8, w:1.4 },
+          { wall:'right', y:0.8, w:1.2 },
+          { wall:'right', y:2.8, w:1.2 },
         ],
       },
     ],
@@ -777,301 +681,407 @@ const TIERS = [
   {
     id:'t5', price_usd:50000, price_rwf:65_000_000,
     label:'$50,000', rwf_label:'65M RWF',
-    name:'3-Bed Quality', tag:'Premium Mid',
-    tagline:'Master ensuite · open-plan living · covered veranda',
-    sqm:112, floors:3,
-    dims:{ W:7.5, D:6.0, H:8.5, roofH:1.2, isoScale:9 },
-    about:'Three-storey premium family home. Ground floor: open-plan living/dining + fitted kitchen + bathroom. First floor: two bedrooms + bathroom. Second floor: master suite with ensuite + study alcove. Full RC frame, porcelain floors, aluminium windows, clay hip roof.',
+    name:'3-Bed Duplex', tag:'Family Plus',
+    tagline:'Split-level living with three bedrooms',
+    sqm:54, floors:2,
+    dims:{ W:4.0, D:4.5, H:5.3, roofH:0.3 },
+    about:'A split-level apartment with three bedrooms. The ground floor has an open living and dining area, a kitchen and a bathroom, with stairs leading up. The level above has the master bedroom, two further bedrooms, a second bathroom and a landing. Concrete block walls, flat concrete roof, tiled floors.',
     rooms:[
-      { label:'Master bed',    sqm:14.0, fill:'#dce8f5', dot:'#3a7bd5' },
-      { label:'Master ensuite',sqm:4.5,  fill:'#e0f7fa', dot:'#26a69a' },
-      { label:'Bedroom 2',     sqm:12.0, fill:'#dce8f5', dot:'#5c9bd6' },
-      { label:'Bedroom 3',     sqm:11.0, fill:'#dce8f5', dot:'#5c9bd6' },
-      { label:'Living',        sqm:22.0, fill:'#fdf3e3', dot:'#d4a832' },
-      { label:'Dining',        sqm:12.0, fill:'#fdf3e3', dot:'#ffcc80' },
-      { label:'Kitchen',       sqm:12.0, fill:'#e8f5e9', dot:'#66bb6a' },
-      { label:'Bathroom 2',    sqm:5.0,  fill:'#e0f7fa', dot:'#80cbc4' },
-      { label:'Hall / circ.',  sqm:8.0,  fill:'#f5f5f5', dot:'#90a4ae' },
-      { label:'Veranda',       sqm:14.0, fill:'#f9f7f0', dot:'#bcaaa4' },
+      { label:'Master Bedroom', sqm:9.0,  fill:'#dce8f5', dot:'#3a7bd5' },
+      { label:'Bedroom',        sqm:7.0,  fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Bedroom 2',      sqm:6.0,  fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Living / Dining', sqm:16.0, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Kitchen',        sqm:4.0,  fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Bathroom (Ground)', sqm:3.5, fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Bathroom (Upper)',  sqm:4.0, fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Landing',        sqm:4.5,  fill:'#f5f5f5', dot:'#90a4ae' },
     ],
     spec:{
-      'Wall type':'RC frame, quality block, render',
-      'Roof type':'Clay tiles, hip roof',
-      'Floor finish':'Porcelain tiles throughout',
-      'Foundation':'RC raft slab, 200mm',
-      'Ceiling':'Suspended plasterboard',
-      'Build time':'18 – 22 weeks',
-      'Doors':'8 × (external + internal)',
-      'Windows':'10 × aluminium double-glazed',
-      'Plumbing':'Full hot & cold, 2 WC, 2 showers, bath',
-      'Electrical':'Full wiring, load centre, outdoor lighting',
+      'Wall type':'Concrete blocks, plastered + painted',
+      'Roof type':'Flat concrete slab',
+      'Floor finish':'Ceramic tiles throughout',
+      'Foundation':'RC strip, 650mm',
+      'Ceiling':'Painted concrete soffit + PVC in wet areas',
+      'Build time':'12 – 16 weeks',
+      'Doors':'6 (external + internal)',
+      'Windows':'8 × aluminium sliding',
+      'Plumbing':'Hot + cold water, WC, shower, basin',
+      'Electrical':'Full wiring, consumer unit',
     },
     materials:[
-      { label:'Foundation & raft',    pct:11, rwf:7150000,  color:'#8d6e63' },
-      { label:'RC frame',             pct:16, rwf:10400000, color:'#5c9bd6' },
-      { label:'Walling + render',     pct:14, rwf:9100000,  color:'#a1887f' },
-      { label:'Roof (clay hip)',       pct:13, rwf:8450000,  color:'#78909c' },
-      { label:'Doors & windows',      pct:10, rwf:6500000,  color:'#90a4ae' },
-      { label:'Plumbing + kitchen',   pct:14, rwf:9100000,  color:'#4db6ac' },
-      { label:'Electrical + data',    pct:6,  rwf:3900000,  color:'#ffa726' },
-      { label:'Finishes + ceilings',  pct:9,  rwf:5850000,  color:'#ce93d8' },
-      { label:'Labour',               pct:7,  rwf:4550000,  color:'#ef9a9a' },
+      { label:'Foundation & slab',  pct:12, rwf:7800000,  color:'#8d6e63' },
+      { label:'Walling',            pct:17, rwf:11050000, color:'#a1887f' },
+      { label:'Roof',               pct:12, rwf:7800000,  color:'#78909c' },
+      { label:'Doors & windows',    pct:9,  rwf:5850000,  color:'#90a4ae' },
+      { label:'Plumbing',           pct:9,  rwf:5850000,  color:'#4db6ac' },
+      { label:'Electrical',         pct:5,  rwf:3250000,  color:'#ffa726' },
+      { label:'Finishes',           pct:8,  rwf:5200000,  color:'#ce93d8' },
+      { label:'Labour',             pct:28, rwf:18200000, color:'#ef9a9a' },
     ],
     stats:[
-      { val:'$446',   lbl:'Cost / m²' },
-      { val:'20 wks', lbl:'Build time' },
-      { val:'8–11%',  lbl:'Rental yield' },
-      { val:'R3/R4',  lbl:'Zoning' },
+      { val:'$926',   lbl:'Cost / m²' },
+      { val:'14 wks', lbl:'Build time' },
+      { val:'9–12%',  lbl:'Rental yield' },
+      { val:'R2/R3',  lbl:'Zoning' },
     ],
     floorPlans:[
       {
         name:'Ground Floor',
-        W:7.5, D:6.0,
+        W:4.0, D:4.5,
         rooms:[
-          { x:0.2, y:0.2, w:5.0, h:2.8, label:'Living/Dining', sub:'', fill:'#fdf3e3' },
-          { x:5.3, y:0.2, w:2.0, h:2.8, label:'Kitchen', sub:'', fill:'#e8f5e9' },
-          { x:0.2, y:3.1, w:7.1, h:2.7, label:'Bathroom', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:0.2, w:2.5, h:4.1, label:'Living / Dining', sub:'', fill:'#fdf3e3' },
+          { x:2.9, y:0.2, w:0.9, h:1.9, label:'Kitchen', sub:'', fill:'#e8f5e9' },
+          { x:2.9, y:2.3, w:0.9, h:1.8, label:'Bathroom', sub:'', fill:'#e0f7fa' },
         ],
         partitions:[
-          { x1:5.2, y1:0.2, x2:5.2, y2:3.0 },
-          { x1:0.2, y1:3.0, x2:7.3, y2:3.0 },
+          { x1:2.7, y1:0.2, x2:2.7, y2:4.3 },
+          { x1:2.9, y1:2.1, x2:3.8, y2:2.1 },
         ],
-        doors:[
-          { wall:'bottom', x:1.2, w:0.8, hinge:'r' },
-          { wall:'right-inner', x:1.5, w:0.8, hinge:'l', onPartition:true, partX:5.2, y:1.5 },
-        ],
+        doors:[{ wall:'bottom', x:1.2, w:0.9, hinge:'r' }],
         windows:[
-          { wall:'left', y:1.0, w:0.9 },
-          { wall:'left', y:3.5, w:0.8 },
-          { wall:'top', x:1.5, w:1.0 },
-          { wall:'top', x:3.5, w:0.9 },
-          { wall:'top', x:6.0, w:0.8 },
-          { wall:'right', y:1.0, w:0.8 },
-          { wall:'bottom', x:3.5, w:1.0 },
+          { wall:'left', y:1.5, w:1.6 },
+          { wall:'top', x:3.1, w:0.8 },
+          { wall:'right', y:3.0, w:1.0 },
         ],
       },
       {
-        name:'First Floor',
-        W:7.5, D:6.0,
+        name:'Upper Floor',
+        W:4.0, D:4.5,
         rooms:[
-          { x:0.2, y:0.2, w:3.0, h:2.6, label:'Bedroom 1', sub:'', fill:'#dce8f5' },
-          { x:3.3, y:0.2, w:3.0, h:2.6, label:'Bedroom 2', sub:'', fill:'#dce8f5' },
-          { x:6.4, y:0.2, w:0.9, h:2.6, label:'Hall', sub:'', fill:'#f5f5f5' },
-          { x:0.2, y:2.9, w:7.1, h:3.0, label:'Bathroom', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:0.2, w:1.9, h:1.8, label:'Bedroom', sub:'', fill:'#dce8f5' },
+          { x:2.1, y:0.2, w:1.7, h:1.8, label:'Bedroom 2', sub:'', fill:'#dce8f5' },
+          { x:0.2, y:2.0, w:1.9, h:2.3, label:'Bathroom', sub:'', fill:'#e0f7fa' },
+          { x:2.1, y:2.0, w:1.7, h:0.9, label:'Landing', sub:'', fill:'#f5f5f5' },
+          { x:2.1, y:2.9, w:1.7, h:1.4, label:'Master Bedroom', sub:'', fill:'#dce8f5' },
         ],
         partitions:[
-          { x1:3.2, y1:0.2, x2:3.2, y2:2.8 },
-          { x1:6.3, y1:0.2, x2:6.3, y2:2.8 },
-          { x1:0.2, y1:2.8, x2:7.3, y2:2.8 },
+          { x1:2.1, y1:0.2, x2:2.1, y2:4.3 },
+          { x1:0.2, y1:2.0, x2:3.8, y2:2.0 },
+          { x1:2.1, y1:2.9, x2:3.8, y2:2.9 },
         ],
-        doors:[
-          { wall:'top', x:1.2, w:0.8, hinge:'r' },
-          { wall:'top', x:4.0, w:0.8, hinge:'r' },
-          { wall:'top', x:6.6, w:0.6, hinge:'r' },
-          { wall:'bottom', x:3.5, w:0.9, hinge:'l' },
-        ],
+        doors:[{ wall:'top', x:2.9, w:0.9, hinge:'r' }],
         windows:[
-          { wall:'left', y:0.8, w:0.9 },
-          { wall:'left', y:3.5, w:0.8 },
-          { wall:'top', x:1.5, w:0.8 },
-          { wall:'top', x:4.5, w:0.8 },
-          { wall:'right', y:0.8, w:0.8 },
-          { wall:'right', y:3.5, w:0.8 },
-        ],
-      },
-      {
-        name:'Second Floor',
-        W:7.5, D:6.0,
-        rooms:[
-          { x:0.2, y:0.2, w:4.0, h:2.6, label:'Master Bed', sub:'', fill:'#dce8f5' },
-          { x:4.3, y:0.2, w:2.9, h:2.6, label:'Ensuite', sub:'', fill:'#e0f7fa' },
-          { x:0.2, y:2.9, w:7.1, h:3.0, label:'Landing/Study', sub:'', fill:'#f9f7f0' },
-        ],
-        partitions:[
-          { x1:4.2, y1:0.2, x2:4.2, y2:2.8 },
-          { x1:0.2, y1:2.8, x2:7.3, y2:2.8 },
-        ],
-        doors:[
-          { wall:'top', x:1.5, w:0.9, hinge:'r' },
-          { wall:'top', x:4.8, w:0.8, hinge:'r' },
-          { wall:'right-inner', x:1.2, w:0.8, hinge:'l', onPartition:true, partX:4.2, y:1.5 },
-        ],
-        windows:[
-          { wall:'left', y:0.8, w:0.9 },
-          { wall:'left', y:3.5, w:0.9 },
-          { wall:'top', x:2.0, w:0.9 },
-          { wall:'top', x:5.2, w:0.8 },
-          { wall:'right', y:0.8, w:0.8 },
-          { wall:'right', y:3.5, w:0.8 },
+          { wall:'left', y:1.0, w:1.2 },
+          { wall:'left', y:3.0, w:1.2 },
+          { wall:'right', y:1.0, w:1.2 },
+          { wall:'right', y:3.5, w:1.0 },
         ],
       },
     ],
   },
 
-  /* ── T6: $100,000 ──────────────────────────────────────────── */
+  /* ── T6: $65,000 ───────────────────────────────────────────── */
   {
-    id:'t6', price_usd:100000, price_rwf:130_000_000,
-    label:'$100,000', rwf_label:'130M RWF',
-    name:'4-Bed Premium', tag:'Premium',
-    tagline:'Four bedrooms · three bathrooms · carport · premium finishes',
-    sqm:168, floors:4,
-    dims:{ W:8.5, D:6.5, H:11.2, roofH:1.3, isoScale:7 },
-    about:'Four-storey premium residence. Ground floor: open-plan lounge/dining + fitted kitchen + guest WC. First floor: two bedrooms + bathroom. Second floor: two bedrooms + bathroom. Third floor: master suite with ensuite + study/office. Full RC frame, premium finishes, smart wiring throughout.',
+    id:'t6', price_usd:65000, price_rwf:84_500_000,
+    label:'$65,000', rwf_label:'84.5M RWF',
+    name:'3-Bed Quality', tag:'Premium Mid',
+    tagline:'Three bedrooms with quality finishes throughout',
+    sqm:63, floors:2,
+    dims:{ W:4.0, D:7.9, H:5.3, roofH:0.3 },
+    about:'A spacious two-storey, three-bedroom apartment finished to a higher standard. The ground floor has an open living and dining room, kitchen and bathroom. Upstairs are the master bedroom, two further bedrooms and a landing. Quality tiling, painted walls and aluminium windows throughout.',
     rooms:[
-      { label:'Master + WIC',   sqm:18.0, fill:'#dce8f5', dot:'#3a7bd5' },
-      { label:'Master ensuite', sqm:6.5,  fill:'#e0f7fa', dot:'#26a69a' },
-      { label:'Bedroom 2 + ensuite', sqm:16.0, fill:'#dce8f5', dot:'#5c9bd6' },
-      { label:'Bedroom 3',      sqm:13.0, fill:'#dce8f5', dot:'#5c9bd6' },
-      { label:'Bedroom 4 / study', sqm:12.0, fill:'#dce8f5', dot:'#7986cb' },
-      { label:'Lounge',         sqm:28.0, fill:'#fdf3e3', dot:'#d4a832' },
-      { label:'Dining',         sqm:16.0, fill:'#fdf3e3', dot:'#ffcc80' },
-      { label:'Kitchen',        sqm:16.0, fill:'#e8f5e9', dot:'#66bb6a' },
-      { label:'Bathroom 3',     sqm:6.0,  fill:'#e0f7fa', dot:'#80cbc4' },
-      { label:'Hall + circ.',   sqm:14.0, fill:'#f5f5f5', dot:'#90a4ae' },
-      { label:'Utility room',   sqm:4.0,  fill:'#fafafa', dot:'#bdbdbd' },
-      { label:'Veranda',        sqm:20.0, fill:'#f9f7f0', dot:'#bcaaa4' },
-      { label:'Carport',        sqm:18.0, fill:'#eeeeee', dot:'#9e9e9e' },
+      { label:'Master Bedroom', sqm:11.0, fill:'#dce8f5', dot:'#3a7bd5' },
+      { label:'Bedroom 2',      sqm:9.0,  fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Bedroom 3',      sqm:8.0,  fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Living / Dining', sqm:18.0, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Kitchen',        sqm:5.0,  fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Bathroom',       sqm:5.0,  fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Hall / Landing', sqm:7.0,  fill:'#f5f5f5', dot:'#90a4ae' },
     ],
     spec:{
-      'Wall type':'RC frame, quality block, premium render',
-      'Roof type':'Clay/concrete tiles, hip + flat pergola',
-      'Floor finish':'Porcelain (living) · granite (kitchen)',
-      'Foundation':'RC raft slab, 250mm',
-      'Ceiling':'Suspended plasterboard + coving',
-      'Build time':'24 – 32 weeks',
-      'Doors':'10 × (ext. pivot + int. solid)',
-      'Windows':'14 × aluminium double-glazed (large)',
-      'Plumbing':'3 full bathrooms, kitchen island, utility',
-      'Electrical':'Smart wiring, solar-ready, security circuit',
+      'Wall type':'Concrete blocks, plastered + painted, quality finish',
+      'Roof type':'Flat concrete slab',
+      'Floor finish':'Porcelain tiles throughout',
+      'Foundation':'RC strip, 650mm',
+      'Ceiling':'Suspended ceiling boards',
+      'Build time':'14 – 18 weeks',
+      'Doors':'7 (external + internal)',
+      'Windows':'9 × aluminium sliding',
+      'Plumbing':'Full hot & cold, WC, shower, basin',
+      'Electrical':'Full wiring, consumer unit, outdoor lighting',
     },
     materials:[
-      { label:'Foundation & raft',       pct:10, rwf:13000000, color:'#8d6e63' },
-      { label:'RC frame + beams',        pct:17, rwf:22100000, color:'#5c9bd6' },
-      { label:'Walling + premium render',pct:14, rwf:18200000, color:'#a1887f' },
-      { label:'Roof + pergola',          pct:13, rwf:16900000, color:'#78909c' },
-      { label:'Doors & windows',         pct:9,  rwf:11700000, color:'#90a4ae' },
-      { label:'Plumbing + kitchen',      pct:15, rwf:19500000, color:'#4db6ac' },
-      { label:'Electrical + data',       pct:7,  rwf:9100000,  color:'#ffa726' },
-      { label:'Finishes + joinery',      pct:9,  rwf:11700000, color:'#ce93d8' },
-      { label:'Carport + landscaping',   pct:3,  rwf:3900000,  color:'#a5d6a7' },
-      { label:'Labour',                  pct:3,  rwf:3900000,  color:'#ef9a9a' },
+      { label:'Foundation & slab',  pct:12, rwf:10140000, color:'#8d6e63' },
+      { label:'Walling',            pct:16, rwf:13520000, color:'#a1887f' },
+      { label:'Roof',               pct:12, rwf:10140000, color:'#78909c' },
+      { label:'Doors & windows',    pct:9,  rwf:7605000,  color:'#90a4ae' },
+      { label:'Plumbing',           pct:9,  rwf:7605000,  color:'#4db6ac' },
+      { label:'Electrical',         pct:6,  rwf:5070000,  color:'#ffa726' },
+      { label:'Finishes',           pct:9,  rwf:7605000,  color:'#ce93d8' },
+      { label:'Labour',             pct:27, rwf:22815000, color:'#ef9a9a' },
     ],
     stats:[
-      { val:'$595',   lbl:'Cost / m²' },
-      { val:'28 wks', lbl:'Build time' },
-      { val:'6–9%',   lbl:'Rental yield' },
-      { val:'R4 / C', lbl:'Zoning' },
+      { val:'$1,032', lbl:'Cost / m²' },
+      { val:'16 wks', lbl:'Build time' },
+      { val:'8–11%',  lbl:'Rental yield' },
+      { val:'R2/R3',  lbl:'Zoning' },
     ],
     floorPlans:[
       {
         name:'Ground Floor',
-        W:8.5, D:6.5,
+        W:4.0, D:7.9,
         rooms:[
-          { x:0.2, y:0.2, w:5.5, h:3.0, label:'Lounge/Dining', sub:'', fill:'#fdf3e3' },
-          { x:5.8, y:0.2, w:2.5, h:3.0, label:'Kitchen', sub:'', fill:'#e8f5e9' },
-          { x:0.2, y:3.3, w:8.1, h:3.0, label:'WC + Landing', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:0.2, w:3.6, h:5.1, label:'Living / Dining', sub:'', fill:'#fdf3e3' },
+          { x:0.2, y:5.5, w:1.8, h:2.0, label:'Kitchen', sub:'', fill:'#e8f5e9' },
+          { x:2.2, y:5.5, w:1.6, h:2.0, label:'Bathroom', sub:'', fill:'#e0f7fa' },
         ],
         partitions:[
-          { x1:5.7, y1:0.2, x2:5.7, y2:3.2 },
-          { x1:0.2, y1:3.2, x2:8.3, y2:3.2 },
+          { x1:0.2, y1:5.3, x2:3.8, y2:5.3 },
+          { x1:2.0, y1:5.3, x2:2.0, y2:7.5 },
         ],
-        doors:[
-          { wall:'bottom', x:1.5, w:0.9, hinge:'r' },
-          { wall:'right-inner', x:1.5, w:0.8, hinge:'l', onPartition:true, partX:5.7, y:1.7 },
-        ],
+        doors:[{ wall:'bottom', x:1.4, w:1.0, hinge:'r' }],
         windows:[
-          { wall:'left', y:1.0, w:1.0 },
-          { wall:'left', y:4.0, w:0.9 },
-          { wall:'top', x:2.0, w:1.1 },
-          { wall:'top', x:6.5, w:0.9 },
-          { wall:'right', y:1.0, w:0.9 },
-          { wall:'bottom', x:4.0, w:1.0 },
+          { wall:'top', x:1.0, w:1.6 },
+          { wall:'left', y:1.5, w:1.6 },
+          { wall:'right', y:1.5, w:1.6 },
+          { wall:'left', y:4.0, w:1.4 },
+          { wall:'right', y:4.0, w:1.4 },
         ],
       },
       {
         name:'First Floor',
-        W:8.5, D:6.5,
+        W:4.0, D:7.9,
         rooms:[
-          { x:0.2, y:0.2, w:3.5, h:2.8, label:'Bedroom 1', sub:'', fill:'#dce8f5' },
-          { x:3.8, y:0.2, w:3.5, h:2.8, label:'Bedroom 2', sub:'', fill:'#dce8f5' },
-          { x:7.4, y:0.2, w:0.9, h:2.8, label:'Hall', sub:'', fill:'#f5f5f5' },
-          { x:0.2, y:3.1, w:8.1, h:3.2, label:'Bathroom', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:0.2, w:3.6, h:2.8, label:'Master Bedroom', sub:'', fill:'#dce8f5' },
+          { x:0.2, y:3.2, w:3.6, h:2.0, label:'Bedroom 2', sub:'', fill:'#dce8f5' },
+          { x:0.2, y:5.4, w:2.2, h:2.1, label:'Bedroom 3', sub:'', fill:'#dce8f5' },
+          { x:2.6, y:5.4, w:1.2, h:2.1, label:'Hall / Landing', sub:'', fill:'#f5f5f5' },
         ],
         partitions:[
-          { x1:3.7, y1:0.2, x2:3.7, y2:3.0 },
-          { x1:7.3, y1:0.2, x2:7.3, y2:3.0 },
-          { x1:0.2, y1:3.0, x2:8.3, y2:3.0 },
+          { x1:0.2, y1:3.0, x2:3.8, y2:3.0 },
+          { x1:0.2, y1:5.2, x2:3.8, y2:5.2 },
+          { x1:2.4, y1:5.2, x2:2.4, y2:7.5 },
         ],
-        doors:[
-          { wall:'top', x:1.2, w:0.9, hinge:'r' },
-          { wall:'top', x:4.5, w:0.9, hinge:'r' },
-          { wall:'top', x:7.5, w:0.7, hinge:'r' },
-          { wall:'bottom', x:4.0, w:0.9, hinge:'l' },
-        ],
+        doors:[{ wall:'top', x:1.4, w:1.0, hinge:'r' }],
         windows:[
-          { wall:'left', y:1.0, w:0.9 },
-          { wall:'left', y:4.0, w:0.8 },
-          { wall:'top', x:1.5, w:0.9 },
-          { wall:'top', x:5.0, w:0.9 },
-          { wall:'right', y:1.0, w:0.8 },
-          { wall:'right', y:4.0, w:0.8 },
+          { wall:'left', y:1.5, w:1.6 },
+          { wall:'right', y:1.5, w:1.6 },
+          { wall:'left', y:4.0, w:1.6 },
+          { wall:'right', y:4.0, w:1.6 },
+          { wall:'left', y:6.5, w:1.2 },
+        ],
+      },
+    ],
+  },
+
+  /* ── T7: $85,000 ───────────────────────────────────────────── */
+  {
+    id:'t7', price_usd:85000, price_rwf:110_500_000,
+    label:'$85,000', rwf_label:'110.5M RWF',
+    name:'4-Bed Duplex', tag:'Premium',
+    tagline:'Four bedrooms across two floors for larger families',
+    sqm:81, floors:2,
+    dims:{ W:4.5, D:9.0, H:5.3, roofH:0.3 },
+    about:'A large two-storey apartment with four bedrooms. The ground floor has an open living and dining area, a full kitchen, a bathroom and a storage room. Upstairs is the master bedroom with its own ensuite, plus three further bedrooms sharing a landing. Quality finishes throughout, with extra storage space.',
+    rooms:[
+      { label:'Master Bedroom', sqm:10.0, fill:'#dce8f5', dot:'#3a7bd5' },
+      { label:'Master Ensuite', sqm:3.5,  fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Bedroom 2',      sqm:8.0,  fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Bedroom 3',      sqm:8.0,  fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Bedroom 4',      sqm:8.0,  fill:'#dce8f5', dot:'#7986cb' },
+      { label:'Living / Dining', sqm:21.0, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Kitchen',        sqm:6.0,  fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Bathroom',       sqm:5.0,  fill:'#e0f7fa', dot:'#80cbc4' },
+      { label:'Storage',        sqm:2.5,  fill:'#f9f7f0', dot:'#bcaaa4' },
+      { label:'Hall / Landing', sqm:9.0,  fill:'#f5f5f5', dot:'#90a4ae' },
+    ],
+    spec:{
+      'Wall type':'Concrete blocks, plastered + painted, quality finish',
+      'Roof type':'Flat concrete slab',
+      'Floor finish':'Porcelain tiles throughout',
+      'Foundation':'RC strip, 700mm',
+      'Ceiling':'Suspended ceiling boards',
+      'Build time':'18 – 22 weeks',
+      'Doors':'9 (external + internal)',
+      'Windows':'12 × aluminium sliding',
+      'Plumbing':'Full hot & cold, 2 bathrooms',
+      'Electrical':'Full wiring, consumer unit, outdoor lighting',
+    },
+    materials:[
+      { label:'Foundation & slab',  pct:12, rwf:13260000, color:'#8d6e63' },
+      { label:'Walling',            pct:16, rwf:17680000, color:'#a1887f' },
+      { label:'Roof',               pct:12, rwf:13260000, color:'#78909c' },
+      { label:'Doors & windows',    pct:9,  rwf:9945000,  color:'#90a4ae' },
+      { label:'Plumbing',           pct:10, rwf:11050000, color:'#4db6ac' },
+      { label:'Electrical',         pct:6,  rwf:6630000,  color:'#ffa726' },
+      { label:'Finishes',           pct:9,  rwf:9945000,  color:'#ce93d8' },
+      { label:'Labour',             pct:26, rwf:28730000, color:'#ef9a9a' },
+    ],
+    stats:[
+      { val:'$1,049', lbl:'Cost / m²' },
+      { val:'20 wks', lbl:'Build time' },
+      { val:'7–10%',  lbl:'Rental yield' },
+      { val:'R3',     lbl:'Zoning' },
+    ],
+    floorPlans:[
+      {
+        name:'Ground Floor',
+        W:4.5, D:9.0,
+        rooms:[
+          { x:0.2, y:0.2, w:4.1, h:5.1, label:'Living / Dining', sub:'', fill:'#fdf3e3' },
+          { x:0.2, y:5.5, w:2.0, h:2.0, label:'Kitchen', sub:'', fill:'#e8f5e9' },
+          { x:2.4, y:5.5, w:1.9, h:2.0, label:'Bathroom', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:7.7, w:4.1, h:1.1, label:'Storage', sub:'', fill:'#f9f7f0' },
+        ],
+        partitions:[
+          { x1:0.2, y1:5.3, x2:4.3, y2:5.3 },
+          { x1:2.2, y1:5.3, x2:2.2, y2:7.5 },
+          { x1:0.2, y1:7.5, x2:4.3, y2:7.5 },
+        ],
+        doors:[{ wall:'bottom', x:1.5, w:1.0, hinge:'r' }],
+        windows:[
+          { wall:'top', x:1.0, w:1.8 },
+          { wall:'left', y:1.5, w:1.6 },
+          { wall:'right', y:1.5, w:1.6 },
+          { wall:'left', y:6.0, w:1.0 },
+          { wall:'right', y:6.0, w:1.0 },
+        ],
+      },
+      {
+        name:'First Floor',
+        W:4.5, D:9.0,
+        rooms:[
+          { x:0.2, y:0.2, w:4.1, h:2.4, label:'Master Bedroom', sub:'', fill:'#dce8f5' },
+          { x:0.2, y:2.6, w:1.7, h:1.2, label:'Master Ensuite', sub:'', fill:'#e0f7fa' },
+          { x:1.9, y:2.6, w:2.4, h:1.2, label:'Hall / Landing', sub:'', fill:'#f5f5f5' },
+          { x:0.2, y:3.8, w:2.05, h:2.4, label:'Bedroom 2', sub:'', fill:'#dce8f5' },
+          { x:2.25, y:3.8, w:2.05, h:2.4, label:'Bedroom 3', sub:'', fill:'#dce8f5' },
+          { x:0.2, y:6.2, w:4.1, h:2.6, label:'Bedroom 4', sub:'', fill:'#dce8f5' },
+        ],
+        partitions:[
+          { x1:0.2, y1:2.6, x2:4.3, y2:2.6 },
+          { x1:1.9, y1:2.6, x2:1.9, y2:3.8 },
+          { x1:0.2, y1:3.8, x2:4.3, y2:3.8 },
+          { x1:2.25, y1:3.8, x2:2.25, y2:6.2 },
+          { x1:0.2, y1:6.2, x2:4.3, y2:6.2 },
+        ],
+        doors:[{ wall:'top', x:1.5, w:1.0, hinge:'r' }],
+        windows:[
+          { wall:'left', y:1.4, w:1.6 },
+          { wall:'right', y:1.4, w:1.6 },
+          { wall:'left', y:5.0, w:1.4 },
+          { wall:'right', y:5.0, w:1.4 },
+          { wall:'left', y:7.5, w:1.6 },
+          { wall:'right', y:7.5, w:1.6 },
+        ],
+      },
+    ],
+  },
+
+  /* ── T8: $100,000 ──────────────────────────────────────────── */
+  {
+    id:'t8', price_usd:100000, price_rwf:130_000_000,
+    label:'$100,000', rwf_label:'130M RWF',
+    name:'4-Bed Premium', tag:'Premium Triplex',
+    tagline:'A spacious three-level apartment with premium finishes',
+    sqm:107, floors:3,
+    dims:{ W:4.5, D:7.9, H:7.9, roofH:0.3 },
+    about:'A premium three-level apartment with four bedrooms across the lower two floors and a large open living and dining space with a tall ceiling on the top floor. The ground level has two bedrooms and bathrooms, the middle level has the master bedroom and a fourth bedroom, and the top level is a bright open living, dining and kitchen area. High-quality finishes, large windows, and generous ceiling heights throughout.',
+    rooms:[
+      { label:'Master Bedroom', sqm:10.0, fill:'#dce8f5', dot:'#3a7bd5' },
+      { label:'Master Ensuite', sqm:3.5,  fill:'#e0f7fa', dot:'#26a69a' },
+      { label:'Bedroom 2',      sqm:8.0,  fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Bedroom 3',      sqm:8.0,  fill:'#dce8f5', dot:'#5c9bd6' },
+      { label:'Bedroom 4',      sqm:8.0,  fill:'#dce8f5', dot:'#7986cb' },
+      { label:'Bathroom 2',     sqm:4.0,  fill:'#e0f7fa', dot:'#80cbc4' },
+      { label:'Bathroom 3',     sqm:4.0,  fill:'#e0f7fa', dot:'#80cbc4' },
+      { label:'Living / Dining', sqm:36.0, fill:'#fdf3e3', dot:'#d4a832' },
+      { label:'Kitchen',        sqm:8.0,  fill:'#e8f5e9', dot:'#66bb6a' },
+      { label:'Hall / Landing', sqm:17.5, fill:'#f5f5f5', dot:'#90a4ae' },
+    ],
+    spec:{
+      'Wall type':'Concrete blocks, plastered + painted, premium finish',
+      'Roof type':'Flat concrete slab',
+      'Floor finish':'Porcelain tiles throughout',
+      'Foundation':'RC raft slab',
+      'Ceiling':'Suspended ceiling, tall ceiling on top floor',
+      'Build time':'22 – 28 weeks',
+      'Doors':'11 (external + internal)',
+      'Windows':'14 × aluminium double-glazed',
+      'Plumbing':'Full hot & cold, 3 bathrooms',
+      'Electrical':'Full wiring, consumer unit, smart-ready',
+    },
+    materials:[
+      { label:'Foundation & raft',  pct:11, rwf:14300000, color:'#8d6e63' },
+      { label:'Walling',            pct:15, rwf:19500000, color:'#a1887f' },
+      { label:'Roof',               pct:11, rwf:14300000, color:'#78909c' },
+      { label:'Doors & windows',    pct:10, rwf:13000000, color:'#90a4ae' },
+      { label:'Plumbing',           pct:11, rwf:14300000, color:'#4db6ac' },
+      { label:'Electrical',         pct:6,  rwf:7800000,  color:'#ffa726' },
+      { label:'Finishes',           pct:10, rwf:13000000, color:'#ce93d8' },
+      { label:'Labour',             pct:26, rwf:33800000, color:'#ef9a9a' },
+    ],
+    stats:[
+      { val:'$935',   lbl:'Cost / m²' },
+      { val:'25 wks', lbl:'Build time' },
+      { val:'7–9%',   lbl:'Rental yield' },
+      { val:'R3/R4',  lbl:'Zoning' },
+    ],
+    floorPlans:[
+      {
+        name:'Ground Floor',
+        W:4.5, D:7.9,
+        rooms:[
+          { x:0.2, y:0.2, w:4.1, h:1.95, label:'Bedroom 2', sub:'', fill:'#dce8f5' },
+          { x:0.2, y:2.35, w:4.1, h:1.95, label:'Bedroom 3', sub:'', fill:'#dce8f5' },
+          { x:0.2, y:4.5, w:2.0, h:1.4, label:'Bathroom 2', sub:'', fill:'#e0f7fa' },
+          { x:2.4, y:4.5, w:1.9, h:1.4, label:'Bathroom 3', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:6.1, w:4.1, h:1.6, label:'Hall / Landing', sub:'', fill:'#f5f5f5' },
+        ],
+        partitions:[
+          { x1:0.2, y1:2.15, x2:4.3, y2:2.15 },
+          { x1:0.2, y1:4.3, x2:4.3, y2:4.3 },
+          { x1:2.2, y1:4.5, x2:2.2, y2:5.9 },
+          { x1:0.2, y1:5.9, x2:4.3, y2:5.9 },
+        ],
+        doors:[{ wall:'bottom', x:1.5, w:1.0, hinge:'r' }],
+        windows:[
+          { wall:'left', y:1.0, w:1.6 },
+          { wall:'right', y:1.0, w:1.6 },
+          { wall:'left', y:3.3, w:1.6 },
+          { wall:'right', y:3.3, w:1.6 },
+          { wall:'left', y:6.9, w:1.4 },
+        ],
+      },
+      {
+        name:'First Floor',
+        W:4.5, D:7.9,
+        rooms:[
+          { x:0.2, y:0.2, w:4.1, h:2.45, label:'Master Bedroom', sub:'', fill:'#dce8f5' },
+          { x:0.2, y:2.85, w:2.0, h:2.7, label:'Master Ensuite', sub:'', fill:'#e0f7fa' },
+          { x:2.4, y:2.85, w:1.9, h:2.7, label:'Hall / Landing', sub:'', fill:'#f5f5f5' },
+          { x:0.2, y:5.75, w:4.1, h:1.95, label:'Bedroom 4', sub:'', fill:'#dce8f5' },
+        ],
+        partitions:[
+          { x1:0.2, y1:2.65, x2:4.3, y2:2.65 },
+          { x1:2.2, y1:2.85, x2:2.2, y2:5.55 },
+          { x1:0.2, y1:5.55, x2:4.3, y2:5.55 },
+        ],
+        doors:[{ wall:'top', x:1.5, w:1.0, hinge:'r' }],
+        windows:[
+          { wall:'left', y:1.4, w:1.6 },
+          { wall:'right', y:1.4, w:1.6 },
+          { wall:'left', y:6.7, w:1.6 },
+          { wall:'right', y:6.7, w:1.6 },
         ],
       },
       {
         name:'Second Floor',
-        W:8.5, D:6.5,
+        W:4.5, D:7.9,
         rooms:[
-          { x:0.2, y:0.2, w:3.5, h:2.8, label:'Bedroom 3', sub:'', fill:'#dce8f5' },
-          { x:3.8, y:0.2, w:3.5, h:2.8, label:'Bedroom 4', sub:'', fill:'#dce8f5' },
-          { x:7.4, y:0.2, w:0.9, h:2.8, label:'Hall', sub:'', fill:'#f5f5f5' },
-          { x:0.2, y:3.1, w:8.1, h:3.2, label:'Bathroom', sub:'', fill:'#e0f7fa' },
+          { x:0.2, y:0.2, w:4.1, h:5.6, label:'Living / Dining', sub:'', fill:'#fdf3e3' },
+          { x:0.2, y:6.0, w:4.1, h:1.5, label:'Kitchen', sub:'', fill:'#e8f5e9' },
         ],
         partitions:[
-          { x1:3.7, y1:0.2, x2:3.7, y2:3.0 },
-          { x1:7.3, y1:0.2, x2:7.3, y2:3.0 },
-          { x1:0.2, y1:3.0, x2:8.3, y2:3.0 },
+          { x1:0.2, y1:5.8, x2:4.3, y2:5.8 },
         ],
-        doors:[
-          { wall:'top', x:1.2, w:0.9, hinge:'r' },
-          { wall:'top', x:4.5, w:0.9, hinge:'r' },
-          { wall:'top', x:7.5, w:0.7, hinge:'r' },
-          { wall:'bottom', x:4.0, w:0.9, hinge:'l' },
-        ],
+        doors:[{ wall:'bottom', x:1.5, w:1.0, hinge:'r' }],
         windows:[
-          { wall:'left', y:1.0, w:0.9 },
-          { wall:'left', y:4.0, w:0.8 },
-          { wall:'top', x:1.5, w:0.9 },
-          { wall:'top', x:5.0, w:0.9 },
-          { wall:'right', y:1.0, w:0.8 },
-          { wall:'right', y:4.0, w:0.8 },
-        ],
-      },
-      {
-        name:'Third Floor',
-        W:8.5, D:6.5,
-        rooms:[
-          { x:0.2, y:0.2, w:4.5, h:2.8, label:'Master Bed', sub:'', fill:'#dce8f5' },
-          { x:4.8, y:0.2, w:2.9, h:2.8, label:'Ensuite', sub:'', fill:'#e0f7fa' },
-          { x:7.8, y:0.2, w:0.5, h:2.8, label:'', sub:'', fill:'#f5f5f5' },
-          { x:0.2, y:3.1, w:8.1, h:3.2, label:'Landing/Study', sub:'', fill:'#f9f7f0' },
-        ],
-        partitions:[
-          { x1:4.7, y1:0.2, x2:4.7, y2:3.0 },
-          { x1:7.7, y1:0.2, x2:7.7, y2:3.0 },
-          { x1:0.2, y1:3.0, x2:8.3, y2:3.0 },
-        ],
-        doors:[
-          { wall:'top', x:1.5, w:1.0, hinge:'r' },
-          { wall:'top', x:5.5, w:0.8, hinge:'r' },
-          { wall:'right-inner', x:1.5, w:0.9, hinge:'l', onPartition:true, partX:4.7, y:1.5 },
-        ],
-        windows:[
-          { wall:'left', y:1.0, w:1.0 },
-          { wall:'left', y:4.0, w:0.9 },
-          { wall:'top', x:2.2, w:1.0 },
-          { wall:'top', x:5.8, w:0.8 },
-          { wall:'right', y:1.0, w:0.8 },
-          { wall:'right', y:4.0, w:0.8 },
+          { wall:'top', x:1.0, w:2.0 },
+          { wall:'left', y:1.5, w:1.8 },
+          { wall:'right', y:1.5, w:1.8 },
+          { wall:'left', y:4.0, w:1.6 },
+          { wall:'right', y:4.0, w:1.6 },
         ],
       },
     ],
@@ -1157,8 +1167,13 @@ function renderTierContent(tier) {
     <div class="cat-visuals">
       <div class="cat-vis-card">
         <div class="cat-vis-label">3D Isometric View</div>
+        <div class="cat-floor-tabs cat-iso-tabs">
+          <button class="cat-floor-tab active" data-iso="0" onclick="switchIsoView('${tier.id}', 0)">Single Unit</button>
+          <button class="cat-floor-tab" data-iso="1" onclick="switchIsoView('${tier.id}', 1)">Condominium View</button>
+        </div>
         <div class="cat-iso-wrap">
-          <svg id="iso-svg-${tier.id}" viewBox="0 0 440 340" style="width:100%;max-width:440px;height:auto"></svg>
+          <svg id="iso-svg-${tier.id}-0" viewBox="0 0 440 340" style="width:100%;max-width:440px;height:auto"></svg>
+          <svg id="iso-svg-${tier.id}-1" viewBox="0 0 440 340" style="width:100%;max-width:440px;height:auto;display:none"></svg>
         </div>
       </div>
       <div class="cat-vis-card">
@@ -1252,7 +1267,8 @@ function renderTierContent(tier) {
   </div>`;
 
   // Render the visuals
-  drawIso(document.getElementById(`iso-svg-${tier.id}`), tier);
+  drawIso(document.getElementById(`iso-svg-${tier.id}-0`), tier);
+  drawCondo(document.getElementById(`iso-svg-${tier.id}-1`), tier);
 
   // Render all floor plans
   floorPlans.forEach((floorPlan, idx) => {
@@ -1271,8 +1287,23 @@ function switchFloor(tierId, floorIdx) {
   if (targetSvg) targetSvg.style.display = 'block';
 
   // Update tab highlighting
-  panel.querySelectorAll('.cat-floor-tab').forEach(btn => {
+  panel.querySelectorAll('.cat-floor-tabs .cat-floor-tab').forEach(btn => {
     const isActive = parseInt(btn.dataset.floor) === floorIdx;
+    btn.classList.toggle('active', isActive);
+  });
+}
+
+// Switch between iso views (single unit / condominium)
+function switchIsoView(tierId, viewIdx) {
+  const panel = document.querySelector(`#panel-${tierId}`);
+  if (!panel) return;
+
+  panel.querySelectorAll('.cat-iso-wrap svg').forEach((svg, i) => {
+    svg.style.display = i === viewIdx ? 'block' : 'none';
+  });
+
+  panel.querySelectorAll('.cat-iso-tabs .cat-floor-tab').forEach(btn => {
+    const isActive = parseInt(btn.dataset.iso) === viewIdx;
     btn.classList.toggle('active', isActive);
   });
 }
@@ -1346,8 +1377,8 @@ function switchFloorFullscreen(tierId, floorIdx) {
    ─────────────────────────────────────────────────────────────── */
 function drawIso(svgEl, tier) {
   const { W, D, H } = tier.dims;
-  // Roof height: exaggerate slightly so it reads clearly at small sizes
-  const rH = Math.max(tier.dims.roofH * 1.8, H * 0.55);
+  // Flat roof slab / parapet height — Swiss Cube style (shallow, clean)
+  const rH = Math.max(tier.dims.roofH, 0.28);
 
   const SVG_W = 440, SVG_H = 320, PAD = 34;
 
@@ -1387,8 +1418,9 @@ function drawIso(svgEl, tier) {
   // Palette
   const WF  = dark ? '#8ab4cc' : '#a8c8de'; // front wall
   const WR  = dark ? '#5a8298' : '#7aa2b8'; // right / depth face (darker)
-  const RF  = '#b89870';                     // roof front face (warm tan)
-  const RR  = '#8a6c48';                     // roof right face (darker tan)
+  const RT  = dark ? '#cfd6da' : '#eceae4';  // flat roof top (concrete screed)
+  const RF  = dark ? '#9aa3a8' : '#cac9c2';  // parapet front face
+  const RR  = dark ? '#6e767a' : '#aaa9a1';  // parapet right face (darker)
   const DC  = '#3e2a10';                     // door
   const WG  = '#b8def2';                     // window glass
   const WFr = '#4a7a94';                     // window frame
@@ -1462,22 +1494,27 @@ function drawIso(svgEl, tier) {
   svg += seg(P(0,0,0), P(0,0,H), 'rgba(0,0,0,0.32)', 1.2);
   svg += seg(P(W,0,0), P(W,0,H), 'rgba(0,0,0,0.32)', 1.2);
 
-  // ── Hip (pyramid) roof ──────────────────────────────────────────
-  // Peak at centre of roof plan: (W/2, D/2, H+rH)
-  // With cavalier oblique, the peak is ALWAYS above all wall tops:
-  //   peak_sy = oy - (H+rH)*s - D/2*Dy*s  < oy - H*s = any wall top ✓
+  // ── Flat roof slab (Swiss Cube) ──────────────────────────────────
+  // A shallow parapet box sits on top of the walls. The top face is a
+  // flat slab, shifted up-right by the depth offset (cavalier oblique),
+  // so it always reads as a clean horizontal plane above the walls.
 
-  // Front face of roof (triangle): FLT → FRT → peak
-  svg += poly([P(0,0,H), P(W,0,H), P(W/2,D/2,H+rH)].join(' '), RF);
+  // Parapet right face: FRT → BRT → BRT' → FRT'  (z = H .. H+rH)
+  svg += poly([P(W,0,H), P(W,D,H), P(W,D,H+rH), P(W,0,H+rH)].join(' '), RR);
 
-  // Right face of roof (triangle): FRT → BRT → peak
-  svg += poly([P(W,0,H), P(W,D,H), P(W/2,D/2,H+rH)].join(' '), RR);
+  // Parapet front face: FLT → FRT → FRT' → FLT'
+  svg += poly([P(0,0,H), P(W,0,H), P(W,0,H+rH), P(0,0,H+rH)].join(' '), RF);
 
-  // Roof edge lines
-  svg += seg(P(0,0,H),       P(W,0,H),         'rgba(0,0,0,0.3)', 1);
-  svg += seg(P(0,0,H),       P(W/2,D/2,H+rH),  'rgba(0,0,0,0.3)', 1);
-  svg += seg(P(W,0,H),       P(W/2,D/2,H+rH),  'rgba(0,0,0,0.3)', 1);
-  svg += seg(P(W,D,H),       P(W/2,D/2,H+rH),  'rgba(0,0,0,0.28)', 0.8);
+  // Flat roof top face: FLT' → FRT' → BRT' → BLT'  (z = H+rH)
+  svg += poly([P(0,0,H+rH), P(W,0,H+rH), P(W,D,H+rH), P(0,D,H+rH)].join(' '), RT);
+
+  // Edge lines
+  svg += seg(P(0,0,H+rH),  P(W,0,H+rH),  'rgba(0,0,0,0.25)', 1);
+  svg += seg(P(W,0,H+rH),  P(W,D,H+rH),  'rgba(0,0,0,0.22)', 0.8);
+  svg += seg(P(0,D,H+rH),  P(W,D,H+rH),  'rgba(0,0,0,0.16)', 0.7);
+  svg += seg(P(0,0,H+rH),  P(0,D,H+rH),  'rgba(0,0,0,0.16)', 0.7);
+  svg += seg(P(0,0,H),     P(W,0,H),     'rgba(0,0,0,0.28)', 1);
+  svg += seg(P(W,0,H),     P(W,D,H),     'rgba(0,0,0,0.25)', 0.9);
 
   // ── Veranda for larger homes ────────────────────────────────────
   if (W >= 10) {
@@ -1511,6 +1548,165 @@ function drawIso(svgEl, tier) {
     </linearGradient>
   </defs>
   <rect width="${SVG_W}" height="${SVG_H}" fill="url(#oblSky)"/>
+  <rect x="0" y="${oy}" width="${SVG_W}" height="${SVG_H - oy}" fill="${gnd}" opacity="0.35"/>
+  ${svg}`;
+}
+
+/* ── 3D Condominium View ──────────────────────────────────────────
+   Shows a building made of repeated copies of this apartment's
+   "block" (W × D × H) arranged in a grid — nCols side-by-side,
+   nRows stacked vertically. One unit is highlighted in gold so the
+   buyer can picture which slice of the building is theirs.
+   Uses the same cavalier-oblique projection as drawIso().
+   ─────────────────────────────────────────────────────────────── */
+function drawCondo(svgEl, tier) {
+  const { W, D, H } = tier.dims;
+  const rH = Math.max(tier.dims.roofH, 0.28);
+
+  const nCols = 3;
+  const hlCol = 1; // highlighted unit (middle column)
+  const nFloors = Math.max(1, tier.floors || 1);
+  const floorH = H / nFloors;
+
+  const SVG_W = 440, SVG_H = 320, PAD = 34;
+  const Dx = 0.433, Dy = 0.25;
+
+  const totalW = nCols * W;
+  const totalH = H;
+
+  const totW = totalW + D * Dx;
+  const totH = totalH + rH + D * Dy;
+
+  const s = Math.min(
+    (SVG_W - PAD * 2) / totW,
+    (SVG_H - PAD * 2) / totH,
+    42
+  );
+
+  const ox = PAD;
+  const oy = SVG_H - PAD;
+
+  function P(x, d, z) {
+    return `${(ox + x*s + d*Dx*s).toFixed(1)},${(oy - z*s - d*Dy*s).toFixed(1)}`;
+  }
+  function poly(pts, fill, stroke = 'rgba(0,0,0,0.22)', sw = 1) {
+    return `<polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  }
+  function seg(a, b, stroke = 'rgba(0,0,0,0.28)', sw = 0.9) {
+    const [ax,ay] = a.split(','), [bx,by] = b.split(',');
+    return `<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round"/>`;
+  }
+
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  const WF  = dark ? '#8ab4cc' : '#a8c8de';
+  const WR  = dark ? '#5a8298' : '#7aa2b8';
+  const RT  = dark ? '#cfd6da' : '#eceae4';
+  const RF  = dark ? '#9aa3a8' : '#cac9c2';
+  const RR  = dark ? '#6e767a' : '#aaa9a1';
+  const DC  = '#3e2a10';
+  const WG  = '#b8def2';
+  const WFr = '#4a7a94';
+  const HL  = '#d4a832';
+  const gridStroke = 'rgba(0,0,0,0.32)';
+
+  let svg = '';
+
+  // Ground shadow
+  const shX = (ox + totalW*s/2 + D*Dx*s/2).toFixed(0);
+  const shY = (oy + 6).toFixed(0);
+  svg += `<ellipse cx="${shX}" cy="${shY}" rx="${(totalW*s*0.52).toFixed(0)}" ry="${(8+D*Dy*s*0.4).toFixed(0)}" fill="rgba(0,0,0,0.10)" filter="url(#oblBlur2)"/>`;
+
+  // ── Right / depth face ──────────────────────────────────────────
+  svg += poly([P(totalW,0,0), P(totalW,D,0), P(totalW,D,totalH), P(totalW,0,totalH)].join(' '), WR);
+
+  // ── Front face ───────────────────────────────────────────────────
+  svg += poly([P(0,0,0), P(totalW,0,0), P(totalW,0,totalH), P(0,0,totalH)].join(' '), WF);
+
+  // Windows + doors — drawn per floor, matching the single-unit view
+  for (let c = 0; c < nCols; c++) {
+    const cx0 = c * W;
+
+    for (let f = 0; f < nFloors; f++) {
+      const floorBase = f * floorH;
+      const winZ1 = floorBase + floorH * 0.35;
+      const winZ2 = floorBase + floorH * 0.85;
+
+      let fwS, fwR;
+      if (f === 0) {
+        // Ground floor — entrance door, windows fill the rest
+        const dw = Math.min(0.9, W * 0.13), dh = Math.min(2.1, floorH * 0.84), dxL = cx0 + W * 0.10;
+        svg += poly([P(dxL,0,0), P(dxL+dw,0,0), P(dxL+dw,0,dh), P(dxL,0,dh)].join(' '), DC, 'rgba(0,0,0,0.4)', 1);
+        fwS = dxL + dw + 0.35;
+        fwR = (cx0 + W) - fwS - 0.25;
+      } else {
+        fwS = cx0 + 0.25;
+        fwR = W - 0.5;
+      }
+
+      const nFW = Math.max(1, Math.round(fwR / 2.5));
+      const fwSt = fwR / nFW;
+      for (let i = 0; i < nFW; i++) {
+        const wx = fwS + i * fwSt;
+        const ww = Math.min(fwSt * 0.65, 1.1);
+        if (wx + ww < cx0 + W - 0.15) {
+          svg += poly([P(wx,0,winZ1), P(wx+ww,0,winZ1), P(wx+ww,0,winZ2), P(wx,0,winZ2)].join(' '), WG, WFr, 0.7);
+          svg += seg(P(wx+ww/2,0,winZ1), P(wx+ww/2,0,winZ2), WFr, 0.5);
+          svg += seg(P(wx,0,winZ1+floorH*0.25), P(wx+ww,0,winZ1+floorH*0.25), WFr, 0.5);
+        }
+      }
+    }
+  }
+
+  // Grid lines dividing the building into individual units / floors
+  for (let c = 1; c < nCols; c++) {
+    svg += seg(P(c*W,0,0), P(c*W,0,totalH), gridStroke, 1);
+  }
+  for (let f = 1; f < nFloors; f++) {
+    svg += seg(P(0,0,f*floorH), P(totalW,0,f*floorH), gridStroke, 1);
+  }
+
+  // Corner edges
+  svg += seg(P(0,0,0), P(0,0,totalH), 'rgba(0,0,0,0.32)', 1.2);
+  svg += seg(P(totalW,0,0), P(totalW,0,totalH), 'rgba(0,0,0,0.32)', 1.2);
+
+  // ── Flat roof slab ────────────────────────────────────────────────
+  svg += poly([P(totalW,0,totalH), P(totalW,D,totalH), P(totalW,D,totalH+rH), P(totalW,0,totalH+rH)].join(' '), RR);
+  svg += poly([P(0,0,totalH), P(totalW,0,totalH), P(totalW,0,totalH+rH), P(0,0,totalH+rH)].join(' '), RF);
+  svg += poly([P(0,0,totalH+rH), P(totalW,0,totalH+rH), P(totalW,D,totalH+rH), P(0,D,totalH+rH)].join(' '), RT);
+
+  svg += seg(P(0,0,totalH+rH), P(totalW,0,totalH+rH), 'rgba(0,0,0,0.25)', 1);
+  svg += seg(P(totalW,0,totalH+rH), P(totalW,D,totalH+rH), 'rgba(0,0,0,0.22)', 0.8);
+  svg += seg(P(0,0,totalH), P(totalW,0,totalH), 'rgba(0,0,0,0.28)', 1);
+  svg += seg(P(totalW,0,totalH), P(totalW,D,totalH), 'rgba(0,0,0,0.25)', 0.9);
+
+  // Ground line
+  svg += seg(P(0,0,0), P(totalW,0,0), 'rgba(0,0,0,0.28)', 1.2);
+
+  // ── Highlight the buyer's unit (full-height vertical slice) ─────
+  const hx0 = hlCol * W;
+  svg += poly([P(hx0,0,0), P(hx0+W,0,0), P(hx0+W,0,H), P(hx0,0,H)].join(' '), 'rgba(212,168,50,0.32)', HL, 2.5);
+
+  // Label + pointer (sits above the roof)
+  const labelX = (ox + (hx0 + W/2)*s).toFixed(1);
+  const roofTopY = (oy - (H + rH)*s);
+  svg += seg(`${labelX},${roofTopY.toFixed(1)}`, `${labelX},${(roofTopY - 14).toFixed(1)}`, HL, 1.5);
+  svg += `<text x="${labelX}" y="${(roofTopY - 18).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="700" fill="${HL}" font-family="'DM Sans', sans-serif">Your Apartment</text>`;
+
+  // ── Sky + ground backgrounds ────────────────────────────────────
+  const skyA = dark ? '#1a2d3d' : '#cce4f5';
+  const skyB = dark ? '#0d1822' : '#e8f5fc';
+  const gnd  = dark ? '#192418' : '#c8ddc0';
+
+  svgEl.innerHTML = `
+  <defs>
+    <filter id="oblBlur2"><feGaussianBlur stdDeviation="5"/></filter>
+    <linearGradient id="oblSky2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${skyA}"/>
+      <stop offset="100%" stop-color="${skyB}"/>
+    </linearGradient>
+  </defs>
+  <rect width="${SVG_W}" height="${SVG_H}" fill="url(#oblSky2)"/>
   <rect x="0" y="${oy}" width="${SVG_W}" height="${SVG_H - oy}" fill="${gnd}" opacity="0.35"/>
   ${svg}`;
 }

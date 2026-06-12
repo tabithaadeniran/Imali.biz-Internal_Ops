@@ -6,6 +6,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "-p", "3033", "."],
       "port": 3033
+    },
+    {
+      "name": "consumer-website",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "3035", "../Website"],
+      "port": 3035
     }
   ]
 }
