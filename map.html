@@ -756,6 +756,7 @@ body.tool-active .leaflet-container { cursor: crosshair !important; }
     <a href="design-engine.html" class="int-nav-link">Design Engine</a>
     <a href="units.html"         class="int-nav-link">Home Catalogue</a>
     <a href="valuation.html"     class="int-nav-link">Valuation</a>
+    <a href="feasibility.html"   class="int-nav-link">Feasibility</a>
     <button class="theme-toggle" onclick="toggleTheme()">☾ Dark</button>
   </div>
 </nav>
@@ -990,8 +991,9 @@ const ArcGISDirectLayer = L.ImageOverlay.extend({
 
   onAdd(map) {
     L.ImageOverlay.prototype.onAdd.call(this, map);
-    // Fetch a new export image after every pan or zoom settles
     map.on('moveend zoomend', this._fetchImage, this);
+    // Hide during zoom so the stretched/blurry old image never shows
+    map.on('zoomstart', this._hideForZoom, this);
     this._fetchImage();
     return this;
   },
@@ -999,7 +1001,17 @@ const ArcGISDirectLayer = L.ImageOverlay.extend({
   onRemove(map) {
     if (this._prefetchImg) { this._prefetchImg.src = ''; this._prefetchImg = null; }
     map.off('moveend zoomend', this._fetchImage, this);
+    map.off('zoomstart', this._hideForZoom, this);
     L.ImageOverlay.prototype.onRemove.call(this, map);
+  },
+
+  _hideForZoom() {
+    // Cancel any in-flight fetch and blank the image so Leaflet's CSS zoom
+    // animation doesn't stretch/blur the old image while we wait for the new one
+    if (this._prefetchImg) { this._prefetchImg.src = ''; this._prefetchImg = null; }
+    this._lastFetchedUrl = null;
+    const el = this.getElement();
+    if (el) el.style.opacity = '0';
   },
 
   // Override so our setOpacity works via the panel slider
@@ -1058,6 +1070,9 @@ const ArcGISDirectLayer = L.ImageOverlay.extend({
       // Reposition first so the image lands in the right place, then swap
       this.setBounds(capturedBounds);
       this.setUrl(capturedUrl);
+      // Restore opacity in case _hideForZoom blanked it
+      const el = this.getElement();
+      if (el) el.style.opacity = this.options.opacity ?? 1;
       this._prefetchImg = null;
     };
 
@@ -1833,6 +1848,7 @@ function mkCircle(ll, color, r, tooltip) {
 // eliminating the main cause of freeze/lag when zoning layers are enabled.
 const CANVAS_RENDERER = L.canvas({ tolerance: 2 });
 
+
 const BUILDERS = {
   imali_parcels:     () => L.layerGroup(IMALI_PARCELS.map(mkPipeline)),
   intel_sites:       () => L.layerGroup(INTEL_SITES.map(mkIntelSite)),
@@ -2040,6 +2056,7 @@ const LAYER_GROUPS = [
       { id:'topography',         label:'Topography',                  desc:'Lakes, volcanoes & rivers — Rwanda\'s "Thousand Hills"',    color:'#006064', opacity:80, visible:false, leaflet:null },
       { id:'natural_resources',  label:'Natural Resources',           desc:'Minerals, methane reserves & hydropower corridors',         color:'#6a1b9a', opacity:80, visible:false, leaflet:null },
       { id:'material_factories', label:'Building Material Factories', desc:'Cement, brick & steel plants — logistics & cost mapping',   color:'#4e342e', opacity:80, visible:false, leaflet:null },
+      { id:'planning_overlays',  label:'Planning Overlays',           desc:'Wetlands, slopes, disaster risk, incentive & tourism zones', color:'#b0bec5', opacity:70, visible:false, leaflet:null },
     ]
   },
 
@@ -2148,7 +2165,6 @@ const LAYER_GROUPS = [
   {
     id: 'socioeconomic', label: 'Socio-Economic & Demographics', color: '#fb8c00', expanded: false,
     layers: [
-      { id:'planning_overlays', label:'Planning Overlays',         desc:'Wetlands, slopes, disaster risk, incentive & tourism zones',    color:'#b0bec5', opacity:70, visible:false, leaflet:null },
       { id:'pop_density',       label:'Population & Demographics', desc:'District density, income level & household size (illustrative)', color:'#ef5350', opacity:75, visible:false, leaflet:null },
     ]
   }

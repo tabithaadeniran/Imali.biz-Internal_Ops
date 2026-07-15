@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<script>(function(){var t=localStorage.getItem('imali-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feasibility Engine — Imali.biz Internal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+
+html, body { height: 100%; overflow: hidden; }
+
+/* ── Page shell ── */
+.fe-wrap {
+  display: flex; flex-direction: column;
+  height: 100vh; padding-top: var(--nav-h);
+}
+
+/* ── Header strip ── */
+.fe-header {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 52px;
+  border-bottom: 1px solid rgba(245,240,232,0.06);
+  background: rgba(10,10,15,0.7);
+  backdrop-filter: blur(10px);
+}
+[data-theme="light"] .fe-header {
+  background: rgba(250,247,242,0.94);
+  border-bottom-color: rgba(10,10,15,0.08);
+}
+.fe-header-left { display: flex; align-items: center; gap: 0.9rem; }
+.fe-eyebrow {
+  font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold); font-weight: 500;
+}
+[data-theme="light"] .fe-eyebrow { color: #a07820; }
+.fe-title {
+  font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--cream);
+}
+[data-theme="light"] .fe-title { color: var(--ink); }
+.fe-title em {
+  font-family: 'Instrument Serif', serif; font-style: italic;
+  font-weight: 400; color: var(--terracotta);
+}
+.fe-header-right { display: flex; align-items: center; gap: 0.75rem; }
+.fe-badge {
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.22rem 0.6rem; border-radius: 20px;
+  border: 1px solid rgba(212,168,50,0.3);
+  color: var(--gold); background: rgba(212,168,50,0.06);
+}
+.fe-hint {
+  font-size: 0.64rem; color: rgba(245,240,232,0.28);
+}
+[data-theme="light"] .fe-hint { color: rgba(10,10,15,0.35); }
+
+/* ── 3-column layout ── */
+.fe-body {
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-template-columns: 272px 1fr 300px;
+}
+
+/* ── Shared panel scroll ── */
+.fe-panel {
+  overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column;
+}
+.fe-panel::-webkit-scrollbar { width: 3px; }
+.fe-panel::-webkit-scrollbar-thumb { background: rgba(245,240,232,0.07); border-radius: 2px; }
+
+/* ── Left: input panel ── */
+.fe-left {
+  border-right: 1px solid rgba(245,240,232,0.06);
+}
+[data-theme="light"] .fe-left { border-right-color: rgba(10,10,15,0.08); }
+
+/* ── Right: breakdown panel ── */
+.fe-right {
+  border-left: 1px solid rgba(245,240,232,0.06);
+}
+[data-theme="light"] .fe-right { border-left-color: rgba(10,10,15,0.08); }
+
+/* ── Section headers ── */
+.ps {
+  padding: 0.85rem 1.1rem 0.7rem;
+  border-bottom: 1px solid rgba(245,240,232,0.04);
+}
+[data-theme="light"] .ps { border-bottom-color: rgba(10,10,15,0.05); }
+.ps-label {
+  font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--gold); font-weight: 500; margin-bottom: 0.7rem;
+}
+[data-theme="light"] .ps-label { color: #a07820; }
+
+/* ── Form fields ── */
+.fe-field { margin-bottom: 0.6rem; }
+.fe-field:last-child { margin-bottom: 0; }
+.fe-lbl {
+  display: block; font-size: 0.62rem;
+  color: rgba(245,240,232,0.38); margin-bottom: 0.22rem;
+}
+[data-theme="light"] .fe-lbl { color: rgba(10,10,15,0.42); }
+.fe-input, .fe-select {
+  width: 100%; padding: 0.4rem 0.65rem;
+  background: rgba(245,240,232,0.04);
+  border: 1px solid rgba(245,240,232,0.09);
+  border-radius: 7px; color: var(--cream);
+  font-size: 0.73rem; font-family: 'DM Sans', sans-serif;
+  outline: none; transition: border-color 0.18s;
+}
+.fe-input:focus, .fe-select:focus {
+  border-color: rgba(200,82,26,0.45);
+}
+.fe-input::placeholder { color: rgba(245,240,232,0.2); }
+[data-theme="light"] .fe-input, [data-theme="light"] .fe-select {
+  background: rgba(10,10,15,0.04); border-color: rgba(10,10,15,0.1); color: var(--ink);
+}
+[data-theme="light"] .fe-input::placeholder { color: rgba(10,10,15,0.25); }
+.fe-select option { background: #1a1814; color: var(--cream); }
+
+.fe-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; }
+
+/* UPI lookup strip */
+.upi-strip {
+  display: flex; gap: 0.4rem;
+}
+.upi-strip .fe-input { flex: 1; }
+.upi-btn {
+  padding: 0 0.75rem; border: none; border-radius: 7px; cursor: none;
+  background: rgba(200,82,26,0.15); color: var(--terracotta);
+  font-family: 'DM Sans', sans-serif; font-size: 0.7rem; font-weight: 500;
+  white-space: nowrap; transition: background 0.18s;
+}
+.upi-btn:hover { background: rgba(200,82,26,0.25); }
+
+/* Infra checkboxes */
+.infra-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem;
+}
+.infra-check {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.3rem 0.5rem; border-radius: 6px;
+  background: rgba(245,240,232,0.03);
+  border: 1px solid rgba(245,240,232,0.07);
+  font-size: 0.67rem; color: rgba(245,240,232,0.55); cursor: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.infra-check:hover { background: rgba(245,240,232,0.05); }
+.infra-check input { accent-color: var(--terracotta); }
+[data-theme="light"] .infra-check { background: rgba(10,10,15,0.03); border-color: rgba(10,10,15,0.08); color: rgba(10,10,15,0.55); }
+
+/* UPI result card */
+.upi-result-card {
+  margin-top: 0.6rem;
+  background: rgba(245,240,232,0.03); border: 1px solid rgba(245,240,232,0.08);
+  border-radius: 9px; padding: 0.65rem 0.75rem;
+}
+[data-theme="light"] .upi-result-card {
+  background: rgba(10,10,15,0.03); border-color: rgba(10,10,15,0.1);
+}
+.upi-rc-name { font-size: 0.72rem; font-weight: 500; color: var(--cream); margin-bottom: 0.2rem; }
+[data-theme="light"] .upi-rc-name { color: var(--ink); }
+.upi-rc-loc  { font-size: 0.62rem; color: rgba(245,240,232,0.4); margin-bottom: 0.45rem; }
+[data-theme="light"] .upi-rc-loc  { color: rgba(10,10,15,0.5); }
+.upi-rc-row  { display: flex; gap: 0.9rem; }
+.upi-rc-key  { font-size: 0.58rem; color: rgba(245,240,232,0.32); text-transform: uppercase; letter-spacing: 0.08em; }
+[data-theme="light"] .upi-rc-key  { color: rgba(10,10,15,0.42); }
+.upi-rc-val  { font-size: 0.7rem; font-weight: 500; color: var(--cream); }
+[data-theme="light"] .upi-rc-val  { color: var(--ink); }
+.upi-rc-zone  { color: var(--terracotta); }
+.upi-rc-title { color: #4caf50; }
+
+/* Run button */
+.run-btn {
+  margin: 0.9rem 1.1rem 1.1rem;
+  width: calc(100% - 2.2rem);
+  padding: 0.65rem; border: none; border-radius: 9px; cursor: none;
+  background: linear-gradient(135deg, var(--terracotta), #a03e10);
+  color: #fff; font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem; font-weight: 500; letter-spacing: 0.02em;
+  transition: opacity 0.18s, transform 0.1s;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.run-btn:hover { opacity: 0.88; }
+.run-icon { font-size: 0.85rem; }
+
+/* ── Centre: main output ── */
+.fe-centre {
+  overflow-y: auto; padding: 1.5rem 1.5rem 2rem;
+  display: flex; flex-direction: column; gap: 1.25rem;
+}
+.fe-centre::-webkit-scrollbar { width: 3px; }
+.fe-centre::-webkit-scrollbar-thumb { background: rgba(245,240,232,0.07); border-radius: 2px; }
+
+/* Empty state */
+.fe-empty {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 0.75rem;
+  opacity: 0.35; pointer-events: none; min-height: 300px;
+}
+.fe-empty-icon { font-size: 2.4rem; }
+.fe-empty-title { font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--cream); }
+.fe-empty-sub { font-size: 0.68rem; color: rgba(245,240,232,0.5); text-align: center; max-width: 240px; }
+[data-theme="light"] .fe-empty-title { color: var(--ink); }
+[data-theme="light"] .fe-empty-sub { color: rgba(10,10,15,0.4); }
+
+/* Score gauge card */
+.score-card {
+  background: rgba(245,240,232,0.03);
+  border: 1px solid rgba(245,240,232,0.07);
+  border-radius: 14px; padding: 1.5rem;
+  display: flex; align-items: center; gap: 2rem;
+}
+[data-theme="light"] .score-card { background: rgba(10,10,15,0.02); border-color: rgba(10,10,15,0.08); }
+
+.gauge-wrap {
+  position: relative; flex-shrink: 0;
+  width: 130px; height: 130px;
+}
+.gauge-svg { width: 130px; height: 130px; transform: rotate(-90deg); }
+.gauge-track { fill: none; stroke: rgba(245,240,232,0.07); stroke-width: 9; }
+[data-theme="light"] .gauge-track { stroke: rgba(10,10,15,0.07); }
+.gauge-fill {
+  fill: none; stroke-width: 9; stroke-linecap: round;
+  stroke-dasharray: 320; stroke-dashoffset: 320;
+  transition: stroke-dashoffset 1s ease, stroke 0.5s ease;
+}
+.gauge-score {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.gauge-num {
+  font-family: 'Syne', sans-serif; font-size: 1.9rem; font-weight: 800; line-height: 1;
+  color: var(--cream);
+}
+[data-theme="light"] .gauge-num { color: var(--ink); }
+.gauge-label { font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.35); margin-top: 0.15rem; }
+[data-theme="light"] .gauge-label { color: rgba(10,10,15,0.38); }
+
+.score-meta { flex: 1; }
+.score-verdict {
+  font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700;
+  margin-bottom: 0.3rem; color: var(--cream);
+}
+[data-theme="light"] .score-verdict { color: var(--ink); }
+.score-sub { font-size: 0.7rem; color: rgba(245,240,232,0.45); line-height: 1.5; margin-bottom: 0.9rem; }
+[data-theme="light"] .score-sub { color: rgba(10,10,15,0.45); }
+.score-pills { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.score-pill {
+  font-size: 0.6rem; padding: 0.18rem 0.5rem; border-radius: 20px;
+  border: 1px solid; letter-spacing: 0.04em;
+}
+.pill-green  { color: #4caf50; border-color: rgba(76,175,80,0.3);  background: rgba(76,175,80,0.07); }
+.pill-amber  { color: #ff9800; border-color: rgba(255,152,0,0.3);  background: rgba(255,152,0,0.07); }
+.pill-red    { color: #f44336; border-color: rgba(244,67,54,0.3);  background: rgba(244,67,54,0.07); }
+
+/* Factor grid */
+.factors-title {
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 0.7rem;
+}
+[data-theme="light"] .factors-title { color: #a07820; }
+.factors-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+.factor-card {
+  background: rgba(245,240,232,0.025); border: 1px solid rgba(245,240,232,0.07);
+  border-radius: 10px; padding: 0.75rem 0.85rem;
+  display: flex; flex-direction: column; gap: 0.4rem;
+}
+[data-theme="light"] .factor-card { background: rgba(10,10,15,0.02); border-color: rgba(10,10,15,0.08); }
+.factor-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.factor-name { font-size: 0.7rem; font-weight: 500; color: var(--cream); }
+[data-theme="light"] .factor-name { color: var(--ink); }
+.factor-score-badge {
+  font-size: 0.6rem; font-weight: 600; padding: 0.12rem 0.4rem;
+  border-radius: 4px; flex-shrink: 0;
+}
+.fsb-green { background: rgba(76,175,80,0.15); color: #66bb6a; }
+.fsb-amber { background: rgba(255,152,0,0.15); color: #ffa726; }
+.fsb-red   { background: rgba(244,67,54,0.15); color: #ef5350; }
+.fsb-muted { background: rgba(245,240,232,0.06); color: rgba(245,240,232,0.3); }
+[data-theme="light"] .fsb-muted { background: rgba(10,10,15,0.05); color: rgba(10,10,15,0.3); }
+.factor-bar-track {
+  height: 3px; border-radius: 2px; background: rgba(245,240,232,0.07);
+}
+[data-theme="light"] .factor-bar-track { background: rgba(10,10,15,0.07); }
+.factor-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+.bar-green { background: #4caf50; }
+.bar-amber { background: #ff9800; }
+.bar-red   { background: #f44336; }
+.bar-muted { background: rgba(245,240,232,0.12); }
+.factor-note { font-size: 0.62rem; color: rgba(245,240,232,0.35); line-height: 1.4; }
+[data-theme="light"] .factor-note { color: rgba(10,10,15,0.38); }
+
+/* AI analysis block */
+.ai-card {
+  background: rgba(212,168,50,0.04); border: 1px solid rgba(212,168,50,0.12);
+  border-radius: 12px; padding: 1rem 1.1rem;
+}
+.ai-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.65rem; }
+.ai-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
+  box-shadow: 0 0 6px var(--gold); flex-shrink: 0;
+}
+.ai-label { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+[data-theme="light"] .ai-label { color: #a07820; }
+.ai-text { font-size: 0.72rem; color: rgba(245,240,232,0.6); line-height: 1.65; }
+[data-theme="light"] .ai-text { color: rgba(10,10,15,0.55); }
+.ai-placeholder { color: rgba(245,240,232,0.2); font-style: italic; }
+[data-theme="light"] .ai-placeholder { color: rgba(10,10,15,0.25); }
+
+/* ── Right: cost & revenue ── */
+.breakdown-section { padding: 0.85rem 1.1rem 0.9rem; border-bottom: 1px solid rgba(245,240,232,0.04); }
+[data-theme="light"] .breakdown-section { border-bottom-color: rgba(10,10,15,0.05); }
+.bd-label {
+  font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 0.65rem;
+}
+[data-theme="light"] .bd-label { color: #a07820; }
+
+.cost-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.32rem 0; border-bottom: 1px solid rgba(245,240,232,0.04);
+  font-size: 0.68rem;
+}
+.cost-row:last-child { border-bottom: none; }
+[data-theme="light"] .cost-row { border-bottom-color: rgba(10,10,15,0.04); }
+.cost-row-label { color: rgba(245,240,232,0.5); }
+[data-theme="light"] .cost-row-label { color: rgba(10,10,15,0.5); }
+.cost-row-val { font-weight: 500; color: var(--cream); font-family: 'DM Sans', sans-serif; }
+[data-theme="light"] .cost-row-val { color: var(--ink); }
+.cost-row-val.placeholder { color: rgba(245,240,232,0.18); }
+[data-theme="light"] .cost-row-val.placeholder { color: rgba(10,10,15,0.2); }
+.cost-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.5rem 0 0.1rem;
+  font-size: 0.73rem;
+}
+.cost-total .cost-row-label { color: rgba(245,240,232,0.75); font-weight: 500; }
+.cost-total .cost-row-val { font-size: 0.82rem; color: var(--terracotta); }
+[data-theme="light"] .cost-total .cost-row-label { color: rgba(10,10,15,0.7); }
+
+/* Margin bar */
+.margin-bar-wrap { margin-top: 0.65rem; }
+.margin-bar-labels {
+  display: flex; justify-content: space-between;
+  font-size: 0.6rem; margin-bottom: 0.3rem;
+  color: rgba(245,240,232,0.35);
+}
+[data-theme="light"] .margin-bar-labels { color: rgba(10,10,15,0.38); }
+.margin-bar-track {
+  height: 5px; border-radius: 3px;
+  background: rgba(245,240,232,0.06); overflow: hidden;
+}
+[data-theme="light"] .margin-bar-track { background: rgba(10,10,15,0.07); }
+.margin-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; width: 0; }
+
+/* Key risks */
+.risk-item {
+  display: flex; gap: 0.55rem; padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(245,240,232,0.04);
+  font-size: 0.67rem;
+}
+.risk-item:last-child { border-bottom: none; }
+[data-theme="light"] .risk-item { border-bottom-color: rgba(10,10,15,0.05); }
+.risk-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 0.2rem;
+}
+.risk-text { color: rgba(245,240,232,0.5); line-height: 1.4; }
+[data-theme="light"] .risk-text { color: rgba(10,10,15,0.5); }
+.risk-text.placeholder { color: rgba(245,240,232,0.2); font-style: italic; }
+[data-theme="light"] .risk-text.placeholder { color: rgba(10,10,15,0.2); }
+
+/* Profit pill */
+.profit-badge {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.3rem 0.7rem; border-radius: 20px; font-size: 0.68rem; font-weight: 500;
+  border: 1px solid rgba(245,240,232,0.08); color: rgba(245,240,232,0.25);
+  background: rgba(245,240,232,0.03); margin-top: 0.5rem;
+}
+[data-theme="light"] .profit-badge { border-color: rgba(10,10,15,0.08); color: rgba(10,10,15,0.28); background: rgba(10,10,15,0.03); }
+.profit-badge.active-green { border-color: rgba(76,175,80,0.3); color: #66bb6a; background: rgba(76,175,80,0.07); }
+.profit-badge.active-amber { border-color: rgba(255,152,0,0.3); color: #ffa726; background: rgba(255,152,0,0.08); }
+
+/* ── States: empty vs loaded ── */
+.state-empty  .result-content { display: none; }
+.state-loaded .fe-empty       { display: none; }
+.state-loaded .result-content { display: flex; flex-direction: column; gap: 1.25rem; }
+
+</style>
+</head>
+<body class="state-empty" id="pageBody">
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ── Nav ── -->
+<nav class="int-nav">
+  <div class="int-nav-left">
+    <a href="index.html" class="int-nav-logo">Imali<span>.</span>biz</a>
+    <div class="int-nav-divider"></div>
+    <span class="int-nav-badge">Internal Ops</span>
+  </div>
+  <div class="int-nav-right">
+    <a href="index.html"        class="int-nav-link">Overview</a>
+    <a href="inventory.html"    class="int-nav-link">Inventory</a>
+    <a href="materials.html"    class="int-nav-link">Materials</a>
+    <a href="map.html"          class="int-nav-link">Opportunity Map</a>
+    <a href="design-engine.html" class="int-nav-link">Design Engine</a>
+    <a href="units.html"        class="int-nav-link">Home Catalogue</a>
+    <a href="valuation.html"    class="int-nav-link">Valuation</a>
+    <a href="feasibility.html"  class="int-nav-link active">Feasibility</a>
+    <button class="theme-toggle" onclick="toggleTheme()">☀ Light</button>
+  </div>
+</nav>
+
+<!-- ── Page shell ── -->
+<div class="fe-wrap">
+
+  <!-- Header strip -->
+  <div class="fe-header">
+    <div class="fe-header-left">
+      <span class="fe-eyebrow">Feasibility Engine</span>
+      <div class="int-nav-divider"></div>
+      <h1 class="fe-title">Project <em>Feasibility</em></h1>
+    </div>
+    <div class="fe-header-right">
+      <span class="fe-badge">AI-Powered</span>
+      <span class="fe-hint">Enter land details · Run analysis · Get green-to-red verdict</span>
+    </div>
+  </div>
+
+  <!-- 3-column body -->
+  <div class="fe-body">
+
+    <!-- ── LEFT: inputs ── -->
+    <div class="fe-panel fe-left">
+
+      <!-- UPI Lookup -->
+      <div class="ps">
+        <div class="ps-label">Land Identification</div>
+        <div class="fe-field">
+          <label class="fe-lbl">UPI (Unique Parcel Identifier)</label>
+          <div class="upi-strip">
+            <input class="fe-input" type="text" placeholder="e.g. 1/01/01/01/1234" id="upiInput">
+            <button class="upi-btn" onclick="mockLookup()">Lookup</button>
+          </div>
+        </div>
+        <!-- UPI result card (hidden until lookup) -->
+        <div id="upiCard" class="upi-result-card" style="display:none;">
+          <div class="upi-rc-name" id="upiCardName">—</div>
+          <div class="upi-rc-loc"  id="upiCardLoc">—</div>
+          <div class="upi-rc-row">
+            <div>
+              <div class="upi-rc-key">Area</div>
+              <div class="upi-rc-val" id="upiCardArea">—</div>
+            </div>
+            <div>
+              <div class="upi-rc-key">Zone</div>
+              <div class="upi-rc-val upi-rc-zone" id="upiCardZone">—</div>
+            </div>
+            <div>
+              <div class="upi-rc-key">Title</div>
+              <div class="upi-rc-val upi-rc-title" id="upiCardTitle">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Land Details -->
+      <div class="ps">
+        <div class="ps-label">Land Details</div>
+        <div class="fe-row">
+          <div class="fe-field">
+            <label class="fe-lbl">Area (m²)</label>
+            <input class="fe-input" type="number" placeholder="e.g. 600" id="areaInput">
+          </div>
+          <div class="fe-field">
+            <label class="fe-lbl">Land Price (RWF)</label>
+            <input class="fe-input" type="text" placeholder="e.g. 45,000,000" id="priceInput">
+          </div>
+        </div>
+        <div class="fe-field">
+          <label class="fe-lbl">Sector / Location</label>
+          <select class="fe-select" id="sectorSelect">
+            <option value="">Select sector…</option>
+            <optgroup label="Kigali City">
+              <option>Nyarugenge</option>
+              <option>Kicukiro</option>
+              <option>Gasabo</option>
+              <option>Kimironko</option>
+              <option>Gisozi</option>
+              <option>Kibagabaga</option>
+              <option>Remera</option>
+              <option>Kacyiru</option>
+              <option>Kimihurura</option>
+              <option>Nyamirambo</option>
+              <option>Gikondo</option>
+              <option>Biryogo</option>
+            </optgroup>
+            <optgroup label="Eastern Province">
+              <option>Bugesera</option>
+              <option>Kayonza</option>
+              <option>Nyagatare</option>
+            </optgroup>
+            <optgroup label="Other">
+              <option>Musanze</option>
+              <option>Rubavu</option>
+              <option>Huye</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="fe-row">
+          <div class="fe-field">
+            <label class="fe-lbl">Zone Type</label>
+            <select class="fe-select" id="zoneSelect">
+              <option value="">Select…</option>
+              <option>R1 — Low Density Residential</option>
+              <option>R2 — Medium Density Residential</option>
+              <option>R3 — High Density Residential</option>
+              <option>MU — Mixed Use</option>
+              <option>C — Commercial</option>
+              <option>IN — Industrial</option>
+              <option>AG — Agricultural</option>
+            </select>
+          </div>
+          <div class="fe-field">
+            <label class="fe-lbl">Title Status</label>
+            <select class="fe-select" id="titleSelect">
+              <option value="">Select…</option>
+              <option>Freehold — Clear</option>
+              <option>Freehold — Encumbered</option>
+              <option>Leasehold</option>
+              <option>Provisional</option>
+              <option>Untitled</option>
+            </select>
+          </div>
+        </div>
+        <div class="fe-field">
+          <label class="fe-lbl">Topography</label>
+          <select class="fe-select" id="topoSelect">
+            <option value="">Select…</option>
+            <option>Flat (0–5°)</option>
+            <option>Gentle slope (5–15°)</option>
+            <option>Moderate slope (15–30°)</option>
+            <option>Steep (30–50°)</option>
+            <option>Very steep (50°+)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Infrastructure -->
+      <div class="ps">
+        <div class="ps-label">Infrastructure Access</div>
+        <div class="infra-grid">
+          <label class="infra-check"><input type="checkbox"> Paved road access</label>
+          <label class="infra-check"><input type="checkbox"> Electricity (REG)</label>
+          <label class="infra-check"><input type="checkbox"> Piped water (WASAC)</label>
+          <label class="infra-check"><input type="checkbox"> Sewage / drainage</label>
+          <label class="infra-check"><input type="checkbox"> Fibre internet</label>
+          <label class="infra-check"><input type="checkbox"> Public transport</label>
+        </div>
+      </div>
+
+      <!-- Development Intent -->
+      <div class="ps">
+        <div class="ps-label">Development Intent</div>
+        <div class="fe-field">
+          <label class="fe-lbl">Intended Use</label>
+          <select class="fe-select" id="useSelect">
+            <option value="">Select…</option>
+            <option>Residential — Apartments</option>
+            <option>Residential — Townhouses</option>
+            <option>Mixed-Use — Ground floor retail + apartments</option>
+            <option>Commercial — Office</option>
+            <option>Commercial — Retail</option>
+            <option>Short-Stay — Serviced apartments / Airbnb</option>
+            <option>Student Housing</option>
+          </select>
+        </div>
+        <div class="fe-row">
+          <div class="fe-field">
+            <label class="fe-lbl">Target Units / Keys</label>
+            <input class="fe-input" type="number" placeholder="e.g. 24" id="unitsInput">
+          </div>
+          <div class="fe-field">
+            <label class="fe-lbl">Target Floors</label>
+            <input class="fe-input" type="number" placeholder="e.g. 4" id="floorsInput">
+          </div>
+        </div>
+        <div class="fe-field">
+          <label class="fe-lbl">Target Market</label>
+          <select class="fe-select" id="marketSelect">
+            <option value="">Select…</option>
+            <option>Low-income (BOP)</option>
+            <option>Middle-income</option>
+            <option>Upper-middle</option>
+            <option>Luxury / Expatriate</option>
+            <option>Diaspora</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Run button -->
+      <button class="run-btn" onclick="runAnalysis()">
+        <span class="run-icon">◎</span> Run Feasibility Analysis
+      </button>
+
+    </div><!-- /fe-left -->
+
+    <!-- ── CENTRE: results ── -->
+    <div class="fe-centre" id="centrePanel">
+
+      <!-- Empty state -->
+      <div class="fe-empty">
+        <div class="fe-empty-icon">◎</div>
+        <div class="fe-empty-title">No analysis yet</div>
+        <div class="fe-empty-sub">Fill in the land details on the left and click Run Feasibility Analysis</div>
+      </div>
+
+      <!-- Results (shown after run) -->
+      <div class="result-content">
+
+        <!-- Score gauge -->
+        <div class="score-card">
+          <div class="gauge-wrap">
+            <svg class="gauge-svg" viewBox="0 0 120 120">
+              <circle class="gauge-track" cx="60" cy="60" r="51"/>
+              <circle class="gauge-fill" id="gaugeFill" cx="60" cy="60" r="51"/>
+            </svg>
+            <div class="gauge-score">
+              <div class="gauge-num" id="gaugeNum">—</div>
+              <div class="gauge-label">/ 100</div>
+            </div>
+          </div>
+          <div class="score-meta">
+            <div class="score-verdict" id="scoreVerdict">—</div>
+            <div class="score-sub" id="scoreSub">Run analysis to see the feasibility verdict.</div>
+            <div class="score-pills" id="scorePills"></div>
+          </div>
+        </div>
+
+        <!-- Factor breakdown -->
+        <div>
+          <div class="factors-title">Factor Breakdown</div>
+          <div class="factors-grid" id="factorsGrid"></div>
+        </div>
+
+        <!-- AI analysis -->
+        <div class="ai-card">
+          <div class="ai-header">
+            <div class="ai-dot"></div>
+            <span class="ai-label">AI Analysis</span>
+          </div>
+          <div class="ai-text" id="aiText">
+            <span class="ai-placeholder">Analysis will appear here after you run the tool…</span>
+          </div>
+        </div>
+
+      </div><!-- /result-content -->
+
+    </div><!-- /fe-centre -->
+
+    <!-- ── RIGHT: cost & revenue ── -->
+    <div class="fe-panel fe-right">
+
+      <!-- Cost breakdown -->
+      <div class="breakdown-section">
+        <div class="bd-label">Estimated Cost Breakdown</div>
+        <div class="cost-row">
+          <span class="cost-row-label">Land Cost</span>
+          <span class="cost-row-val placeholder" id="costLand">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Construction (structure)</span>
+          <span class="cost-row-val placeholder" id="costConstruct">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Finishes &amp; MEP</span>
+          <span class="cost-row-val placeholder" id="costFinishes">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Siteworks &amp; infrastructure</span>
+          <span class="cost-row-val placeholder" id="costSite">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Professional fees</span>
+          <span class="cost-row-val placeholder" id="costFees">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Permits &amp; statutory</span>
+          <span class="cost-row-val placeholder" id="costPermits">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Financing cost (est.)</span>
+          <span class="cost-row-val placeholder" id="costFinance">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Contingency (10%)</span>
+          <span class="cost-row-val placeholder" id="costContingency">—</span>
+        </div>
+        <div class="cost-total">
+          <span class="cost-row-label">Total Development Cost</span>
+          <span class="cost-row-val placeholder" id="costTotal">—</span>
+        </div>
+      </div>
+
+      <!-- Revenue projection -->
+      <div class="breakdown-section">
+        <div class="bd-label">Revenue Projection</div>
+        <div class="cost-row">
+          <span class="cost-row-label">Units / Keys</span>
+          <span class="cost-row-val placeholder" id="revUnits">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Avg. price per unit</span>
+          <span class="cost-row-val placeholder" id="revPerUnit">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Gross Revenue</span>
+          <span class="cost-row-val placeholder" id="revGross">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Net Profit</span>
+          <span class="cost-row-val placeholder" id="revNet">—</span>
+        </div>
+        <div class="cost-total">
+          <span class="cost-row-label">Net Margin</span>
+          <span class="cost-row-val placeholder" id="revMargin">—</span>
+        </div>
+        <div class="margin-bar-wrap">
+          <div class="margin-bar-labels">
+            <span>0%</span><span>15%</span><span>30%+</span>
+          </div>
+          <div class="margin-bar-track">
+            <div class="margin-bar-fill" id="marginBarFill"></div>
+          </div>
+          <div id="profitBadge" class="profit-badge" style="margin-top:0.55rem;">
+            Net margin will show after analysis
+          </div>
+        </div>
+      </div>
+
+      <!-- Key risks -->
+      <div class="breakdown-section">
+        <div class="bd-label">Key Risks &amp; Flags</div>
+        <div id="riskList">
+          <div class="risk-item">
+            <div class="risk-dot" style="background:rgba(245,240,232,0.15)"></div>
+            <div class="risk-text placeholder">Risks will be flagged after analysis</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost per m² summary -->
+      <div class="breakdown-section">
+        <div class="bd-label">Key Metrics</div>
+        <div class="cost-row">
+          <span class="cost-row-label">Cost per m² (GFA)</span>
+          <span class="cost-row-val placeholder" id="metricCostM2">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Land cost per m² (plot)</span>
+          <span class="cost-row-val placeholder" id="metricLandM2">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Dev leverage (build/land)</span>
+          <span class="cost-row-val placeholder" id="metricLev">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Estimated FAR used</span>
+          <span class="cost-row-val placeholder" id="metricFAR">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-row-label">Break-even occupancy</span>
+          <span class="cost-row-val placeholder" id="metricBreak">—</span>
+        </div>
+      </div>
+
+    </div><!-- /fe-right -->
+
+  </div><!-- /fe-body -->
+</div><!-- /fe-wrap -->
+
+<script>
+/* ── Cursor ── */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+(function loop() {
+  rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+  cur.style.transform  = `translate(${mx - 5}px,${my - 5}px)`;
+  ring.style.transform = `translate(${rx - 18}px,${ry - 18}px)`;
+  requestAnimationFrame(loop);
+})();
+
+/* ── Theme ── */
+function toggleTheme() {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('imali-theme', t);
+  document.querySelector('.theme-toggle').textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+}
+(function(){
+  const t = localStorage.getItem('imali-theme') || 'dark';
+  document.querySelector('.theme-toggle').textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+})();
+
+/* ── Mock UPI lookup ── */
+function mockLookup() {
+  const val = document.getElementById('upiInput').value.trim();
+  if (!val) return;
+  const card = document.getElementById('upiCard');
+  card.style.display = 'block';
+  document.getElementById('upiCardName').textContent = 'Plot — Kimironko, Gasabo District';
+  document.getElementById('upiCardLoc').textContent  = '📍 KG 15 Ave, Gasabo · Kigali City';
+  document.getElementById('upiCardArea').textContent = '620 m²';
+  document.getElementById('upiCardZone').textContent = 'R2';
+  document.getElementById('upiCardTitle').textContent = 'Freehold ✓';
+}
+
+/* ── Run analysis (mock demo) ── */
+function runAnalysis() {
+  document.getElementById('pageBody').classList.remove('state-empty');
+  document.getElementById('pageBody').classList.add('state-loaded');
+
+  // ── Score ──
+  const score = 72;
+  setGauge(score);
+  document.getElementById('gaugeNum').textContent = score;
+  document.getElementById('scoreVerdict').textContent = 'Viable — Proceed with Due Diligence';
+  document.getElementById('scoreSub').textContent =
+    'The project shows strong zoning compliance and market demand. Infrastructure gaps and steep slope add cost risk. Financial margin is within viable range pending refined construction estimates.';
+
+  const pills = [
+    { t: 'Zoning ✓', c: 'pill-green' },
+    { t: 'Title Clear ✓', c: 'pill-green' },
+    { t: 'Slope Risk', c: 'pill-amber' },
+    { t: 'Low Water Access', c: 'pill-red' },
+  ];
+  document.getElementById('scorePills').innerHTML = pills.map(p =>
+    `<span class="score-pill ${p.c}">${p.t}</span>`).join('');
+
+  // ── Factors ──
+  const factors = [
+    { name: 'Legal & Title',          score: 90, grade: 'green', note: 'Freehold title, no encumbrances' },
+    { name: 'Zoning Compliance',      score: 82, grade: 'green', note: 'R2 zone — 4-storey apartments permitted' },
+    { name: 'Infrastructure Access',  score: 55, grade: 'amber', note: 'Road & power OK · water connection needed' },
+    { name: 'Market Demand',          score: 78, grade: 'green', note: 'Strong middle-income demand in Kimironko' },
+    { name: 'Construction Feasibility', score: 60, grade: 'amber', note: 'Moderate slope adds 8–12% cost premium' },
+    { name: 'Financial Viability',    score: 68, grade: 'amber', note: '22% projected margin — acceptable but tight' },
+    { name: 'Flood & Disaster Risk',  score: 80, grade: 'green', note: 'Outside wetland buffer · no disaster zone' },
+    { name: 'Approvals Risk',         score: 65, grade: 'amber', note: 'Standard EIA required · 60–90 day process' },
+  ];
+  document.getElementById('factorsGrid').innerHTML = factors.map(f => `
+    <div class="factor-card">
+      <div class="factor-top">
+        <div class="factor-name">${f.name}</div>
+        <div class="factor-score-badge fsb-${f.grade}">${f.score}</div>
+      </div>
+      <div class="factor-bar-track">
+        <div class="factor-bar-fill bar-${f.grade}" style="width:${f.score}%"></div>
+      </div>
+      <div class="factor-note">${f.note}</div>
+    </div>`).join('');
+
+  // ── AI text ──
+  document.getElementById('aiText').innerHTML = `
+    This site in Kimironko presents a <strong>viable development opportunity</strong> for a medium-density residential project.
+    The R2 zoning permits up to 4 storeys and 60% plot coverage, supporting approximately 22–26 two-bedroom apartments on a 620 m² plot.
+    The clear freehold title removes the most significant deal-breaker risk.<br><br>
+    The primary concerns are a <strong>15–20° slope</strong> across the lower third of the plot, which will require additional retaining works and
+    foundation engineering — estimated at a 10% cost premium — and the absence of an on-site WASAC connection,
+    which adds a connection application lead-time of roughly 4–8 weeks.<br><br>
+    <strong>Market demand</strong> in this corridor is supported by proximity to Kimironko market, KBC, and the new BRT corridor along KK 15 Ave.
+    Middle-income 2-bedroom units in this micro-market are currently transacting at RWF 38–45M per unit.<br><br>
+    <em>Recommendation: Proceed to full feasibility study. Prioritise topographic survey, WASAC connection feasibility, and structural soil report before committing to land purchase.</em>`;
+
+  // ── Cost breakdown ──
+  const fmt = n => 'RWF ' + n.toLocaleString();
+  document.getElementById('costLand').textContent       = fmt(45_000_000);
+  document.getElementById('costConstruct').textContent  = fmt(108_000_000);
+  document.getElementById('costFinishes').textContent   = fmt(38_000_000);
+  document.getElementById('costSite').textContent       = fmt(12_500_000);
+  document.getElementById('costFees').textContent       = fmt(16_200_000);
+  document.getElementById('costPermits').textContent    = fmt(3_800_000);
+  document.getElementById('costFinance').textContent    = fmt(22_000_000);
+  document.getElementById('costContingency').textContent = fmt(24_550_000);
+  document.getElementById('costTotal').textContent      = fmt(270_050_000);
+
+  const activeClass = 'cost-row-val';
+  ['costLand','costConstruct','costFinishes','costSite','costFees','costPermits','costFinance','costContingency','costTotal']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('placeholder');
+    });
+
+  // ── Revenue ──
+  document.getElementById('revUnits').textContent   = '24 apartments';
+  document.getElementById('revPerUnit').textContent = 'RWF 41,000,000';
+  document.getElementById('revGross').textContent   = 'RWF 984,000,000';
+  document.getElementById('revNet').textContent     = 'RWF 713,950,000';
+  document.getElementById('revMargin').textContent  = '22%';
+  ['revUnits','revPerUnit','revGross','revNet','revMargin'].forEach(id =>
+    document.getElementById(id).classList.remove('placeholder'));
+
+  document.getElementById('marginBarFill').style.width   = '73%';
+  document.getElementById('marginBarFill').style.background = '#ff9800';
+  const pb = document.getElementById('profitBadge');
+  pb.className = 'profit-badge active-amber';
+  pb.textContent = '22% net margin — viable, monitor costs';
+
+  // ── Risks ──
+  const risks = [
+    { c: '#ff9800', t: 'Slope works may increase construction cost by 8–12% — commission topo survey before purchase' },
+    { c: '#f44336', t: 'WASAC connection not confirmed — 4–8 week lead time, budget RWF 2–4M for connection' },
+    { c: '#ff9800', t: 'EIA process required for 4-storey build — allow 60–90 days in project programme' },
+    { c: '#4caf50', t: 'No flood zone or wetland buffer conflicts detected at this location' },
+  ];
+  document.getElementById('riskList').innerHTML = risks.map(r =>
+    `<div class="risk-item"><div class="risk-dot" style="background:${r.c}"></div><div class="risk-text">${r.t}</div></div>`
+  ).join('');
+
+  // ── Metrics ──
+  document.getElementById('metricCostM2').textContent = 'RWF 225,000 / m²';
+  document.getElementById('metricLandM2').textContent = 'RWF 72,580 / m²';
+  document.getElementById('metricLev').textContent    = '5.0× build / land';
+  document.getElementById('metricFAR').textContent    = '1.9 FAR';
+  document.getElementById('metricBreak').textContent  = '62% occupancy';
+  ['metricCostM2','metricLandM2','metricLev','metricFAR','metricBreak'].forEach(id =>
+    document.getElementById(id).classList.remove('placeholder'));
+}
+
+/* ── Gauge animation ── */
+function setGauge(score) {
+  const circ   = 2 * Math.PI * 51;  // ~320.4
+  const offset = circ * (1 - score / 100);
+  const color  = score >= 70 ? '#4caf50' : score >= 45 ? '#ff9800' : '#f44336';
+  const fill   = document.getElementById('gaugeFill');
+  fill.style.strokeDasharray  = circ;
+  fill.style.strokeDashoffset = circ; // start at 0
+  fill.style.stroke = color;
+  requestAnimationFrame(() => {
+    fill.style.transition = 'stroke-dashoffset 1.1s ease';
+    fill.style.strokeDashoffset = offset;
+  });
+}
+</script>
+</body>
+</html>
