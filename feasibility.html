@@ -390,10 +390,259 @@ html, body { height: 100%; overflow: hidden; }
 .profit-badge.active-green { border-color: rgba(76,175,80,0.3); color: #66bb6a; background: rgba(76,175,80,0.07); }
 .profit-badge.active-amber { border-color: rgba(255,152,0,0.3); color: #ffa726; background: rgba(255,152,0,0.08); }
 
+/* ── Centre parcel shape card ── */
+.parcel-shape-card {
+  background: rgba(245,240,232,0.025); border: 1px solid rgba(245,240,232,0.07);
+  border-radius: 14px; padding: 1.1rem 1.2rem; display: none;
+}
+[data-theme="light"] .parcel-shape-card { background: rgba(10,10,15,0.02); border-color: rgba(10,10,15,0.08); }
+.parcel-shape-card.visible { display: block; }
+.parcel-shape-card-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem;
+}
+.parcel-shape-card-title {
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold);
+}
+[data-theme="light"] .parcel-shape-card-title { color: #a07820; }
+.parcel-shape-legend { display: flex; gap: 0.9rem; }
+.psl-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.6rem; color: rgba(245,240,232,0.45); }
+[data-theme="light"] .psl-item { color: rgba(10,10,15,0.45); }
+.psl-swatch { width: 18px; height: 3px; border-radius: 2px; }
+.centre-shape-svg { width: 100%; height: 220px; display: block; }
+.parcel-shape-metrics-row {
+  display: flex; gap: 0.5rem; margin-top: 0.85rem; flex-wrap: wrap;
+}
+.psm-item {
+  flex: 1; min-width: 90px;
+  background: rgba(245,240,232,0.03); border: 1px solid rgba(245,240,232,0.06);
+  border-radius: 7px; padding: 0.35rem 0.55rem;
+}
+[data-theme="light"] .psm-item { background: rgba(10,10,15,0.03); border-color: rgba(10,10,15,0.07); }
+.psm-k { font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.07em; color: rgba(245,240,232,0.32); }
+[data-theme="light"] .psm-k { color: rgba(10,10,15,0.38); }
+.psm-v { font-size: 0.76rem; font-weight: 500; color: var(--cream); margin-top: 0.1rem; }
+[data-theme="light"] .psm-v { color: var(--ink); }
+.psm-v.good  { color: #4caf50; }
+.psm-v.warn  { color: #ff9800; }
+.psm-v.bad   { color: #f44336; }
+
+/* ── Centre shape card header / legend ── */
+.parcel-shape-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.4rem; }
+.parcel-shape-card-title  { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(245,240,232,0.45); }
+[data-theme="light"] .parcel-shape-card-title { color: rgba(10,10,15,0.4); }
+.parcel-shape-legend      { display: flex; gap: 0.75rem; }
+.psl-item  { display: flex; align-items: center; gap: 0.3rem; font-size: 0.62rem; color: rgba(245,240,232,0.55); }
+[data-theme="light"] .psl-item { color: rgba(10,10,15,0.55); }
+.psl-swatch { width: 18px; height: 3px; border-radius: 2px; }
+
 /* ── States: empty vs loaded ── */
 .state-empty  .result-content { display: none; }
 .state-loaded .fe-empty       { display: none; }
 .state-loaded .result-content { display: flex; flex-direction: column; gap: 1.25rem; }
+
+/* ── Parcel Shape section ── */
+.shape-empty-hint {
+  font-size: 0.65rem; color: rgba(245,240,232,0.22); text-align: center;
+  padding: 0.5rem 0; font-style: italic;
+}
+[data-theme="light"] .shape-empty-hint { color: rgba(10,10,15,0.25); }
+
+.shape-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.5rem; }
+.shape-btn {
+  padding: 0.38rem 0; border-radius: 7px; border: none; cursor: none;
+  font-family: 'DM Sans', sans-serif; font-size: 0.68rem; font-weight: 500;
+  transition: background 0.16s, color 0.16s;
+}
+.shape-btn-draw {
+  background: rgba(200,82,26,0.12); color: var(--terracotta);
+  border: 1px solid rgba(200,82,26,0.25);
+}
+.shape-btn-draw:hover { background: rgba(200,82,26,0.2); }
+.shape-btn-upi {
+  background: rgba(245,240,232,0.05); color: rgba(245,240,232,0.5);
+  border: 1px solid rgba(245,240,232,0.1);
+}
+[data-theme="light"] .shape-btn-upi { background: rgba(10,10,15,0.04); color: rgba(10,10,15,0.45); border-color: rgba(10,10,15,0.1); }
+.shape-btn-upi:hover { background: rgba(245,240,232,0.09); }
+[data-theme="light"] .shape-btn-upi:hover { background: rgba(10,10,15,0.08); }
+.shape-btn-upi.active {
+  background: rgba(212,168,50,0.1); color: var(--gold);
+  border-color: rgba(212,168,50,0.3);
+}
+[data-theme="light"] .shape-btn-upi.active { color: #a07820; }
+
+/* Shape SVG display */
+.shape-display {
+  background: rgba(245,240,232,0.025); border: 1px solid rgba(245,240,232,0.08);
+  border-radius: 9px; padding: 0.5rem; display: none; position: relative;
+}
+[data-theme="light"] .shape-display { background: rgba(10,10,15,0.02); border-color: rgba(10,10,15,0.09); }
+.shape-display.visible { display: block; }
+.shape-display-svg { width: 100%; height: 130px; display: block; }
+.shape-redo-btn {
+  position: absolute; top: 0.4rem; right: 0.4rem;
+  background: rgba(245,240,232,0.06); border: 1px solid rgba(245,240,232,0.1);
+  border-radius: 5px; padding: 0.18rem 0.45rem; cursor: none;
+  font-size: 0.6rem; color: rgba(245,240,232,0.45);
+  font-family: 'DM Sans', sans-serif; transition: background 0.15s;
+}
+[data-theme="light"] .shape-redo-btn { background: rgba(10,10,15,0.05); border-color: rgba(10,10,15,0.1); color: rgba(10,10,15,0.45); }
+.shape-redo-btn:hover { background: rgba(245,240,232,0.12); }
+
+.shape-metrics {
+  display: flex; gap: 0.6rem; margin-top: 0.5rem; flex-wrap: wrap;
+}
+.shape-metric {
+  flex: 1; min-width: 70px;
+  background: rgba(245,240,232,0.03); border: 1px solid rgba(245,240,232,0.06);
+  border-radius: 6px; padding: 0.3rem 0.45rem;
+}
+[data-theme="light"] .shape-metric { background: rgba(10,10,15,0.03); border-color: rgba(10,10,15,0.07); }
+.shape-metric-k { font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(245,240,232,0.32); }
+[data-theme="light"] .shape-metric-k { color: rgba(10,10,15,0.38); }
+.shape-metric-v { font-size: 0.72rem; font-weight: 500; color: var(--cream); margin-top: 0.1rem; }
+[data-theme="light"] .shape-metric-v { color: var(--ink); }
+
+/* ── Road Access section ── */
+.road-locked {
+  font-size: 0.65rem; color: rgba(245,240,232,0.22); font-style: italic;
+  padding: 0.3rem 0;
+}
+[data-theme="light"] .road-locked { color: rgba(10,10,15,0.28); }
+
+.edge-chips { display: flex; flex-direction: column; gap: 0.35rem; }
+.edge-chip {
+  display: flex; align-items: center; gap: 0.55rem;
+  padding: 0.38rem 0.55rem; border-radius: 7px; cursor: none;
+  border: 1px solid rgba(245,240,232,0.08);
+  background: rgba(245,240,232,0.03);
+  transition: background 0.15s, border-color 0.15s;
+}
+[data-theme="light"] .edge-chip { background: rgba(10,10,15,0.03); border-color: rgba(10,10,15,0.08); }
+.edge-chip.road-yes {
+  border-color: rgba(76,175,80,0.35); background: rgba(76,175,80,0.06);
+}
+.edge-chip-indicator {
+  width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0;
+  border: 1.5px solid rgba(245,240,232,0.2);
+}
+[data-theme="light"] .edge-chip-indicator { border-color: rgba(10,10,15,0.2); }
+.edge-chip.road-yes .edge-chip-indicator {
+  background: #4caf50; border-color: #4caf50;
+}
+.edge-chip-label { font-size: 0.68rem; flex: 1; color: rgba(245,240,232,0.6); }
+[data-theme="light"] .edge-chip-label { color: rgba(10,10,15,0.6); }
+.edge-chip.road-yes .edge-chip-label { color: var(--cream); }
+[data-theme="light"] .edge-chip.road-yes .edge-chip-label { color: var(--ink); }
+.edge-chip-len { font-size: 0.62rem; color: rgba(245,240,232,0.35); }
+[data-theme="light"] .edge-chip-len { color: rgba(10,10,15,0.38); }
+.edge-chip.road-yes .edge-chip-len { color: rgba(76,175,80,0.7); }
+
+.road-type-row { margin-top: 0.5rem; }
+.road-type-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.62rem; color: rgba(245,240,232,0.38); margin-bottom: 0.3rem;
+}
+[data-theme="light"] .road-type-badge { color: rgba(10,10,15,0.42); }
+
+/* Frontage summary */
+.frontage-summary {
+  display: none; margin-top: 0.55rem;
+  background: rgba(76,175,80,0.06); border: 1px solid rgba(76,175,80,0.2);
+  border-radius: 7px; padding: 0.45rem 0.6rem;
+}
+.frontage-summary.visible { display: block; }
+.frontage-summary-row { display: flex; justify-content: space-between; font-size: 0.67rem; }
+.frontage-summary-row .fk { color: rgba(245,240,232,0.45); }
+.frontage-summary-row .fv { color: var(--cream); font-weight: 500; }
+[data-theme="light"] .frontage-summary-row .fk { color: rgba(10,10,15,0.45); }
+[data-theme="light"] .frontage-summary-row .fv { color: var(--ink); }
+
+/* ── Drawing Modal ── */
+.draw-modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(10,10,15,0.88); backdrop-filter: blur(8px);
+  z-index: 5000; align-items: center; justify-content: center;
+}
+[data-theme="light"] .draw-modal { background: rgba(10,10,15,0.6); }
+.draw-modal.open { display: flex; }
+
+.draw-modal-inner {
+  background: #111117; border: 1px solid rgba(245,240,232,0.1);
+  border-radius: 14px; width: min(820px, 94vw); max-height: 90vh;
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+}
+[data-theme="light"] .draw-modal-inner { background: #faf7f2; border-color: rgba(10,10,15,0.12); }
+
+.draw-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.9rem 1.2rem 0.75rem;
+  border-bottom: 1px solid rgba(245,240,232,0.07);
+}
+[data-theme="light"] .draw-modal-header { border-bottom-color: rgba(10,10,15,0.08); }
+.draw-modal-title {
+  font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700; color: var(--cream);
+}
+[data-theme="light"] .draw-modal-title { color: var(--ink); }
+.draw-modal-sub {
+  font-size: 0.64rem; color: rgba(245,240,232,0.38); margin-top: 0.1rem;
+}
+[data-theme="light"] .draw-modal-sub { color: rgba(10,10,15,0.42); }
+.draw-modal-close {
+  background: rgba(245,240,232,0.06); border: 1px solid rgba(245,240,232,0.1);
+  border-radius: 6px; width: 28px; height: 28px; cursor: none;
+  color: rgba(245,240,232,0.5); font-size: 1rem; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+[data-theme="light"] .draw-modal-close { background: rgba(10,10,15,0.05); border-color: rgba(10,10,15,0.1); color: rgba(10,10,15,0.5); }
+.draw-modal-close:hover { background: rgba(245,240,232,0.12); }
+
+.draw-canvas-wrap {
+  flex: 1; position: relative; overflow: hidden; cursor: crosshair;
+  min-height: 380px;
+}
+#drawCanvas { display: block; width: 100%; height: 100%; }
+
+.draw-status {
+  position: absolute; bottom: 0.6rem; left: 50%; transform: translateX(-50%);
+  background: rgba(10,10,15,0.75); border: 1px solid rgba(245,240,232,0.12);
+  border-radius: 20px; padding: 0.28rem 0.85rem;
+  font-size: 0.62rem; color: rgba(245,240,232,0.6); white-space: nowrap;
+  pointer-events: none;
+}
+[data-theme="light"] .draw-status { background: rgba(250,247,242,0.9); color: rgba(10,10,15,0.55); border-color: rgba(10,10,15,0.15); }
+
+.draw-toolbar {
+  display: flex; gap: 0.5rem; padding: 0.75rem 1.2rem;
+  border-top: 1px solid rgba(245,240,232,0.07);
+  align-items: center;
+}
+[data-theme="light"] .draw-toolbar { border-top-color: rgba(10,10,15,0.08); }
+.draw-toolbar-left { display: flex; gap: 0.4rem; flex: 1; }
+.dt-btn {
+  padding: 0.38rem 0.85rem; border-radius: 7px; border: none; cursor: none;
+  font-family: 'DM Sans', sans-serif; font-size: 0.7rem; font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+.dt-undo { background: rgba(245,240,232,0.06); color: rgba(245,240,232,0.5); }
+[data-theme="light"] .dt-undo { background: rgba(10,10,15,0.06); color: rgba(10,10,15,0.5); }
+.dt-undo:hover { background: rgba(245,240,232,0.1); }
+.dt-clear { background: rgba(244,67,54,0.1); color: #ef5350; }
+.dt-clear:hover { background: rgba(244,67,54,0.18); }
+.dt-done {
+  background: linear-gradient(135deg, var(--terracotta), #a03e10);
+  color: #fff; padding: 0.4rem 1.4rem;
+}
+.dt-done:hover { opacity: 0.88; }
+.dt-done:disabled { opacity: 0.3; cursor: default; }
+
+.draw-point-count {
+  font-size: 0.63rem; color: rgba(245,240,232,0.32);
+  display: flex; align-items: center; gap: 0.3rem;
+}
+[data-theme="light"] .draw-point-count { color: rgba(10,10,15,0.35); }
 
 </style>
 </head>
@@ -473,6 +722,21 @@ html, body { height: 100%; overflow: hidden; }
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Parcel Shape -->
+      <div class="ps">
+        <div class="ps-label">Parcel Shape</div>
+        <div class="shape-btns">
+          <button class="shape-btn shape-btn-draw" onclick="openDrawModal()">✏ Draw Manually</button>
+          <button class="shape-btn shape-btn-upi" id="shapeFromUpiBtn" onclick="loadShapeFromUPI()" disabled>⬇ From UPI</button>
+        </div>
+        <div class="shape-display" id="shapeDisplay">
+          <button class="shape-redo-btn" onclick="openDrawModal()">Redraw</button>
+          <svg class="shape-display-svg" id="shapeSVG" viewBox="0 0 220 130"></svg>
+          <div class="shape-metrics" id="shapeMetrics"></div>
+        </div>
+        <div class="shape-empty-hint" id="shapeHint">No shape set — draw or load from UPI</div>
       </div>
 
       <!-- Land Details -->
@@ -561,12 +825,36 @@ html, body { height: 100%; overflow: hidden; }
       <div class="ps">
         <div class="ps-label">Infrastructure Access</div>
         <div class="infra-grid">
-          <label class="infra-check"><input type="checkbox"> Paved road access</label>
           <label class="infra-check"><input type="checkbox"> Electricity (REG)</label>
           <label class="infra-check"><input type="checkbox"> Piped water (WASAC)</label>
           <label class="infra-check"><input type="checkbox"> Sewage / drainage</label>
           <label class="infra-check"><input type="checkbox"> Fibre internet</label>
           <label class="infra-check"><input type="checkbox"> Public transport</label>
+        </div>
+      </div>
+
+      <!-- Road Access (Detailed) -->
+      <div class="ps">
+        <div class="ps-label">Road Access</div>
+        <div id="roadLocked" class="road-locked">Add parcel shape above to enable detailed road access analysis</div>
+        <div id="roadUnlocked" style="display:none;">
+          <div class="fe-lbl" style="margin-bottom:0.45rem;">Click the edges that have road access</div>
+          <div class="edge-chips" id="edgeChips"></div>
+          <div class="road-type-row" id="roadTypeRow" style="display:none;">
+            <div class="road-type-badge">Road classification for selected edge(s)</div>
+            <select class="fe-select" id="roadTypeSelect">
+              <option value="">Select road type…</option>
+              <option value="primary">Primary / National road</option>
+              <option value="secondary">Secondary / District road</option>
+              <option value="local">Local / Neighbourhood road</option>
+              <option value="access">Private access road / Unpaved</option>
+            </select>
+          </div>
+          <div class="frontage-summary" id="frontageSummary">
+            <div class="frontage-summary-row"><span class="fk">Total frontage</span><span class="fv" id="fsFrontage">—</span></div>
+            <div class="frontage-summary-row" style="margin-top:0.25rem;"><span class="fk">Frontage ratio</span><span class="fv" id="fsRatio">—</span></div>
+            <div class="frontage-summary-row" style="margin-top:0.25rem;"><span class="fk">Access quality</span><span class="fv" id="fsQuality">—</span></div>
+          </div>
         </div>
       </div>
 
@@ -646,6 +934,19 @@ html, body { height: 100%; overflow: hidden; }
             <div class="score-sub" id="scoreSub">Run analysis to see the feasibility verdict.</div>
             <div class="score-pills" id="scorePills"></div>
           </div>
+        </div>
+
+        <!-- Parcel shape + road access -->
+        <div class="parcel-shape-card" id="centreShapeCard">
+          <div class="parcel-shape-card-header">
+            <span class="parcel-shape-card-title">Parcel Shape &amp; Road Access</span>
+            <div class="parcel-shape-legend">
+              <div class="psl-item"><div class="psl-swatch" style="background:#4caf50"></div>Road frontage</div>
+              <div class="psl-item"><div class="psl-swatch" id="pslNonRoad"></div>No road access</div>
+            </div>
+          </div>
+          <svg class="centre-shape-svg" id="centreShapeSVG" viewBox="0 0 560 220"></svg>
+          <div class="parcel-shape-metrics-row" id="centreShapeMetrics"></div>
         </div>
 
         <!-- Factor breakdown -->
@@ -790,6 +1091,31 @@ html, body { height: 100%; overflow: hidden; }
   </div><!-- /fe-body -->
 </div><!-- /fe-wrap -->
 
+<!-- ── Drawing Modal ── -->
+<div class="draw-modal" id="drawModal">
+  <div class="draw-modal-inner">
+    <div class="draw-modal-header">
+      <div>
+        <div class="draw-modal-title">Draw Parcel Shape</div>
+        <div class="draw-modal-sub">Click to place corners · Double-click or press Enter to close the polygon · Drag points to adjust</div>
+      </div>
+      <button class="draw-modal-close" onclick="closeDrawModal()">✕</button>
+    </div>
+    <div class="draw-canvas-wrap" id="drawCanvasWrap">
+      <canvas id="drawCanvas"></canvas>
+      <div class="draw-status" id="drawStatus">Click anywhere to place the first corner</div>
+    </div>
+    <div class="draw-toolbar">
+      <div class="draw-toolbar-left">
+        <button class="dt-btn dt-undo" onclick="undoPoint()">↩ Undo</button>
+        <button class="dt-btn dt-clear" onclick="clearDraw()">✕ Clear</button>
+        <div class="draw-point-count" id="pointCount">0 points</div>
+      </div>
+      <button class="dt-btn dt-done" id="doneBtn" onclick="finishDraw()" disabled>Use This Shape →</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ── Cursor ── */
 const cur = document.getElementById('cursor');
@@ -826,6 +1152,593 @@ function mockLookup() {
   document.getElementById('upiCardArea').textContent = '620 m²';
   document.getElementById('upiCardZone').textContent = 'R2';
   document.getElementById('upiCardTitle').textContent = 'Freehold ✓';
+  // Enable "From UPI" shape button
+  const upiShapeBtn = document.getElementById('shapeFromUpiBtn');
+  upiShapeBtn.disabled = false;
+  upiShapeBtn.classList.add('active');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PARCEL SHAPE ENGINE
+   ══════════════════════════════════════════════════════════════════ */
+
+// Normalized shape points (0–1 coordinate space) once shape is committed
+let committedShape = null; // [{x,y}, …]
+
+// ── Geometry helpers ──────────────────────────────────────────────
+function polyArea(pts) {
+  let a = 0;
+  for (let i = 0, n = pts.length; i < n; i++) {
+    const j = (i + 1) % n;
+    a += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+  }
+  return Math.abs(a / 2);
+}
+
+function edgeLen(p1, p2) {
+  return Math.hypot(p2.x - p1.x, p2.y - p1.y);
+}
+
+// Given raw points (any scale) + real area in m², return edge lengths in metres
+function computeEdges(pts, realAreaM2) {
+  const pixArea = polyArea(pts);
+  const scale   = pixArea > 0 ? Math.sqrt(realAreaM2 / pixArea) : 1;
+  return pts.map((p, i) => {
+    const q   = pts[(i + 1) % pts.length];
+    const len = edgeLen(p, q) * scale;
+    return { len: Math.round(len * 10) / 10, road: false };
+  });
+}
+
+function normalizePts(pts) {
+  const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const span = Math.max(maxX - minX, maxY - minY) || 1;
+  return pts.map(p => ({ x: (p.x - minX) / span, y: (p.y - minY) / span }));
+}
+
+// ── Apply shape (called from draw-done or UPI load) ───────────────
+function applyShape(normPts) {
+  committedShape = normPts;
+  const areaM2 = parseFloat(document.getElementById('areaInput').value) || 620;
+  const edges  = computeEdges(normPts, areaM2);
+  renderShapePanel(normPts, edges);
+  renderEdgeChips(edges);
+  document.getElementById('shapeDisplay').classList.add('visible');
+  document.getElementById('shapeHint').style.display = 'none';
+}
+
+// ── Render shape SVG in the panel ────────────────────────────────
+function renderShapePanel(pts, edges) {
+  const W = 220, H = 130, PAD = 22;
+  const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const scaleX = (W - PAD * 2) / (maxX - minX || 1);
+  const scaleY = (H - PAD * 2) / (maxY - minY || 1);
+  const s = Math.min(scaleX, scaleY);
+  const offX = (W - (maxX - minX) * s) / 2;
+  const offY = (H - (maxY - minY) * s) / 2;
+  const tx = p => offX + (p.x - minX) * s;
+  const ty = p => offY + (p.y - minY) * s;
+
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const fillC  = isDark ? 'rgba(212,168,50,0.08)' : 'rgba(200,82,26,0.07)';
+  const strokeC = isDark ? '#d4a832' : '#c8521a';
+  const textC   = isDark ? 'rgba(245,240,232,0.45)' : 'rgba(10,10,15,0.45)';
+
+  const polyPts = pts.map(p => `${tx(p)},${ty(p)}`).join(' ');
+
+  let edgeLabels = '';
+  pts.forEach((p, i) => {
+    const q   = pts[(i + 1) % pts.length];
+    const mx  = (tx(p) + tx(q)) / 2;
+    const my  = (ty(p) + ty(q)) / 2;
+    const len = edges[i].len;
+    const roadColor = edges[i].road ? '#4caf50' : textC;
+    edgeLabels += `<text x="${mx}" y="${my}" fill="${roadColor}" font-size="7.5" text-anchor="middle" dominant-baseline="middle" font-family="DM Sans,sans-serif">${len}m</text>`;
+  });
+
+  // Corner dots
+  const dots = pts.map(p =>
+    `<circle cx="${tx(p)}" cy="${ty(p)}" r="2.5" fill="${strokeC}" opacity="0.8"/>`
+  ).join('');
+
+  document.getElementById('shapeSVG').innerHTML = `
+    <polygon points="${polyPts}" fill="${fillC}" stroke="${strokeC}" stroke-width="1.5" stroke-linejoin="round"/>
+    ${edgeLabels}${dots}`;
+
+  // Metrics
+  const perim = edges.reduce((s, e) => s + e.len, 0).toFixed(1);
+  const longestEdge = Math.max(...edges.map(e => e.len));
+  const shortestEdge = Math.min(...edges.map(e => e.len));
+  const ratio = (longestEdge / shortestEdge).toFixed(1);
+  document.getElementById('shapeMetrics').innerHTML = `
+    <div class="shape-metric"><div class="shape-metric-k">Perimeter</div><div class="shape-metric-v">${perim} m</div></div>
+    <div class="shape-metric"><div class="shape-metric-k">Longest edge</div><div class="shape-metric-v">${longestEdge} m</div></div>
+    <div class="shape-metric"><div class="shape-metric-k">Depth ratio</div><div class="shape-metric-v">${ratio}:1</div></div>`;
+}
+
+// ── Load mock shape from UPI ──────────────────────────────────────
+function loadShapeFromUPI() {
+  // Realistic slightly-irregular Kimironko plot (roughly 25m × 25m with slight taper)
+  const raw = [
+    {x:0.00, y:0.10}, {x:0.82, y:0.00}, {x:1.00, y:0.08},
+    {x:0.95, y:0.95}, {x:0.05, y:1.00},
+  ];
+  document.getElementById('areaInput').value = 620;
+  applyShape(normalizePts(raw));
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ROAD ACCESS ENGINE
+   ══════════════════════════════════════════════════════════════════ */
+
+let edgeState = []; // [{len, road}, …] — mirrors edges on the shape
+
+function renderEdgeChips(edges) {
+  edgeState = edges.map(e => ({ ...e }));
+  document.getElementById('roadLocked').style.display = 'none';
+  document.getElementById('roadUnlocked').style.display = 'block';
+
+  const container = document.getElementById('edgeChips');
+  container.innerHTML = edges.map((e, i) => `
+    <div class="edge-chip" id="edgeChip-${i}" onclick="toggleEdgeRoad(${i})">
+      <div class="edge-chip-indicator"></div>
+      <span class="edge-chip-label">Edge ${i + 1}</span>
+      <span class="edge-chip-len">${e.len} m</span>
+    </div>`).join('');
+}
+
+function toggleEdgeRoad(i) {
+  edgeState[i].road = !edgeState[i].road;
+  const chip = document.getElementById(`edgeChip-${i}`);
+  chip.classList.toggle('road-yes', edgeState[i].road);
+  // Show road type selector if any edge selected
+  const anyRoad = edgeState.some(e => e.road);
+  document.getElementById('roadTypeRow').style.display = anyRoad ? 'block' : 'none';
+  updateFrontageSummary();
+  // Re-render SVG with green road edges
+  if (committedShape) {
+    renderShapePanel(committedShape, edgeState);
+  }
+}
+
+function updateFrontageSummary() {
+  const roadEdges = edgeState.filter(e => e.road);
+  const summary   = document.getElementById('frontageSummary');
+  if (!roadEdges.length) { summary.classList.remove('visible'); return; }
+
+  const totalFrontage = roadEdges.reduce((s, e) => s + e.len, 0).toFixed(1);
+  const totalPerim    = edgeState.reduce((s, e) => s + e.len, 0);
+  const ratio         = totalPerim > 0 ? ((roadEdges.reduce((s,e)=>s+e.len,0) / totalPerim) * 100).toFixed(0) : 0;
+
+  const longestEdge   = Math.max(...edgeState.map(e => e.len));
+  const longestIsRoad = roadEdges.some(e => e.len === longestEdge);
+  const quality = longestIsRoad
+    ? (roadEdges.length > 1 ? 'Excellent — corner / multi-frontage' : 'Good — longest edge faces road')
+    : (ratio >= 30 ? 'Fair — meaningful frontage' : 'Limited — short edge faces road');
+
+  document.getElementById('fsFrontage').textContent = `${totalFrontage} m`;
+  document.getElementById('fsRatio').textContent    = `${ratio}% of perimeter`;
+  document.getElementById('fsQuality').textContent  = quality;
+  summary.classList.add('visible');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   DRAWING MODAL
+   ══════════════════════════════════════════════════════════════════ */
+
+let drawPts   = [];   // [{x,y}] canvas pixel coords
+let mousePos  = null; // live cursor position on canvas
+let dragging  = null; // index of point being dragged, or null
+const SNAP_R  = 12;   // px — snap-to-close radius
+
+function openDrawModal() {
+  document.getElementById('drawModal').classList.add('open');
+  initCanvas();
+}
+function closeDrawModal() {
+  document.getElementById('drawModal').classList.remove('open');
+}
+
+function initCanvas() {
+  const wrap   = document.getElementById('drawCanvasWrap');
+  const canvas = document.getElementById('drawCanvas');
+  canvas.width  = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  drawPts  = [];
+  mousePos = null;
+  dragging = null;
+  updateDrawUI();
+  redraw();
+}
+
+// ── Canvas events ─────────────────────────────────────────────────
+const canvas = document.getElementById('drawCanvas');
+
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  mousePos = { x: e.clientX - r.left, y: e.clientY - r.top };
+  if (dragging !== null) {
+    drawPts[dragging] = { ...mousePos };
+  }
+  redraw();
+});
+
+canvas.addEventListener('mouseleave', () => { mousePos = null; redraw(); });
+
+canvas.addEventListener('click', e => {
+  if (dragging !== null) return;
+  const r  = canvas.getBoundingClientRect();
+  const pt = { x: e.clientX - r.left, y: e.clientY - r.top };
+  // Snap-to-close: double-clicking near first point closes polygon
+  if (drawPts.length >= 3) {
+    const d = Math.hypot(pt.x - drawPts[0].x, pt.y - drawPts[0].y);
+    if (d < SNAP_R) { finishDraw(); return; }
+  }
+  drawPts.push(pt);
+  updateDrawUI();
+  redraw();
+});
+
+canvas.addEventListener('dblclick', e => {
+  if (drawPts.length >= 3) {
+    // Remove the extra point added by the preceding click
+    drawPts.pop();
+    finishDraw();
+  }
+});
+
+canvas.addEventListener('mousedown', e => {
+  const r  = canvas.getBoundingClientRect();
+  const pt = { x: e.clientX - r.left, y: e.clientY - r.top };
+  const idx = drawPts.findIndex(p => Math.hypot(p.x - pt.x, p.y - pt.y) < SNAP_R);
+  if (idx !== -1) dragging = idx;
+});
+
+canvas.addEventListener('mouseup', () => { dragging = null; });
+
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('drawModal').classList.contains('open')) return;
+  if (e.key === 'Enter' && drawPts.length >= 3) finishDraw();
+  if (e.key === 'Escape') closeDrawModal();
+  if ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); undoPoint(); }
+});
+
+function undoPoint() { if (drawPts.length) { drawPts.pop(); updateDrawUI(); redraw(); } }
+function clearDraw()  { drawPts = []; mousePos = null; dragging = null; updateDrawUI(); redraw(); }
+
+function updateDrawUI() {
+  const n = drawPts.length;
+  document.getElementById('pointCount').textContent = `${n} point${n !== 1 ? 's' : ''}`;
+  document.getElementById('doneBtn').disabled = n < 3;
+  const status = n === 0 ? 'Click anywhere to place the first corner'
+    : n < 3  ? `${n} point${n>1?'s':''} — keep clicking to add corners`
+    : 'Double-click or press Enter to finish · drag points to adjust';
+  document.getElementById('drawStatus').textContent = status;
+}
+
+// ── Canvas render ─────────────────────────────────────────────────
+// Returns the live metre-distance from lastPt to cursor, or null if not computable
+function getLiveDistance(lastPt, cursor, existingPts) {
+  const areaM2  = parseFloat(document.getElementById('areaInput').value) || 620;
+  const pixDist = Math.hypot(cursor.x - lastPt.x, cursor.y - lastPt.y);
+  if (pixDist < 2) return null;
+
+  // Build a temporary closed polygon: existing points + cursor
+  const tempPts = [...existingPts, cursor];
+
+  // Area-based scale — only valid once the temp polygon has meaningful area
+  // (needs ≥ 3 non-collinear points, i.e. ≥ 2 placed points + cursor)
+  if (existingPts.length >= 2) {
+    const pixArea = polyArea(tempPts);
+    if (pixArea > 10) {
+      const scale = Math.sqrt(areaM2 / pixArea);
+      return (pixDist * scale).toFixed(1);
+    }
+  }
+
+  // Fallback for the first segment (0 or 1 point placed):
+  // Use canvas size as a stable reference — assume a plot of this area
+  // would be drawn to fill roughly 55% of the shorter canvas dimension.
+  // This gives a consistent m/px ratio that doesn't collapse when
+  // bboxDiag == pixDist (which made the result constant before).
+  const canvas   = document.getElementById('drawCanvas');
+  const refPx    = Math.min(canvas.width, canvas.height) * 0.55;
+  const refMetres = Math.sqrt(areaM2);          // side of an equivalent square
+  const scale    = refMetres / refPx;
+  return (pixDist * scale).toFixed(1);
+}
+
+function redraw() {
+  const canvas = document.getElementById('drawCanvas');
+  const ctx    = canvas.getContext('2d');
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = isDark ? 'rgba(245,240,232,0.04)' : 'rgba(10,10,15,0.05)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  if (!drawPts.length) return;
+
+  const pts = [...drawPts];
+  const cur = mousePos;
+
+  // Fill (only when polygon is closeable)
+  if (pts.length >= 3) {
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.closePath();
+    ctx.fillStyle = isDark ? 'rgba(212,168,50,0.07)' : 'rgba(200,82,26,0.06)';
+    ctx.fill();
+  }
+
+  // Edges
+  const edgeColor = isDark ? 'rgba(212,168,50,0.8)' : 'rgba(200,82,26,0.8)';
+  ctx.strokeStyle = edgeColor;
+  ctx.lineWidth   = 1.8;
+  ctx.lineJoin    = 'round';
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  if (pts.length >= 3) { ctx.closePath(); ctx.stroke(); }
+  else ctx.stroke();
+
+  // Preview line from last point to cursor — with live distance label
+  if (cur && dragging === null) {
+    const last = pts[pts.length - 1];
+
+    // Dashed preview line
+    ctx.beginPath();
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = isDark ? 'rgba(212,168,50,0.5)' : 'rgba(200,82,26,0.45)';
+    ctx.lineWidth   = 1.5;
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(cur.x, cur.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Live distance label on the preview line
+    const previewDist = getLiveDistance(last, cur, pts);
+    if (previewDist !== null) {
+      const lx = (last.x + cur.x) / 2;
+      const ly = (last.y + cur.y) / 2;
+      const label = `${previewDist} m`;
+      ctx.font = 'bold 11px DM Sans, sans-serif';
+      ctx.textAlign = 'center';
+      const tw = ctx.measureText(label).width + 10;
+      // Pill background
+      const pillH = 17;
+      ctx.fillStyle = isDark ? 'rgba(212,168,50,0.9)' : 'rgba(200,82,26,0.9)';
+      const rx2 = 4;
+      ctx.beginPath();
+      ctx.roundRect(lx - tw/2, ly - pillH/2, tw, pillH, rx2);
+      ctx.fill();
+      // Label text
+      ctx.fillStyle = isDark ? '#0a0a0f' : '#fff';
+      ctx.fillText(label, lx, ly + 4);
+    }
+
+    // Snap-to-close indicator near first point
+    if (pts.length >= 3) {
+      const d = Math.hypot(cur.x - pts[0].x, cur.y - pts[0].y);
+      if (d < SNAP_R * 2) {
+        ctx.beginPath();
+        ctx.arc(pts[0].x, pts[0].y, SNAP_R, 0, Math.PI * 2);
+        ctx.strokeStyle = isDark ? 'rgba(212,168,50,0.7)' : 'rgba(200,82,26,0.6)';
+        ctx.lineWidth   = 1.5;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+  }
+
+  // Edge length labels
+  const areaM2 = parseFloat(document.getElementById('areaInput').value) || 620;
+  const edges  = computeEdges(pts, areaM2);
+  ctx.font      = '10px DM Sans, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = isDark ? 'rgba(245,240,232,0.55)' : 'rgba(10,10,15,0.55)';
+  pts.forEach((p, i) => {
+    const q  = pts[(i + 1) % pts.length];
+    if (i === pts.length - 1 && pts.length < 3) return;
+    const mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+    const bg = isDark ? 'rgba(10,10,15,0.6)' : 'rgba(250,247,242,0.8)';
+    const tw = ctx.measureText(`${edges[i].len}m`).width + 6;
+    ctx.fillStyle = bg;
+    ctx.fillRect(mx - tw/2, my - 8, tw, 14);
+    ctx.fillStyle = isDark ? 'rgba(245,240,232,0.6)' : 'rgba(10,10,15,0.6)';
+    ctx.fillText(`${edges[i].len}m`, mx, my + 3);
+  });
+
+  // Vertex dots
+  pts.forEach((p, i) => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, i === 0 ? 5 : 3.5, 0, Math.PI * 2);
+    ctx.fillStyle   = isDark ? '#d4a832' : '#c8521a';
+    ctx.fill();
+    ctx.strokeStyle = isDark ? 'rgba(10,10,15,0.8)' : 'rgba(250,247,242,0.9)';
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+  });
+}
+
+function finishDraw() {
+  if (drawPts.length < 3) return;
+  const norm = normalizePts(drawPts);
+  closeDrawModal();
+  applyShape(norm);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ROAD ACCESS SCORING
+   Weights:  Frontage ratio      25%
+             Longest-edge test   25%
+             Road classification 20%
+             Corner / multi-edge 15%
+             Effective frontage  15%
+   ══════════════════════════════════════════════════════════════════ */
+function computeRoadAccessScore() {
+  const roadEdges = edgeState.filter(e => e.road);
+  if (!roadEdges.length) return { score: 0, breakdown: null };
+
+  const totalPerim    = edgeState.reduce((s, e) => s + e.len, 0) || 1;
+  const totalFrontage = roadEdges.reduce((s, e) => s + e.len, 0);
+  const longestEdge   = Math.max(...edgeState.map(e => e.len));
+  const longestRoad   = Math.max(...roadEdges.map(e => e.len));
+  const roadType      = document.getElementById('roadTypeSelect').value;
+
+  // ── 1. Frontage ratio (25%) ───────────────────────────────────
+  const ratio = totalFrontage / totalPerim;
+  const frontageScore =
+    ratio >= 0.50 ? 100 :
+    ratio >= 0.30 ? 75 + ((ratio - 0.30) / 0.20) * 25 :
+    ratio >= 0.20 ? 50 + ((ratio - 0.20) / 0.10) * 25 :
+                    Math.max(0, ratio / 0.20 * 50);
+
+  // ── 2. Longest-edge test (25%) ────────────────────────────────
+  const longestEdgeRatio = longestRoad / longestEdge;
+  const longestEdgeScore =
+    longestEdgeRatio >= 0.95 ? 100 :
+    longestEdgeRatio >= 0.70 ? 60 + (longestEdgeRatio - 0.70) / 0.25 * 40 :
+    longestEdgeRatio >= 0.50 ? 30 + (longestEdgeRatio - 0.50) / 0.20 * 30 :
+                                Math.max(0, longestEdgeRatio / 0.50 * 30);
+
+  // ── 3. Road classification (20%) ─────────────────────────────
+  const roadClassScore =
+    roadType === 'primary'   ? 100 :
+    roadType === 'secondary' ? 78  :
+    roadType === 'local'     ? 52  :
+    roadType === 'access'    ? 25  :
+    50; // unspecified — neutral
+
+  // ── 4. Corner / multi-frontage (15%) ─────────────────────────
+  const cornerScore = roadEdges.length >= 2 ? 100 : 60;
+
+  // ── 5. Effective buildable frontage (15%) ────────────────────
+  // Subtract 3m setback from each side of the largest road-facing edge
+  const SETBACK = 3;
+  const effectiveFrontage = Math.max(0, longestRoad - SETBACK * 2);
+  const effectiveScore =
+    effectiveFrontage >= 20 ? 100 :
+    effectiveFrontage >= 15 ? 80 + (effectiveFrontage - 15) / 5 * 20 :
+    effectiveFrontage >= 10 ? 55 + (effectiveFrontage - 10) / 5 * 25 :
+    effectiveFrontage >= 5  ? 25 + (effectiveFrontage - 5)  / 5 * 30 :
+                              Math.max(0, effectiveFrontage / 5 * 25);
+
+  // ── Weighted total ────────────────────────────────────────────
+  // Frontage ratio is the primary signal — longest-edge test is secondary
+  const score = Math.round(
+    frontageScore    * 0.30 +  // how much of the perimeter faces road
+    roadClassScore   * 0.22 +  // primary vs local road matters a lot
+    effectiveScore   * 0.20 +  // buildable width after setbacks
+    longestEdgeScore * 0.18 +  // short vs long edge — real but secondary
+    cornerScore      * 0.10    // corner bonus
+  );
+
+  return {
+    score,
+    breakdown: {
+      frontageRatio:    Math.round(frontageScore),
+      longestEdgeTest:  Math.round(longestEdgeScore),
+      roadClass:        Math.round(roadClassScore),
+      cornerBonus:      Math.round(cornerScore),
+      effectiveFront:   Math.round(effectiveScore),
+      effectiveMetres:  effectiveFrontage.toFixed(1),
+      totalFrontage:    totalFrontage.toFixed(1),
+      ratioPercent:     Math.round(ratio * 100),
+    }
+  };
+}
+
+/* ── Centre panel: parcel shape + road access card ── */
+function renderShapeCentreCard() {
+  const card = document.getElementById('centreShapeCard');
+  if (!committedShape || committedShape.length < 3) { card.classList.remove('visible'); return; }
+
+  const areaM2 = parseFloat(document.getElementById('areaInput').value) || 620;
+  const edges  = computeEdges(committedShape, areaM2);
+
+  // Sync road state from edgeState (set by chip toggles)
+  const roadFlags = edgeState.length === edges.length
+    ? edgeState.map(e => e.road)
+    : edges.map(() => false);
+
+  // Draw into the SVG (560×220 viewBox, PAD=28)
+  const svg = document.getElementById('centreShapeSVG');
+  const W = 560, H = 220, PAD = 28;
+  const pts = committedShape;
+  const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const scX = (W - PAD * 2) / (maxX - minX || 1);
+  const scY = (H - PAD * 2) / (maxY - minY || 1);
+  const sc  = Math.min(scX, scY);
+  const offX = PAD + ((W - PAD * 2) - (maxX - minX) * sc) / 2;
+  const offY = PAD + ((H - PAD * 2) - (maxY - minY) * sc) / 2;
+  const px = p => offX + (p.x - minX) * sc;
+  const py = p => offY + (p.y - minY) * sc;
+
+  const polyPts = pts.map(p => `${px(p).toFixed(1)},${py(p).toFixed(1)}`).join(' ');
+
+  // Build edges SVG: coloured lines + labels
+  let edgesSVG = '';
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length];
+    const isRoad  = roadFlags[i] || false;
+    const colour  = isRoad ? '#4caf50' : 'rgba(212,168,50,0.7)';
+    const stroke  = isRoad ? 3.5 : 1.5;
+    const mx = (px(a) + px(b)) / 2, my = (py(a) + py(b)) / 2;
+    const lenM = edges[i] ? edges[i].len.toFixed(0) : '';
+    edgesSVG += `<line x1="${px(a).toFixed(1)}" y1="${py(a).toFixed(1)}" x2="${px(b).toFixed(1)}" y2="${py(b).toFixed(1)}" stroke="${colour}" stroke-width="${stroke}" stroke-linecap="round"/>`;
+    if (isRoad) {
+      edgesSVG += `<circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="9" fill="rgba(76,175,80,0.18)" stroke="#4caf50" stroke-width="1"/>`;
+      edgesSVG += `<text x="${mx.toFixed(1)}" y="${(my + 1).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="#4caf50" font-size="8" font-weight="700" font-family="'DM Sans',sans-serif">R</text>`;
+    }
+    if (lenM) {
+      const dx = px(b) - px(a), dy = py(b) - py(a);
+      const len = Math.hypot(dx, dy);
+      const nx = -dy / len * 12, ny = dx / len * 12;
+      edgesSVG += `<text x="${(mx + nx).toFixed(1)}" y="${(my + ny).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${isRoad ? '#4caf50' : 'rgba(245,240,232,0.55)'}" font-size="9.5" font-family="'DM Sans',sans-serif">${lenM}m</text>`;
+    }
+  }
+
+  // Vertex dots
+  let dotsSVG = pts.map(p => `<circle cx="${px(p).toFixed(1)}" cy="${py(p).toFixed(1)}" r="3.5" fill="rgba(245,240,232,0.18)" stroke="rgba(245,240,232,0.45)" stroke-width="1"/>`).join('');
+
+  svg.innerHTML = `
+    <polygon points="${polyPts}" fill="rgba(212,168,50,0.06)" stroke="none"/>
+    ${edgesSVG}
+    ${dotsSVG}`;
+
+  // Set legend swatch colour
+  document.getElementById('pslNonRoad').style.background = 'rgba(212,168,50,0.7)';
+
+  // Metrics row
+  const totalFrontage = edgeState.filter(e => e.road).reduce((s, e) => s + e.len, 0);
+  const totalPerimeter = edges.reduce((s, e) => s + e.len, 0);
+  const frontageRatio = totalPerimeter > 0 ? Math.round(totalFrontage / totalPerimeter * 100) : 0;
+  const roadCount = edgeState.filter(e => e.road).length;
+  const isCorner = roadCount >= 2;
+  const frClass = frontageRatio >= 35 ? 'good' : frontageRatio >= 18 ? 'warn' : 'bad';
+
+  document.getElementById('centreShapeMetrics').innerHTML = `
+    <div class="psm-item"><div class="psm-k">Area</div><div class="psm-v">${areaM2} m²</div></div>
+    <div class="psm-item"><div class="psm-k">Perimeter</div><div class="psm-v">${totalPerimeter.toFixed(0)} m</div></div>
+    <div class="psm-item"><div class="psm-k">Road frontage</div><div class="psm-v ${frClass}">${totalFrontage.toFixed(0)} m</div></div>
+    <div class="psm-item"><div class="psm-k">Frontage ratio</div><div class="psm-v ${frClass}">${frontageRatio}%</div></div>
+    <div class="psm-item"><div class="psm-k">Corner plot</div><div class="psm-v ${isCorner ? 'good' : ''}">${isCorner ? 'Yes' : 'No'}</div></div>`;
+
+  card.classList.add('visible');
 }
 
 /* ── Run analysis (mock demo) ── */
@@ -850,16 +1763,31 @@ function runAnalysis() {
   document.getElementById('scorePills').innerHTML = pills.map(p =>
     `<span class="score-pill ${p.c}">${p.t}</span>`).join('');
 
+  // ── Road Access factor (computed from shape + edge selection) ──
+  const roadResult = computeRoadAccessScore();
+  const roadScore  = roadResult.score;
+  const roadGrade  = roadScore >= 70 ? 'green' : roadScore >= 40 ? 'amber' : 'red';
+  let roadNote = 'No road access data — add parcel shape and mark edges';
+  if (roadResult.breakdown) {
+    const bd = roadResult.breakdown;
+    const longestFlag = roadResult.breakdown.longestEdgeTest >= 80
+      ? 'longest edge faces road ✓'
+      : roadResult.breakdown.longestEdgeTest >= 50
+        ? 'not longest edge — some constraint on building width'
+        : 'short edge faces road — building width significantly constrained';
+    roadNote = `${bd.totalFrontage}m frontage (${bd.ratioPercent}% of perimeter) · ${longestFlag} · ${bd.effectiveMetres}m effective buildable frontage after setbacks`;
+  }
+
   // ── Factors ──
   const factors = [
-    { name: 'Legal & Title',          score: 90, grade: 'green', note: 'Freehold title, no encumbrances' },
-    { name: 'Zoning Compliance',      score: 82, grade: 'green', note: 'R2 zone — 4-storey apartments permitted' },
-    { name: 'Infrastructure Access',  score: 55, grade: 'amber', note: 'Road & power OK · water connection needed' },
-    { name: 'Market Demand',          score: 78, grade: 'green', note: 'Strong middle-income demand in Kimironko' },
-    { name: 'Construction Feasibility', score: 60, grade: 'amber', note: 'Moderate slope adds 8–12% cost premium' },
-    { name: 'Financial Viability',    score: 68, grade: 'amber', note: '22% projected margin — acceptable but tight' },
-    { name: 'Flood & Disaster Risk',  score: 80, grade: 'green', note: 'Outside wetland buffer · no disaster zone' },
-    { name: 'Approvals Risk',         score: 65, grade: 'amber', note: 'Standard EIA required · 60–90 day process' },
+    { name: 'Legal & Title',           score: 90,        grade: 'green', note: 'Freehold title, no encumbrances' },
+    { name: 'Zoning Compliance',       score: 82,        grade: 'green', note: 'R2 zone — 4-storey apartments permitted' },
+    { name: 'Road Access',             score: roadScore, grade: roadGrade, note: roadNote },
+    { name: 'Market Demand',           score: 78,        grade: 'green', note: 'Strong middle-income demand in Kimironko' },
+    { name: 'Construction Feasibility', score: 60,       grade: 'amber', note: 'Moderate slope adds 8–12% cost premium' },
+    { name: 'Financial Viability',     score: 68,        grade: 'amber', note: '22% projected margin — acceptable but tight' },
+    { name: 'Flood & Disaster Risk',   score: 80,        grade: 'green', note: 'Outside wetland buffer · no disaster zone' },
+    { name: 'Approvals Risk',          score: 65,        grade: 'amber', note: 'Standard EIA required · 60–90 day process' },
   ];
   document.getElementById('factorsGrid').innerHTML = factors.map(f => `
     <div class="factor-card">
@@ -938,6 +1866,9 @@ function runAnalysis() {
   document.getElementById('metricBreak').textContent  = '62% occupancy';
   ['metricCostM2','metricLandM2','metricLev','metricFAR','metricBreak'].forEach(id =>
     document.getElementById(id).classList.remove('placeholder'));
+
+  // ── Centre shape card ──
+  renderShapeCentreCard();
 }
 
 /* ── Gauge animation ── */

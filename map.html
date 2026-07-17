@@ -1312,25 +1312,42 @@ fetch('https://raw.githubusercontent.com/wmgeolab/geoBoundaries/main/releaseData
 // ══════════════════════════════════════════════════════════════════════════════
 
 const IMALI_PARCELS = [
-  { id:'P001', name:'Kimironko Ridge',     loc:'Gasabo / Kimironko',      ll:[-1.9215,30.1020], sqm:2400, landVal:58_000_000,  devCost:180_000_000, type:'residential', status:'listed',       zone:'R3',  units:24 },
-  { id:'P002', name:'Nyamirambo Heights',  loc:'Nyarugenge / Nyamirambo', ll:[-1.9730,30.0335], sqm:1200, landVal:42_000_000,  devCost:90_000_000,  type:'mixed-use',   status:'listed',       zone:'MU1', units:12 },
-  { id:'P003', name:'Kicukiro South Plot', loc:'Kicukiro / Kagarama',     ll:[-1.9920,30.0850], sqm:3800, landVal:72_000_000,  devCost:285_000_000, type:'residential', status:'listed',       zone:'R3',  units:38 },
-  { id:'P004', name:'Gisozi Commercial',   loc:'Gasabo / Gisozi',         ll:[-1.9035,30.0498], sqm:950,  landVal:35_000_000,  devCost:71_250_000,  type:'commercial',  status:'under_review', zone:'C1',  units:10 },
-  { id:'P005', name:'Musanze North Land',  loc:'Musanze / Muhoza',        ll:[-1.4965,29.6280], sqm:4200, landVal:22_000_000,  devCost:315_000_000, type:'residential', status:'pending',      zone:'R2',  units:42 },
-  { id:'P006', name:'Remera Infill Plot',  loc:'Gasabo / Remera',         ll:[-1.9435,30.1185], sqm:800,  landVal:31_000_000,  devCost:60_000_000,  type:'mixed-use',   status:'under_review', zone:'MU1', units:8  },
-  { id:'P007', name:'Nyarutarama Premium', loc:'Gasabo / Nyarutarama',    ll:[-1.9090,30.0920], sqm:1600, landVal:80_000_000,  devCost:120_000_000, type:'commercial',  status:'listed',       zone:'C1',  units:16 },
+  {
+    id: 'P001',
+    name: '11 ha Land Parcel',
+    loc: 'Kicukiro, Kigali',
+    ll: [-1.932420, 30.054192],
+    sqm: 110_000,
+    landVal: null, devCost: null, units: null,
+    type: 'land', status: 'under_review', zone: null,
+    desc: 'Land for sale with investment opportunities · ~11 hectares',
+    poly: [
+      [-1.931007, 30.053611], [-1.931205, 30.053394], [-1.931104, 30.053156],
+      [-1.931660, 30.052453], [-1.931898, 30.052574], [-1.932094, 30.052213],
+      [-1.932738, 30.052934], [-1.933442, 30.054195], [-1.933577, 30.054521],
+      [-1.933427, 30.055016], [-1.933302, 30.055547], [-1.933273, 30.056383],
+      [-1.933345, 30.056980], [-1.933247, 30.057050], [-1.933267, 30.057427],
+      [-1.933210, 30.057838], [-1.933030, 30.057879], [-1.932975, 30.058225],
+      [-1.932474, 30.058077], [-1.932603, 30.059144], [-1.931244, 30.058504],
+      [-1.931528, 30.058153], [-1.931804, 30.057825], [-1.932064, 30.057127],
+      [-1.932146, 30.056072], [-1.932090, 30.055319], [-1.931930, 30.054881],
+      [-1.931711, 30.054389], [-1.931396, 30.053980],
+    ],
+  },
 ];
 
-const P_TYPE_COLOR   = { residential:'#d4a832', 'mixed-use':'#ba68c8', commercial:'#ff8f00' };
+const P_TYPE_COLOR   = { residential:'#d4a832', 'mixed-use':'#ba68c8', commercial:'#ff8f00', land:'#d4a832' };
 const P_STATUS_COLOR = { listed:'#26a69a', under_review:'#ffb74d', pending:'#90a4ae' };
 const P_STATUS_LABEL = { listed:'Listed', under_review:'Under Review', pending:'Pending' };
 
 function mkPipeline(p) {
-  const mc = '#d4a832';  // all Imali parcels use the same gold colour
-  const sc = P_STATUS_COLOR[p.status] || '#90a4ae';
-  const sl = P_STATUS_LABEL[p.status] || p.status;
-  const fmtM = n => (n / 1_000_000).toFixed(1) + 'M';
-  const lev  = (p.devCost / p.landVal).toFixed(1);
+  const mc   = '#d4a832';
+  const sc   = P_STATUS_COLOR[p.status] || '#90a4ae';
+  const sl   = P_STATUS_LABEL[p.status] || p.status;
+  const fmtM = n => n != null ? (n / 1_000_000).toFixed(1) + 'M RWF' : '—';
+  const fmtA = n => n >= 10000 ? (n / 10000).toFixed(1) + ' ha' : n.toLocaleString() + ' m²';
+  const lev  = (p.landVal && p.devCost) ? (p.devCost / p.landVal).toFixed(1) + '×' : '—';
+  const pill = [p.type, p.zone].filter(Boolean).join(' · ');
 
   const icon = L.divIcon({
     className: '',
@@ -1342,42 +1359,47 @@ function mkPipeline(p) {
 
   const popup = `
     <div class="parcel-popup">
-      <div class="parcel-popup-type-pill">${p.type} · ${p.zone}</div>
+      <div class="parcel-popup-type-pill">${pill}</div>
       <div class="parcel-popup-name">${p.name}</div>
       <div class="parcel-popup-loc">📍 ${p.loc}</div>
+      ${p.desc ? `<div style="font-size:0.62rem;color:rgba(245,240,232,0.45);margin:0.25rem 0 0.5rem;line-height:1.4">${p.desc}</div>` : ''}
       <div class="parcel-popup-grid">
         <div class="parcel-popup-kv">
           <span class="parcel-popup-k">Plot Area</span>
-          <span class="parcel-popup-v">${p.sqm.toLocaleString()} m²</span>
+          <span class="parcel-popup-v">${fmtA(p.sqm)}</span>
         </div>
-        <div class="parcel-popup-kv">
-          <span class="parcel-popup-k">Units</span>
-          <span class="parcel-popup-v">${p.units} apts</span>
-        </div>
+        ${p.units != null ? `<div class="parcel-popup-kv"><span class="parcel-popup-k">Units</span><span class="parcel-popup-v">${p.units} apts</span></div>` : ''}
         <div class="parcel-popup-kv">
           <span class="parcel-popup-k">Land Value</span>
-          <span class="parcel-popup-v">${fmtM(p.landVal)} RWF</span>
+          <span class="parcel-popup-v">${fmtM(p.landVal)}</span>
         </div>
         <div class="parcel-popup-kv">
           <span class="parcel-popup-k">Dev Investment</span>
-          <span class="parcel-popup-v">${fmtM(p.devCost)} RWF</span>
+          <span class="parcel-popup-v">${fmtM(p.devCost)}</span>
         </div>
         <div class="parcel-popup-kv">
           <span class="parcel-popup-k">Leverage</span>
-          <span class="parcel-popup-v">${lev}× dev / land</span>
+          <span class="parcel-popup-v">${lev}</span>
         </div>
-        <div class="parcel-popup-kv">
-          <span class="parcel-popup-k">Land / m²</span>
-          <span class="parcel-popup-v">${Math.round(p.landVal/p.sqm).toLocaleString()} RWF</span>
-        </div>
+        ${p.landVal && p.sqm ? `<div class="parcel-popup-kv"><span class="parcel-popup-k">Land / m²</span><span class="parcel-popup-v">${Math.round(p.landVal/p.sqm).toLocaleString()} RWF</span></div>` : ''}
       </div>
       <div class="parcel-popup-footer">
         <span style="font-size:0.6rem;padding:0.16rem 0.5rem;border-radius:2rem;background:${sc}1a;border:1px solid ${sc}44;color:${sc}">${sl}</span>
-        <a class="parcel-popup-link" href="design-engine.html">Design Engine →</a>
+        <a class="parcel-popup-link" href="feasibility.html">Feasibility →</a>
       </div>
     </div>`;
 
-  return L.marker(p.ll, { icon }).bindPopup(popup, { maxWidth:300, className:'imali-popup' });
+  const marker = L.marker(p.ll, { icon }).bindPopup(popup, { maxWidth:300, className:'imali-popup' });
+
+  if (p.poly) {
+    const polygon = L.polygon(p.poly, {
+      color: mc, weight: 2, opacity: 0.85,
+      fillColor: mc, fillOpacity: 0.10,
+    }).bindPopup(popup, { maxWidth:300, className:'imali-popup' });
+    return L.layerGroup([polygon, marker]);
+  }
+
+  return marker;
 }
 
 // ── Demo geo-data ─────────────────────────────────────────────────────────────
@@ -2023,7 +2045,7 @@ const LAYER_GROUPS = [
   {
     id: 'pipeline', label: 'Pipeline', color: '#d4a832', expanded: true,
     layers: [
-      { id:'imali_parcels',     label:'Imali Parcels',         desc:'7 Imali-owned parcels across Rwanda — click a marker for details',        color:'#d4a832', opacity:100, visible:true,  leaflet:null },
+      { id:'imali_parcels',     label:'Imali Parcels',         desc:'Imali-owned parcels across Rwanda — click a marker for details',          color:'#d4a832', opacity:100, visible:true,  leaflet:null },
       { id:'intel_sites',       label:'Demand Intelligence',   desc:'Housing demand hotspots · material supply chains · investment signals — 9 key sites across Rwanda · click any marker for full analysis', color:'#26a69a', opacity:100, visible:false, leaflet:null },
       { id:'market_parcels',    label:'Market Parcels',         desc:'Third-party parcels of interest — competitor sites and market comps',      color:'#90a4ae', opacity:100, visible:false, leaflet:null },
       { id:'offplan_projects',  label:'Off-Plan Projects',      desc:'Imali off-plan and pre-construction developments — units available for reservation', color:'#c8521a', opacity:100, visible:false, leaflet:null },
