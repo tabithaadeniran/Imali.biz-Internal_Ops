@@ -188,6 +188,7 @@
     .filter-inner { flex-direction: column; align-items: stretch; }
     .filter-count { margin-left: 0; }
   }
+  .rwf-sub { font-size: 0.72em; font-weight: 400; opacity: 0.6; margin-left: 0.3em; letter-spacing: 0; white-space: nowrap; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -292,6 +293,7 @@
   </footer>
 </div>
 
+<script src="data/pipeline.js"></script>
 <script src="data.js"></script>
 <script>
   // ─── Cursor ──────────────────────────────────────────────────────────────
@@ -337,7 +339,7 @@
   document.getElementById('heroStats').innerHTML = [
     { val: s.totalParcels, lbl: 'Total Parcels' },
     { val: fmtNum(s.totalSizeSqm) + ' sqm', lbl: 'Total Land Area' },
-    { val: fmtRWF(s.totalLandValue), lbl: 'Total Land Value' }
+    { val: fmtPrice(s.totalLandValue), lbl: 'Total Land Value' }
   ].map(x => `<div><div class="hero-stat-val">${x.val}</div><div class="hero-stat-lbl">${x.lbl}</div></div>`).join('');
 
   // ─── Populate district filter ─────────────────────────────────────────────
@@ -412,11 +414,11 @@
             </div>
             <div>
               <div class="card-metric-lbl">Land Price</div>
-              <div class="card-metric-val gold">${fmtRWF(p.land_price_rwf)}</div>
+              <div class="card-metric-val gold">${fmtPrice(p.land_price_rwf)}</div>
             </div>
             <div>
               <div class="card-metric-lbl">Dev Cost</div>
-              <div class="card-metric-val">${fmtRWF(p.dev_cost_rwf)}</div>
+              <div class="card-metric-val">${fmtPrice(p.dev_cost_rwf)}</div>
             </div>
           </div>
           <hr class="card-divider">
@@ -471,8 +473,8 @@
         <td>${p.district}</td>
         <td><span class="type-chip type-${p.type}">${p.type}</span></td>
         <td><span style="font-family:'Syne',sans-serif;font-weight:700;">${fmtNum(p.size_sqm)}</span> sqm</td>
-        <td style="color:var(--gold);font-family:'Syne',sans-serif;font-weight:600;">${fmtRWF(p.land_price_rwf)}</td>
-        <td>${fmtRWF(p.dev_cost_rwf)}</td>
+        <td style="color:var(--gold);font-family:'Syne',sans-serif;font-weight:600;">${fmtPrice(p.land_price_rwf)}</td>
+        <td>${fmtPrice(p.dev_cost_rwf)}</td>
         <td style="font-family:'Syne',sans-serif;font-weight:700;">${p.units_planned}</td>
         <td>${fmtNum(p.price_per_sqm)} RWF</td>
         <td style="font-family:'Syne',sans-serif;font-weight:700;">${p.leverage_ratio}×</td>

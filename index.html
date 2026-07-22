@@ -215,6 +215,8 @@
     .lev-row { grid-template-columns: 120px 1fr 70px; }
     .heatmap-table th, .heatmap-table td:first-child { font-size: 0.55rem; }
   }
+  /* USD primary / RWF secondary dual-price display */
+  .rwf-sub { font-size: 0.72em; font-weight: 400; opacity: 0.6; margin-left: 0.3em; letter-spacing: 0; white-space: nowrap; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -442,6 +444,7 @@
   </footer>
 </div>
 
+<script src="data/pipeline.js"></script>
 <script src="data.js"></script>
 <script>
   // ─── Cursor ──────────────────────────────────────────────────────────────
@@ -511,29 +514,29 @@
   animateNum(document.getElementById('hqParcels'), s.totalParcels);
   animateNum(document.getElementById('hqSqm'), s.totalSizeSqm, '', ' sqm');
   animateNum(document.getElementById('hqUnits'), s.totalUnits, '', ' units');
-  document.getElementById('hqValue').textContent = fmtRWF(s.portfolioValue);
+  document.getElementById('hqValue').innerHTML = fmtPrice(s.portfolioValue);
 
   // KPIs
   animateNum(document.getElementById('kpiLand'), s.totalSizeSqm, '', ' sqm');
   document.getElementById('kpiLandSub').textContent = `Across ${s.totalParcels} parcels · GFA: ${fmtNum(s.totalGFA)} sqm`;
 
-  document.getElementById('kpiLandVal').textContent = fmtRWF(s.totalLandValue);
+  document.getElementById('kpiLandVal').innerHTML = fmtPrice(s.totalLandValue);
   document.getElementById('kpiLandValSub').textContent = `Avg ${fmtNum(Math.round(s.totalLandValue / s.totalSizeSqm))} RWF/sqm`;
 
-  document.getElementById('kpiDev').textContent = fmtRWF(s.totalDevCost);
+  document.getElementById('kpiDev').innerHTML = fmtPrice(s.totalDevCost);
 
   animateNum(document.getElementById('kpiUnits'), s.totalUnits, '', ' apts');
   document.getElementById('kpiUnitsParcels').textContent = s.totalParcels;
 
   animateNum(document.getElementById('kpiBuyers'), s.totalUnits, '', ' buyers');
 
-  animateNum(document.getElementById('kpiInvestors'), s.investorsNeeded, '~', '');
-  document.getElementById('kpiInvestorsSub').textContent = `At RWF 75K minimum · to fund ${fmtRWF(s.totalDevCost)} dev cost`;
+  animateNum(document.getElementById('kpiInvestors'), s.investorsNeeded, '', '');
+  document.getElementById('kpiInvestorsSub').innerHTML = `At RWF 75K minimum · to fund ${fmtPrice(s.totalDevCost)} dev cost`;
 
   // Investor callout
-  document.getElementById('icDevCost').textContent = fmtRWF(s.totalDevCost);
+  document.getElementById('icDevCost').innerHTML = fmtPrice(s.totalDevCost);
   document.getElementById('icInvestors').textContent = fmtNum(s.investorsNeeded);
-  document.getElementById('icInvestors2').textContent = '~' + fmtNum(s.investorsNeeded);
+  document.getElementById('icInvestors2').textContent = fmtNum(s.investorsNeeded);
 
   // ─── Type table ───────────────────────────────────────────────────────────
   const typeTotals = {};
@@ -551,7 +554,7 @@
       <td><span class="bd-swatch" style="background:${typeColors[t]}"></span>${t}</td>
       <td>${d.count}</td>
       <td>${fmtNum(d.sqm)} sqm</td>
-      <td style="color:var(--gold)">${fmtRWF(d.val)}</td>
+      <td style="color:var(--gold)">${fmtPrice(d.val)}</td>
       <td>${d.units}</td>
     </tr>
   `).join('');
@@ -562,7 +565,7 @@
       <td style="font-weight:500">${d}</td>
       <td>${grp.length}</td>
       <td>${fmtNum(grp.reduce((a,p) => a + p.size_sqm, 0))} sqm</td>
-      <td style="color:var(--gold)">${fmtRWF(grp.reduce((a,p) => a + p.land_price_rwf, 0))}</td>
+      <td style="color:var(--gold)">${fmtPrice(grp.reduce((a,p) => a + p.land_price_rwf, 0))}</td>
       <td>${grp.reduce((a,p) => a + p.units_planned, 0)}</td>
     </tr>
   `).join('');

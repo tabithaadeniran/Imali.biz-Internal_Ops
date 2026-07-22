@@ -97,8 +97,9 @@
   .grand-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.3rem; }
   .grand-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--gold); }
   .grand-sub { font-size: 0.82rem; color: rgba(245,240,232,0.4); }
-  .grand-val { font-family: 'Syne', sans-serif; font-size: 2.4rem; font-weight: 800; color: var(--gold); line-height: 1; }
-  .grand-val-lbl { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.35); margin-top: 0.4rem; text-align: right; }
+  .grand-val { font-family: 'Syne', sans-serif; font-size: 2.4rem; font-weight: 800; color: var(--gold); line-height: 1; white-space: nowrap; }
+  .grand-val-rwf { font-size: 1.05rem; font-weight: 500; color: var(--gold); opacity: 0.6; margin-top: 0.35rem; text-align: right; white-space: nowrap; }
+  .grand-val-lbl { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.35); margin-top: 0.3rem; text-align: right; }
 
   /* ─── Stacked bar ─────────────────────────────────────────────────── */
   .stacked-bar-wrap { margin-top: 0.5rem; }
@@ -148,6 +149,9 @@
   [data-theme="light"] .cta-title { color: var(--ink); }
   [data-theme="light"] .cta-sub { color: rgba(10,10,15,0.5); }
   [data-theme="light"] .supplier-note { background: rgba(10,10,15,0.03); border-color: rgba(212,168,50,0.15); color: rgba(10,10,15,0.5); }
+
+  /* USD primary / RWF secondary dual-price display */
+  .rwf-sub { font-size: 0.72em; font-weight: 400; opacity: 0.6; margin-left: 0.3em; letter-spacing: 0; white-space: nowrap; vertical-align: middle; }
 
   @media (max-width: 900px) { .hero-inner { grid-template-columns: 1fr; } .hero-right { flex-direction: row; } }
   @media (max-width: 640px) {
@@ -332,6 +336,7 @@
         </div>
         <div>
           <div class="grand-val" id="grandTotalVal">—</div>
+          <div class="grand-val-rwf" id="grandTotalRWF"></div>
           <div class="grand-val-lbl">Total Est. Material Cost</div>
         </div>
       </div>
@@ -359,6 +364,7 @@
   </footer>
 </div>
 
+<script src="data/pipeline.js"></script>
 <script src="data.js"></script>
 <script>
   // ─── Cursor ──────────────────────────────────────────────────────────────
@@ -451,12 +457,14 @@
     catTotals[cat] = subtotal;
     grandTotal += subtotal;
     document.getElementById('table-' + cat).innerHTML = buildTable(items);
-    document.getElementById('subtotal-' + cat).textContent = fmtRWF(subtotal);
+    document.getElementById('subtotal-' + cat).innerHTML = fmtPrice(subtotal);
   });
 
-  document.getElementById('kpiMatCost').textContent = fmtRWF(grandTotal);
-  document.getElementById('grandTotalVal').textContent = fmtRWF(grandTotal);
-  document.getElementById('grandTotalBadge').textContent = fmtRWF(grandTotal);
+  document.getElementById('kpiMatCost').innerHTML = fmtPrice(grandTotal);
+  document.getElementById('grandTotalVal').textContent = fmtUSD(grandTotal);
+  document.getElementById('grandTotalRWF').textContent = fmtRWF(grandTotal);
+  document.getElementById('grandTotalBadge').innerHTML =
+    fmtUSD(grandTotal) + ' <span style="opacity:0.55;font-weight:400">' + fmtRWF(grandTotal) + '</span>';
 
   // Stacked bar
   const barEl = document.getElementById('stackedBar');
@@ -472,7 +480,7 @@
 
     const li = document.createElement('div');
     li.className = 'legend-item';
-    li.innerHTML = `<div class="legend-dot" style="background:${catColors[cat]}"></div>${cat}: ${fmtRWF(catTotals[cat])} (${pct}%)`;
+    li.innerHTML = `<div class="legend-dot" style="background:${catColors[cat]}"></div>${cat}: <strong>${fmtUSD(catTotals[cat])}</strong> <span style="opacity:0.55">${fmtRWF(catTotals[cat])}</span> (${pct}%)`;
     legendEl.appendChild(li);
   });
 </script>
