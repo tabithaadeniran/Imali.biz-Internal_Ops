@@ -36,8 +36,8 @@ function fmtRWF(n) {
   return 'RWF ' + n.toLocaleString();
 }
 
-// 1 USD = 1,300 RWF — update this constant to keep exchange rate current
-const USD_RATE = 1300;
+// 1 USD = 1,472 RWF — update this constant to keep exchange rate current
+const USD_RATE = 1472;
 
 function fmtUSD(n) {
   const usd = n / USD_RATE;
