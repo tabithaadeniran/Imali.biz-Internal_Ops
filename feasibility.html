@@ -137,6 +137,17 @@ html, body { height: 100%; overflow: hidden; }
   white-space: nowrap; transition: background 0.18s;
 }
 .upi-btn:hover { background: rgba(200,82,26,0.25); }
+.upi-btn:disabled { opacity: 0.45; }
+.upi-lookup-status {
+  font-size: 0.62rem; margin-top: 0.3rem; line-height: 1.4;
+  color: rgba(245,240,232,0.35);
+}
+.upi-lookup-status.loading { color: var(--gold); }
+.upi-lookup-status.ok  { color: #4caf7d; }
+.upi-lookup-status.err { color: #ef5350; }
+[data-theme="light"] .upi-lookup-status { color: rgba(10,10,15,0.38); }
+.fe-input.auto-filled { border-color: rgba(76,175,130,0.45) !important; background: rgba(76,175,130,0.05) !important; }
+.fe-select.auto-filled { border-color: rgba(76,175,130,0.45) !important; }
 
 /* Infra checkboxes */
 .infra-grid {
@@ -700,8 +711,9 @@ html, body { height: 100%; overflow: hidden; }
           <label class="fe-lbl">UPI (Unique Parcel Identifier)</label>
           <div class="upi-strip">
             <input class="fe-input" type="text" placeholder="e.g. 1/01/01/01/1234" id="upiInput">
-            <button class="upi-btn" onclick="mockLookup()">Lookup</button>
+            <button class="upi-btn" id="upiBtn" onclick="realLookup()">Lookup</button>
           </div>
+          <div class="upi-lookup-status" id="upiLookupStatus">Enter a UPI to auto-fill land details from CoK GIS.</div>
         </div>
         <!-- UPI result card (hidden until lookup) -->
         <div id="upiCard" class="upi-result-card" style="display:none;">
@@ -787,13 +799,51 @@ html, body { height: 100%; overflow: hidden; }
             <label class="fe-lbl">Zone Type</label>
             <select class="fe-select" id="zoneSelect">
               <option value="">Select…</option>
-              <option>R1 — Low Density Residential</option>
-              <option>R2 — Medium Density Residential</option>
-              <option>R3 — High Density Residential</option>
-              <option>MU — Mixed Use</option>
-              <option>C — Commercial</option>
-              <option>IN — Industrial</option>
-              <option>AG — Agricultural</option>
+              <optgroup label="Residential">
+                <option value="R1">R1 — Low density residential</option>
+                <option value="R1A">R1A — Low density residential densification</option>
+                <option value="R1B">R1B — Rural residential</option>
+                <option value="R2">R2 — Medium density residential (Improvement)</option>
+                <option value="R3">R3 — Medium density residential (Expansion)</option>
+                <option value="R4">R4 — High density residential</option>
+              </optgroup>
+              <optgroup label="Commercial">
+                <option value="C1">C1 — Mixed use</option>
+                <option value="C3">C3 — City commercial</option>
+              </optgroup>
+              <optgroup label="Industrial">
+                <option value="I1">I1 — Light industrial</option>
+                <option value="I2">I2 — General industrial</option>
+                <option value="I3">I3 — Mining / Extraction / Quarry</option>
+              </optgroup>
+              <optgroup label="Agricultural">
+                <option value="A1">A1 — Agriculture</option>
+              </optgroup>
+              <optgroup label="Public Facilities">
+                <option value="PA">PA — Public administration</option>
+                <option value="PF1">PF1 — Education and research facilities</option>
+                <option value="PF2">PF2 — Health facilities</option>
+                <option value="PF3">PF3 — Religious facilities</option>
+                <option value="PF4">PF4 — Cultural / memorial sites</option>
+                <option value="PF5">PF5 — Cemetery / crematoria</option>
+              </optgroup>
+              <optgroup label="Parks &amp; Open Space">
+                <option value="P1">P1 — Parks and open spaces</option>
+                <option value="P2">P2 — Sport and eco-tourism</option>
+                <option value="P3B">P3B — Forest</option>
+                <option value="P3C">P3C — Steep slopes (&gt;30%)</option>
+              </optgroup>
+              <optgroup label="Infrastructure">
+                <option value="T">T — Transportation</option>
+                <option value="U">U — Utility</option>
+              </optgroup>
+              <optgroup label="Wetland &amp; Water">
+                <option value="W2">W2 — Wetland rehabilitation</option>
+                <option value="W3">W3 — Wetland sustainable exploitation</option>
+                <option value="W4">W4 — Wetland conservation</option>
+                <option value="W5">W5 — Wetland recreational</option>
+                <option value="WB">WB — Waterbody</option>
+              </optgroup>
             </select>
           </div>
           <div class="fe-field">
@@ -1141,22 +1191,120 @@ function toggleTheme() {
   document.querySelector('.theme-toggle').textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
 })();
 
-/* ── Mock UPI lookup ── */
-function mockLookup() {
-  const val = document.getElementById('upiInput').value.trim();
-  if (!val) return;
-  const card = document.getElementById('upiCard');
-  card.style.display = 'block';
-  document.getElementById('upiCardName').textContent = 'Plot — Kimironko, Gasabo District';
-  document.getElementById('upiCardLoc').textContent  = '📍 KG 15 Ave, Gasabo · Kigali City';
-  document.getElementById('upiCardArea').textContent = '620 m²';
-  document.getElementById('upiCardZone').textContent = 'R2';
-  document.getElementById('upiCardTitle').textContent = 'Freehold ✓';
-  // Enable "From UPI" shape button
-  const upiShapeBtn = document.getElementById('shapeFromUpiBtn');
-  upiShapeBtn.disabled = false;
-  upiShapeBtn.classList.add('active');
+/* ── Real UPI lookup (CoK GIS — KigaliParcels_withZoning) ── */
+var _lastGisGeometry = null;
+var _lastGisAttr = null;
+
+function realLookup() {
+  var upi = document.getElementById('upiInput').value.trim();
+  if (!upi) return;
+
+  var statusEl = document.getElementById('upiLookupStatus');
+  var btn = document.getElementById('upiBtn');
+  statusEl.className = 'upi-lookup-status loading';
+  statusEl.textContent = 'Querying CoK GIS cadastral registry…';
+  btn.disabled = true;
+  _lastGisGeometry = null;
+  _lastGisAttr = null;
+
+  // Hide result card while loading
+  document.getElementById('upiCard').style.display = 'none';
+  // Disable shape-from-UPI button
+  var shapeBtn = document.getElementById('shapeFromUpiBtn');
+  shapeBtn.disabled = true;
+  shapeBtn.classList.remove('active');
+
+  var encoded = encodeURIComponent("upi='" + upi + "'");
+  var url = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Hosted/KigaliParcels_withZoning/FeatureServer/0/query'
+    + '?where=' + encoded
+    + '&outFields=upi,district,sector,cell,size,main_zone_code'
+    + '&returnGeometry=true&outSR=4326&f=json';
+
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      btn.disabled = false;
+      if (!data.features || data.features.length === 0) {
+        statusEl.className = 'upi-lookup-status err';
+        statusEl.textContent = '✗ UPI not found in CoK GIS. Fill in details manually.';
+        return;
+      }
+
+      var feat = data.features[0];
+      var attr = feat.attributes;
+      var geo  = feat.geometry;
+      _lastGisAttr = attr;
+
+      // Store geometry for shape loading
+      if (geo && geo.rings && geo.rings[0]) {
+        _lastGisGeometry = geo.rings[0];
+        shapeBtn.disabled = false;
+        shapeBtn.classList.add('active');
+      }
+
+      // ── Auto-fill Area ──
+      if (attr.size) {
+        var areaEl = document.getElementById('areaInput');
+        areaEl.value = Math.round(attr.size);
+        areaEl.classList.add('auto-filled');
+      }
+
+      // ── Auto-fill Sector ──
+      var sector = (attr.sector || '').trim();
+      if (sector) {
+        var sel = document.getElementById('sectorSelect');
+        for (var i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].text.toLowerCase() === sector.toLowerCase()) {
+            sel.selectedIndex = i;
+            sel.classList.add('auto-filled');
+            break;
+          }
+        }
+      }
+
+      // ── Auto-fill Zone ──
+      var zoneCode = (attr.main_zone_code || '').trim();
+      if (zoneCode) applyZoneCode(zoneCode);
+
+      // ── UPI result card ──
+      var card = document.getElementById('upiCard');
+      card.style.display = 'block';
+      var displayName = sector ? sector + ' · ' + (attr.district || '') : upi;
+      document.getElementById('upiCardName').textContent = displayName;
+      document.getElementById('upiCardLoc').textContent  = '📍 ' + (attr.district || '') + (attr.sector ? ' · ' + attr.sector : '') + (attr.cell ? ' · ' + attr.cell : '');
+      document.getElementById('upiCardArea').textContent = attr.size ? Math.round(attr.size).toLocaleString() + ' m²' : '—';
+      document.getElementById('upiCardZone').textContent = zoneCode || '—';
+      document.getElementById('upiCardTitle').textContent = '—';
+
+      statusEl.className = 'upi-lookup-status ok';
+      statusEl.textContent = '✓ Found: ' + (attr.sector || '') + ', ' + (attr.district || '')
+        + ' — ' + Math.round(attr.size || 0).toLocaleString() + ' m²'
+        + (zoneCode ? ' · Zone ' + zoneCode : '');
+    })
+    .catch(function() {
+      btn.disabled = false;
+      statusEl.className = 'upi-lookup-status err';
+      statusEl.textContent = '✗ Could not reach CoK GIS. Check connection or fill in manually.';
+    });
 }
+
+// Zone values now match GIS codes directly — select by value
+function applyZoneCode(code) {
+  if (!code) return;
+  var zSel = document.getElementById('zoneSelect');
+  for (var z = 0; z < zSel.options.length; z++) {
+    if (zSel.options[z].value === code) {
+      zSel.selectedIndex = z;
+      zSel.classList.add('auto-filled');
+      return;
+    }
+  }
+}
+
+// Allow Enter key to trigger lookup
+document.getElementById('upiInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); realLookup(); }
+});
 
 /* ══════════════════════════════════════════════════════════════════
    PARCEL SHAPE ENGINE
@@ -1260,14 +1408,16 @@ function renderShapePanel(pts, edges) {
     <div class="shape-metric"><div class="shape-metric-k">Depth ratio</div><div class="shape-metric-v">${ratio}:1</div></div>`;
 }
 
-// ── Load mock shape from UPI ──────────────────────────────────────
+// ── Load real GIS shape from UPI lookup ───────────────────────────
 function loadShapeFromUPI() {
-  // Realistic slightly-irregular Kimironko plot (roughly 25m × 25m with slight taper)
-  const raw = [
-    {x:0.00, y:0.10}, {x:0.82, y:0.00}, {x:1.00, y:0.08},
-    {x:0.95, y:0.95}, {x:0.05, y:1.00},
-  ];
-  document.getElementById('areaInput').value = 620;
+  if (!_lastGisGeometry || _lastGisGeometry.length < 3) return;
+  // GIS ring is [[lng,lat], …] — convert to {x,y} using lng/lat directly
+  var raw = _lastGisGeometry.map(function(c) { return { x: c[0], y: c[1] }; });
+  // Use area from GIS if available, otherwise from area input
+  if (_lastGisAttr && _lastGisAttr.size) {
+    document.getElementById('areaInput').value = Math.round(_lastGisAttr.size);
+    document.getElementById('areaInput').classList.add('auto-filled');
+  }
   applyShape(normalizePts(raw));
 }
 

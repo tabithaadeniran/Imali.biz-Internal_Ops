@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<script>(function(){var t=localStorage.getItem('imali-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Land Parcel — Imali.biz Internal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  .page-wrap { max-width: 760px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+
+  /* ─── Back link ───────────────────────────────────────────────────── */
+  .back-link {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    font-size: 0.78rem; color: rgba(245,240,232,0.4);
+    text-decoration: none; margin-bottom: 2.5rem;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--gold); }
+  [data-theme="light"] .back-link { color: rgba(10,10,15,0.4); }
+  [data-theme="light"] .back-link:hover { color: var(--gold); }
+
+  /* ─── Header ──────────────────────────────────────────────────────── */
+  .form-eyebrow { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.6rem; }
+  .form-title { font-family: 'Syne', sans-serif; font-size: clamp(1.8rem,3.5vw,2.6rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 0.6rem; }
+  .form-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--terracotta); }
+  .form-sub { font-size: 0.88rem; color: rgba(245,240,232,0.45); line-height: 1.65; margin-bottom: 2.5rem; }
+  [data-theme="light"] .form-sub { color: rgba(10,10,15,0.45); }
+
+  /* ─── UPI lookup card ─────────────────────────────────────────────── */
+  .upi-card {
+    background: rgba(212,168,50,0.05);
+    border: 1px solid rgba(212,168,50,0.18);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .upi-label { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.6rem; font-weight: 600; }
+  .upi-row { display: flex; gap: 0.6rem; }
+  .upi-input {
+    flex: 1;
+    background: rgba(245,240,232,0.05);
+    border: 1px solid rgba(212,168,50,0.25);
+    border-radius: 0.6rem;
+    padding: 0.75rem 1rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.92rem;
+    color: var(--cream); outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .upi-input:focus { border-color: rgba(212,168,50,0.55); box-shadow: 0 0 0 3px rgba(212,168,50,0.08); }
+  [data-theme="light"] .upi-input { background: rgba(10,10,15,0.03); border-color: rgba(212,168,50,0.3); color: var(--ink); }
+  .upi-btn {
+    background: linear-gradient(135deg, var(--gold), #c89a20);
+    border: none; border-radius: 0.6rem; padding: 0.75rem 1.3rem;
+    color: #1a1a1a; font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .upi-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .upi-btn:active { transform: scale(0.97); }
+  .upi-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .upi-status {
+    margin-top: 0.7rem; font-size: 0.78rem;
+    color: rgba(245,240,232,0.4); line-height: 1.5;
+    transition: color 0.2s;
+  }
+  .upi-status.ok  { color: #4caf7d; }
+  .upi-status.err { color: #ef5350; }
+  .upi-status.loading { color: var(--gold); }
+  [data-theme="light"] .upi-status { color: rgba(10,10,15,0.4); }
+
+  /* ─── Form cards ──────────────────────────────────────────────────── */
+  .form-card {
+    background: rgba(245,240,232,0.02);
+    border: 1px solid rgba(245,240,232,0.07);
+    border-radius: 16px; padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  [data-theme="light"] .form-card { background: #fff; border-color: rgba(10,10,15,0.08); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .section-heading { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(245,240,232,0.35); margin-bottom: 1.1rem; font-weight: 600; }
+  [data-theme="light"] .section-heading { color: rgba(10,10,15,0.4); }
+
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .field-grid.cols-1 { grid-template-columns: 1fr; }
+
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .field.full { grid-column: 1 / -1; }
+  .field-label { font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(245,240,232,0.45); font-weight: 600; }
+  [data-theme="light"] .field-label { color: rgba(10,10,15,0.45); }
+
+  .field-input, .field-select, .field-textarea {
+    background: rgba(245,240,232,0.04);
+    border: 1px solid rgba(245,240,232,0.09);
+    border-radius: 0.6rem;
+    padding: 0.7rem 0.9rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    color: var(--cream); outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field-input:focus, .field-select:focus, .field-textarea:focus {
+    border-color: rgba(212,168,50,0.4);
+    box-shadow: 0 0 0 3px rgba(212,168,50,0.08);
+  }
+  .field-input::placeholder, .field-textarea::placeholder { color: rgba(245,240,232,0.2); }
+  .field-input.auto-filled { border-color: rgba(76,175,130,0.4); background: rgba(76,175,130,0.04); }
+  .field-select.auto-filled { border-color: rgba(76,175,130,0.4); background: rgba(76,175,130,0.04); }
+  .field-select { cursor: pointer; }
+  .field-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+  .field-hint { font-size: 0.7rem; color: rgba(245,240,232,0.3); margin-top: 0.1rem; }
+
+  [data-theme="light"] .field-input,
+  [data-theme="light"] .field-select,
+  [data-theme="light"] .field-textarea {
+    background: rgba(10,10,15,0.03); border-color: rgba(10,10,15,0.1); color: var(--ink);
+  }
+  [data-theme="light"] .field-input::placeholder,
+  [data-theme="light"] .field-textarea::placeholder { color: rgba(10,10,15,0.25); }
+  [data-theme="light"] .field-input.auto-filled { border-color: rgba(76,175,130,0.5); background: rgba(76,175,130,0.05); }
+  [data-theme="light"] .field-hint { color: rgba(10,10,15,0.35); }
+
+  /* ─── Map preview ─────────────────────────────────────────────────── */
+  .map-preview-wrap {
+    border: 1px solid rgba(245,240,232,0.08); border-radius: 12px;
+    overflow: hidden; height: 220px; position: relative;
+    background: rgba(0,0,0,0.3);
+  }
+  #miniMap { width: 100%; height: 100%; }
+  .map-overlay-msg {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; color: rgba(245,240,232,0.3); text-align: center;
+    padding: 1rem; pointer-events: none;
+    background: rgba(13,13,18,0.6); backdrop-filter: blur(4px);
+  }
+  [data-theme="light"] .map-overlay-msg { background: rgba(245,240,232,0.7); color: rgba(10,10,15,0.4); }
+
+  /* ─── Submit row ──────────────────────────────────────────────────── */
+  .submit-row { display: flex; gap: 1rem; align-items: center; margin-top: 1.5rem; }
+  .btn-submit {
+    background: linear-gradient(135deg, var(--terracotta), #a0391a);
+    border: none; border-radius: 0.75rem; padding: 0.85rem 2rem;
+    color: #fff; font-family: 'Syne', sans-serif; font-size: 0.92rem; font-weight: 700;
+    cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+  }
+  .btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-cancel {
+    font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+    color: rgba(245,240,232,0.4); text-decoration: none; display: inline-flex; align-items: center;
+    transition: color 0.2s;
+  }
+  .btn-cancel:hover { color: var(--cream); }
+  [data-theme="light"] .btn-cancel { color: rgba(10,10,15,0.4); }
+  [data-theme="light"] .btn-cancel:hover { color: var(--ink); }
+
+  /* ─── Success banner ──────────────────────────────────────────────── */
+  .success-banner {
+    display: none; text-align: center; padding: 3rem 2rem;
+    border: 1px solid rgba(76,175,130,0.2); border-radius: 16px;
+    background: rgba(76,175,130,0.04); margin-bottom: 2rem;
+  }
+  .success-banner.visible { display: block; }
+  .success-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+  .success-title { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .success-sub { font-size: 0.85rem; color: rgba(245,240,232,0.5); margin-bottom: 1.5rem; line-height: 1.6; }
+  [data-theme="light"] .success-sub { color: rgba(10,10,15,0.5); }
+  .success-links { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+  .success-link {
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+    padding: 0.55rem 1.2rem; border-radius: 0.6rem; text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .success-link.primary { background: var(--terracotta); color: #fff; }
+  .success-link.secondary { background: rgba(245,240,232,0.06); color: rgba(245,240,232,0.7); border: 1px solid rgba(245,240,232,0.12); }
+  .success-link:hover { opacity: 0.85; }
+  [data-theme="light"] .success-link.secondary { background: rgba(10,10,15,0.05); color: var(--ink); border-color: rgba(10,10,15,0.1); }
+
+  /* ─── Existing parcels list ───────────────────────────────────────── */
+  .added-list { margin-top: 3rem; }
+  .added-list-title { font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem; color: rgba(245,240,232,0.55); letter-spacing: 0.04em; }
+  [data-theme="light"] .added-list-title { color: rgba(10,10,15,0.45); }
+  .added-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 1rem; border-radius: 10px;
+    border: 1px solid rgba(245,240,232,0.06); margin-bottom: 0.5rem;
+    background: rgba(245,240,232,0.02);
+  }
+  [data-theme="light"] .added-item { background: #fff; border-color: rgba(10,10,15,0.07); }
+  .added-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+  .added-name { font-size: 0.82rem; font-weight: 600; flex: 1; }
+  .added-meta { font-size: 0.72rem; color: rgba(245,240,232,0.35); }
+  [data-theme="light"] .added-meta { color: rgba(10,10,15,0.4); }
+  .added-remove {
+    background: none; border: none; cursor: pointer; padding: 0.25rem 0.5rem;
+    color: rgba(245,240,232,0.35); font-size: 0.8rem; transition: color 0.15s;
+    border-radius: 4px;
+  }
+  .added-remove:hover { color: #ef5350; background: rgba(239,83,80,0.08); }
+  [data-theme="light"] .added-remove { color: rgba(10,10,15,0.3); }
+
+  @media (max-width: 600px) {
+    .field-grid, .field-grid.cols-1 { grid-template-columns: 1fr; }
+    .upi-row { flex-direction: column; }
+    .upi-btn { width: 100%; padding: 0.7rem; }
+  }
+</style>
+</head>
+<body>
+<div class="cursor"></div>
+<div class="cursor-ring"></div>
+
+<nav class="int-nav">
+  <div class="int-nav-left">
+    <a href="index.html" class="int-nav-logo">Imali<span>.</span>biz</a>
+    <div class="int-nav-divider"></div>
+    <span class="int-nav-badge">Internal Ops</span>
+  </div>
+  <div class="int-nav-right">
+    <a href="index.html"          class="int-nav-link">Overview</a>
+    <a href="inventory.html"      class="int-nav-link active">Inventory</a>
+    <a href="materials.html"      class="int-nav-link">Materials</a>
+    <a href="map.html"            class="int-nav-link">Opportunity Map</a>
+    <a href="design-engine.html"  class="int-nav-link">Design Engine</a>
+    <a href="units.html"          class="int-nav-link">Home Catalogue</a>
+    <a href="valuation.html"      class="int-nav-link">Valuation</a>
+    <a href="feasibility.html"    class="int-nav-link">Feasibility</a>
+    <button class="theme-toggle" onclick="toggleTheme()">☀ Light</button>
+  </div>
+</nav>
+
+<div class="page-body">
+<div class="page-wrap">
+
+  <a href="inventory.html" class="back-link">← Back to Inventory</a>
+
+  <div class="form-eyebrow">Pipeline Management</div>
+  <h1 class="form-title">Add New <em>Land Parcel</em></h1>
+  <p class="form-sub">Enter a UPI to auto-fill location and zoning data from the CoK GIS cadastral registry, then fill in any additional fields manually. The parcel will appear in your saved list immediately after saving.</p>
+
+  <!-- UPI Lookup -->
+  <div class="upi-card">
+    <div class="upi-label">UPI Auto-Lookup (recommended)</div>
+    <div class="upi-row">
+      <input class="upi-input" id="upiLookup" type="text" placeholder="e.g. 1/02/04/02/1234" autocomplete="off" spellcheck="false">
+      <button class="upi-btn" id="lookupBtn" onclick="lookupUPI()">Look Up →</button>
+    </div>
+    <div class="upi-status" id="upiStatus">Enter a UPI to auto-fill district, sector, size, and zoning from CoK GIS.</div>
+  </div>
+
+  <form id="parcelForm" onsubmit="submitParcel(event)">
+
+    <!-- Identity -->
+    <div class="form-card">
+      <div class="section-heading">Parcel Identity</div>
+      <div class="field-grid">
+        <div class="field">
+          <label class="field-label" for="f_upi">UPI *</label>
+          <input class="field-input" id="f_upi" name="upi" type="text" placeholder="1/02/04/01/999" required spellcheck="false">
+        </div>
+        <div class="field">
+          <label class="field-label" for="f_name">Parcel Name / Label</label>
+          <input class="field-input" id="f_name" name="name" type="text" placeholder="e.g. Gisozi Plot A">
+        </div>
+      </div>
+    </div>
+
+    <!-- Location -->
+    <div class="form-card">
+      <div class="section-heading">Location</div>
+      <div class="field-grid">
+        <div class="field">
+          <label class="field-label" for="f_district">District *</label>
+          <select class="field-select" id="f_district" name="district" required>
+            <option value="">Select district…</option>
+            <option>Gasabo</option>
+            <option>Kicukiro</option>
+            <option>Nyarugenge</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="f_sector">Sector</label>
+          <input class="field-input" id="f_sector" name="sector" type="text" placeholder="e.g. Gisozi">
+        </div>
+        <div class="field">
+          <label class="field-label" for="f_cell">Cell</label>
+          <input class="field-input" id="f_cell" name="cell" type="text" placeholder="e.g. Cyibaba">
+        </div>
+        <div class="field">
+          <label class="field-label" for="f_size">Plot Size (m²)</label>
+          <input class="field-input" id="f_size" name="size_sqm" type="number" min="0" placeholder="e.g. 850">
+        </div>
+      </div>
+    </div>
+
+    <!-- Zoning & Valuation -->
+    <div class="form-card">
+      <div class="section-heading">Zoning &amp; Valuation</div>
+      <div class="field-grid cols-1">
+        <div class="field">
+          <label class="field-label" for="f_zone">Zone</label>
+          <select class="field-select" id="f_zone" name="zone">
+            <option value="">Unknown</option>
+            <optgroup label="Residential">
+              <option value="R1">R1 — Low density residential</option>
+              <option value="R1A">R1A — Low density residential densification</option>
+              <option value="R1B">R1B — Rural residential</option>
+              <option value="R2">R2 — Medium density residential (Improvement)</option>
+              <option value="R3">R3 — Medium density residential (Expansion)</option>
+              <option value="R4">R4 — High density residential</option>
+            </optgroup>
+            <optgroup label="Commercial">
+              <option value="C1">C1 — Mixed use</option>
+              <option value="C3">C3 — City commercial</option>
+            </optgroup>
+            <optgroup label="Industrial">
+              <option value="I1">I1 — Light industrial</option>
+              <option value="I2">I2 — General industrial</option>
+              <option value="I3">I3 — Mining / Extraction / Quarry</option>
+            </optgroup>
+            <optgroup label="Agricultural">
+              <option value="A1">A1 — Agriculture</option>
+            </optgroup>
+            <optgroup label="Public Facilities">
+              <option value="PA">PA — Public administration</option>
+              <option value="PF1">PF1 — Education and research facilities</option>
+              <option value="PF2">PF2 — Health facilities</option>
+              <option value="PF3">PF3 — Religious facilities</option>
+              <option value="PF4">PF4 — Cultural / memorial sites</option>
+              <option value="PF5">PF5 — Cemetery / crematoria</option>
+            </optgroup>
+            <optgroup label="Parks &amp; Open Space">
+              <option value="P1">P1 — Parks and open spaces</option>
+              <option value="P2">P2 — Sport and eco-tourism</option>
+              <option value="P3B">P3B — Forest</option>
+              <option value="P3C">P3C — Steep slopes (&gt;30%)</option>
+            </optgroup>
+            <optgroup label="Infrastructure">
+              <option value="T">T — Transportation</option>
+              <option value="U">U — Utility</option>
+            </optgroup>
+            <optgroup label="Wetland &amp; Water">
+              <option value="W2">W2 — Wetland rehabilitation</option>
+              <option value="W3">W3 — Wetland sustainable exploitation</option>
+              <option value="W4">W4 — Wetland conservation</option>
+              <option value="W5">W5 — Wetland recreational</option>
+              <option value="WB">WB — Waterbody</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+      <div class="field-grid" style="margin-top:1rem">
+        <div class="field">
+          <label class="field-label" for="f_price">Asking Price (RWF)</label>
+          <input class="field-input" id="f_price" name="price" type="number" min="0" placeholder="e.g. 120000000">
+          <span class="field-hint" id="priceHint"></span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="f_status">Status</label>
+          <select class="field-select" id="f_status" name="status">
+            <option value="under_review">Under Review</option>
+            <option value="pending">Pending</option>
+            <option value="listed">Listed</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="form-card">
+      <div class="section-heading">Notes &amp; Description</div>
+      <div class="field-grid cols-1">
+        <div class="field">
+          <label class="field-label" for="f_notes">Notes</label>
+          <textarea class="field-textarea" id="f_notes" name="notes" placeholder="Any additional context — seller details, access, constraints, nearby infrastructure…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map preview -->
+    <div class="form-card">
+      <div class="section-heading">Map Preview</div>
+      <div class="map-preview-wrap">
+        <div id="miniMap"></div>
+        <div class="map-overlay-msg" id="mapOverlayMsg">Look up a UPI to preview the parcel boundary on the map.</div>
+      </div>
+    </div>
+
+    <div class="submit-row">
+      <button type="submit" class="btn-submit">Save Parcel →</button>
+      <a href="inventory.html" class="btn-cancel">Cancel</a>
+    </div>
+
+  </form>
+
+  <!-- Success banner -->
+  <div class="success-banner" id="successBanner">
+    <div class="success-icon">✓</div>
+    <div class="success-title">Parcel Saved</div>
+    <div class="success-sub" id="successSub">The parcel has been saved to your local list.</div>
+    <div class="success-links">
+      <a href="inventory.html" class="success-link primary">View in Inventory</a>
+      <a href="#" class="success-link secondary" onclick="resetForm(); return false;">Add Another</a>
+    </div>
+  </div>
+
+  <!-- Previously saved parcels -->
+  <div class="added-list" id="addedList"></div>
+
+</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="data/pipeline.js"></script>
+<script>
+
+// ── Cursor ─────────────────────────────────────────────────────────────────────
+const cursor = document.querySelector('.cursor');
+const ring   = document.querySelector('.cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+(function loop() {
+  rx += (mx - rx - 5) * 0.15; ry += (my - ry - 5) * 0.15;
+  cursor.style.left = mx - 5 + 'px'; cursor.style.top = my - 5 + 'px';
+  ring.style.left   = rx - 18 + 'px'; ring.style.top   = ry - 18 + 'px';
+  requestAnimationFrame(loop);
+})();
+
+// ── Theme ──────────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('imali-theme', t);
+  document.querySelector('.theme-toggle').textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+}
+document.querySelector('.theme-toggle').textContent = localStorage.getItem('imali-theme') === 'dark' ? '☀ Light' : '☾ Dark';
+
+// ── Mini map ───────────────────────────────────────────────────────────────────
+var miniMap = null;
+var miniMarker = null;
+var miniPoly = null;
+
+function initMiniMap() {
+  if (miniMap) return;
+  document.getElementById('mapOverlayMsg').style.display = 'none';
+  miniMap = L.map('miniMap', { zoomControl: true, attributionControl: false }).setView([-1.9536, 30.0605], 14);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(miniMap);
+}
+
+function showOnMap(lat, lng, ring) {
+  initMiniMap();
+  if (miniMarker) { miniMap.removeLayer(miniMarker); miniMarker = null; }
+  if (miniPoly)   { miniMap.removeLayer(miniPoly);   miniPoly   = null; }
+  var dotIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:12px;height:12px;background:#d4a832;border-radius:50%;border:2px solid #fff;box-shadow:0 0 6px rgba(212,168,50,0.6)"></div>',
+    iconSize: [12,12], iconAnchor: [6,6]
+  });
+  miniMarker = L.marker([lat, lng], { icon: dotIcon }).addTo(miniMap);
+  if (ring && ring.length > 2) {
+    var leafRing = ring.map(function(c) { return [c[1], c[0]]; });
+    miniPoly = L.polygon(leafRing, { color:'#d4a832', weight:2, opacity:0.9, fillColor:'#d4a832', fillOpacity:0.12 }).addTo(miniMap);
+    miniMap.fitBounds(miniPoly.getBounds(), { padding:[20,20] });
+  } else {
+    miniMap.setView([lat, lng], 17);
+  }
+}
+
+// ── UPI lookup ─────────────────────────────────────────────────────────────────
+var lastGeometry = null;
+
+function setAutoFilled(id, value) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.value = value;
+  el.classList.add('auto-filled');
+}
+function clearAutoFilled(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('auto-filled');
+}
+
+function lookupUPI() {
+  var upi = document.getElementById('upiLookup').value.trim();
+  if (!upi) return;
+  var status = document.getElementById('upiStatus');
+  var btn    = document.getElementById('lookupBtn');
+  status.className = 'upi-status loading';
+  status.textContent = 'Querying CoK GIS cadastral registry…';
+  btn.disabled = true;
+  lastGeometry = null;
+
+  var encoded = encodeURIComponent("upi='" + upi + "'");
+  var url = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Hosted/KigaliParcels_withZoning/FeatureServer/0/query' +
+    '?where=' + encoded +
+    '&outFields=upi,district,sector,cell,size,main_zone_code' +
+    '&returnGeometry=true&outSR=4326&f=json';
+
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      btn.disabled = false;
+      if (!data.features || data.features.length === 0) {
+        status.className = 'upi-status err';
+        status.textContent = '✗ UPI not found in CoK GIS registry. You can still fill in details manually.';
+        return;
+      }
+      var feat = data.features[0];
+      var attr = feat.attributes;
+      var geo  = feat.geometry;
+
+      // Auto-fill form fields
+      setAutoFilled('f_upi', upi);
+      if (attr.district) {
+        var sel = document.getElementById('f_district');
+        for (var i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value.toLowerCase() === attr.district.toLowerCase()) { sel.selectedIndex = i; break; }
+        }
+        sel.classList.add('auto-filled');
+      }
+      if (attr.sector)  setAutoFilled('f_sector', attr.sector);
+      if (attr.cell)    setAutoFilled('f_cell',   attr.cell);
+      if (attr.size)    setAutoFilled('f_size',   Math.round(attr.size));
+
+      // Auto-fill zone from GIS, fall back to pipeline data
+      var zoneCode = attr.main_zone_code ||
+        (typeof PIPELINE_PRICES !== 'undefined' && PIPELINE_PRICES[upi] && PIPELINE_PRICES[upi].zone) || '';
+      if (zoneCode) {
+        var zoneSel = document.getElementById('f_zone');
+        for (var z = 0; z < zoneSel.options.length; z++) {
+          if (zoneSel.options[z].value === zoneCode) { zoneSel.selectedIndex = z; break; }
+        }
+        zoneSel.classList.add('auto-filled');
+      }
+
+      // Store geometry for saving
+      if (geo && geo.rings && geo.rings[0]) {
+        lastGeometry = geo.rings[0];
+        var ring = geo.rings[0];
+        var sumX = 0, sumY = 0;
+        ring.forEach(function(c) { sumX += c[0]; sumY += c[1]; });
+        showOnMap(sumY / ring.length, sumX / ring.length, ring);
+      }
+
+      status.className = 'upi-status ok';
+      status.textContent = '✓ Found: ' + (attr.sector || '') + ', ' + (attr.district || '') + ' — ' + Math.round(attr.size || 0).toLocaleString() + ' m²' + (zoneCode ? ' · Zone ' + zoneCode : '');
+    })
+    .catch(function() {
+      btn.disabled = false;
+      status.className = 'upi-status err';
+      status.textContent = '✗ Could not reach CoK GIS. Check your connection or fill in manually.';
+    });
+}
+
+// Trigger lookup on Enter
+document.getElementById('upiLookup').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); lookupUPI(); }
+});
+
+// Price hint — show USD equivalent
+document.getElementById('f_price').addEventListener('input', function() {
+  var rwf = parseFloat(this.value);
+  var hint = document.getElementById('priceHint');
+  if (!isNaN(rwf) && rwf > 0) {
+    var usd = rwf / 1472;
+    hint.textContent = '≈ ' + (usd >= 1e6 ? '$' + (usd/1e6).toFixed(2) + 'M' : '$' + Math.round(usd).toLocaleString()) + ' USD';
+  } else {
+    hint.textContent = '';
+  }
+});
+
+// ── Submit ─────────────────────────────────────────────────────────────────────
+function submitParcel(e) {
+  e.preventDefault();
+  var fd = new FormData(e.target);
+  var upi = (fd.get('upi') || '').trim();
+  if (!upi) { alert('UPI is required.'); return; }
+
+  var existing = JSON.parse(localStorage.getItem('IMALI_ADDED_PARCELS') || '[]');
+  if (existing.some(function(p) { return p.upi === upi; })) {
+    if (!confirm('A parcel with this UPI is already saved. Replace it?')) return;
+    existing = existing.filter(function(p) { return p.upi !== upi; });
+  }
+
+  var priceRaw = parseFloat(fd.get('price'));
+  var entry = {
+    upi:      upi,
+    name:     (fd.get('name') || '').trim() || upi,
+    district: fd.get('district') || '',
+    sector:   (fd.get('sector') || '').trim(),
+    cell:     (fd.get('cell') || '').trim(),
+    size_sqm: parseFloat(fd.get('size_sqm')) || 0,
+    zone:     fd.get('zone') || '',
+    price:    isNaN(priceRaw) || priceRaw <= 0 ? null : priceRaw,
+    status:   fd.get('status') || 'pending',
+    notes:    (fd.get('notes') || '').trim(),
+    geometry: lastGeometry || null,
+    added_at: new Date().toISOString(),
+  };
+
+  existing.push(entry);
+  localStorage.setItem('IMALI_ADDED_PARCELS', JSON.stringify(existing));
+
+  document.getElementById('parcelForm').style.display = 'none';
+  document.querySelector('.upi-card').style.display = 'none';
+  var banner = document.getElementById('successBanner');
+  banner.classList.add('visible');
+  document.getElementById('successSub').textContent =
+    '"' + entry.name + '" (' + entry.upi + ') has been saved to your local list.';
+
+  renderAddedList();
+}
+
+function resetForm() {
+  document.getElementById('parcelForm').reset();
+  document.getElementById('parcelForm').style.display = '';
+  document.querySelector('.upi-card').style.display = '';
+  document.getElementById('successBanner').classList.remove('visible');
+  document.getElementById('upiStatus').className = 'upi-status';
+  document.getElementById('upiStatus').textContent = 'Enter a UPI to auto-fill district, sector, size, and zoning from CoK GIS.';
+  document.getElementById('upiLookup').value = '';
+  document.getElementById('priceHint').textContent = '';
+  lastGeometry = null;
+  ['f_upi','f_sector','f_cell','f_size'].forEach(clearAutoFilled);
+  document.getElementById('f_district').classList.remove('auto-filled');
+  document.getElementById('f_zone').classList.remove('auto-filled');
+  if (miniMap) { miniMap.remove(); miniMap = null; miniMarker = null; miniPoly = null; }
+  document.getElementById('mapOverlayMsg').style.display = '';
+}
+
+// ── Previously saved list ──────────────────────────────────────────────────────
+function renderAddedList() {
+  var parcels = JSON.parse(localStorage.getItem('IMALI_ADDED_PARCELS') || '[]');
+  var el = document.getElementById('addedList');
+  if (parcels.length === 0) { el.innerHTML = ''; return; }
+
+  var html = '<div class="added-list-title">Previously Saved (' + parcels.length + ')</div>';
+  parcels.slice().reverse().forEach(function(p, i) {
+    var realIdx = parcels.length - 1 - i;
+    var meta = [p.district, p.sector, p.size_sqm ? p.size_sqm.toLocaleString() + ' m²' : null].filter(Boolean).join(' · ');
+    html += '<div class="added-item">' +
+      '<span class="added-dot"></span>' +
+      '<span class="added-name">' + p.name + ' <span style="font-weight:400;opacity:0.5;font-size:0.78em">(' + p.upi + ')</span></span>' +
+      '<span class="added-meta">' + meta + '</span>' +
+      '<button class="added-remove" onclick="removeParcel(' + realIdx + ')" title="Remove">✕</button>' +
+    '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function removeParcel(idx) {
+  var parcels = JSON.parse(localStorage.getItem('IMALI_ADDED_PARCELS') || '[]');
+  parcels.splice(idx, 1);
+  localStorage.setItem('IMALI_ADDED_PARCELS', JSON.stringify(parcels));
+  renderAddedList();
+}
+
+renderAddedList();
+</script>
+</body>
+</html>

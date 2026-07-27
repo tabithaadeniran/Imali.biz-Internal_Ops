@@ -90,7 +90,17 @@
     padding-right: 2rem;
   }
   .filter-select option { background: #1a1a24; color: var(--cream); }
-  .filter-count { margin-left: auto; font-size: 0.72rem; color: rgba(245,240,232,0.35); white-space: nowrap; }
+  .filter-count { font-size: 0.72rem; color: rgba(245,240,232,0.35); white-space: nowrap; }
+  .btn-add-parcel {
+    margin-left: auto;
+    background: linear-gradient(135deg, var(--terracotta), #a0391a);
+    border: none; border-radius: 0.5rem; padding: 0.5rem 1.1rem;
+    color: #fff; font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700;
+    cursor: none; text-decoration: none; white-space: nowrap;
+    transition: opacity 0.15s, transform 0.1s;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-add-parcel:hover { opacity: 0.88; transform: translateY(-1px); }
 
   /* ─── Main content ────────────────────────────────────────────────── */
   .main { max-width: 1200px; margin: 0 auto; padding: 3rem 2.5rem; }
@@ -248,6 +258,7 @@
         <option value="pending">Pending</option>
       </select>
       <span class="filter-count" id="filterCount"></span>
+      <a href="add-parcel.html" class="btn-add-parcel">+ Add Parcel</a>
     </div>
   </div>
 

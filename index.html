@@ -571,8 +571,9 @@
   `).join('');
 
   // ─── Leverage chart ───────────────────────────────────────────────────────
-  const maxRatio = Math.max(...parcels.map(p => p.leverage_ratio));
-  document.getElementById('leverageBars').innerHTML = [...parcels]
+  const pricedParcels = parcels.filter(p => p.land_price_rwf > 0);
+  const maxRatio = Math.max(...pricedParcels.map(p => p.leverage_ratio));
+  document.getElementById('leverageBars').innerHTML = [...pricedParcels]
     .sort((a, b) => b.leverage_ratio - a.leverage_ratio)
     .map(p => {
       const pct = (p.leverage_ratio / maxRatio * 100).toFixed(1);
@@ -639,7 +640,7 @@
       </tr>
     </thead>
     <tbody>
-      ${parcels.map(p => `
+      ${pricedParcels.map(p => `
         <tr>
           <td>${p.name}</td>
           ${dims.map(d => {
