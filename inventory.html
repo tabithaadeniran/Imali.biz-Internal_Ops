@@ -199,6 +199,130 @@
     .filter-count { margin-left: 0; }
   }
   .rwf-sub { font-size: 0.72em; font-weight: 400; opacity: 0.6; margin-left: 0.3em; letter-spacing: 0; white-space: nowrap; vertical-align: middle; }
+
+  /* ─── Card clickable ─────────────────────────────────────────────────── */
+  .parcel-card { cursor: pointer; }
+
+  /* ─── Modal overlay ──────────────────────────────────────────────────── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.22s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: #13131c;
+    border: 1px solid rgba(245,240,232,0.1);
+    border-radius: 20px;
+    width: 100%; max-width: 760px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    transform: translateY(24px) scale(0.97);
+    transition: transform 0.25s cubic-bezier(.22,1,.36,1);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(245,240,232,0.1) transparent;
+  }
+  .modal-overlay.open .modal-box { transform: translateY(0) scale(1); }
+  .modal-stripe { height: 5px; border-radius: 20px 20px 0 0; }
+  .modal-header { padding: 1.5rem 1.75rem 1rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--cream); line-height: 1.15; }
+  .modal-loc { font-size: 0.78rem; color: rgba(245,240,232,0.45); margin-top: 0.3rem; }
+  .modal-close {
+    background: rgba(245,240,232,0.06); border: none; border-radius: 50%;
+    width: 34px; height: 34px; flex-shrink: 0;
+    color: rgba(245,240,232,0.5); font-size: 1.1rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .modal-close:hover { background: rgba(245,240,232,0.12); color: var(--cream); }
+  .modal-body { padding: 0 1.75rem 1.5rem; }
+  .modal-img { width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 1.25rem; display: block; }
+  .modal-badges { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center; }
+  .modal-upi { font-size: 0.68rem; font-family: monospace; color: rgba(245,240,232,0.35); margin-left: auto; }
+  .modal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+  .modal-metric { background: rgba(245,240,232,0.03); border: 1px solid rgba(245,240,232,0.06); border-radius: 10px; padding: 0.75rem 0.9rem; }
+  .modal-metric-lbl { font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,240,232,0.3); margin-bottom: 0.3rem; }
+  .modal-metric-val { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--cream); }
+  .modal-metric-val.gold { color: var(--gold); }
+  .modal-divider { border: none; border-top: 1px solid rgba(245,240,232,0.06); margin: 1.25rem 0; }
+  .modal-readiness-title { font-size: 0.68rem; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(245,240,232,0.35); margin-bottom: 0.75rem; }
+  .modal-readiness-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; margin-bottom: 1.25rem; }
+  .modal-dim { display: flex; align-items: center; gap: 0.6rem; }
+  .modal-dim-label { font-size: 0.72rem; color: rgba(245,240,232,0.5); flex: 1; }
+  .modal-dim-bar-wrap { flex: 2; height: 6px; background: rgba(245,240,232,0.06); border-radius: 3px; overflow: hidden; }
+  .modal-dim-bar { height: 100%; border-radius: 3px; }
+  .modal-dim-score { font-size: 0.7rem; font-family: 'Syne', sans-serif; font-weight: 700; width: 30px; text-align: right; }
+  .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.5rem; }
+  .modal-btn {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.85rem 1rem; border-radius: 12px; border: none;
+    font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; text-decoration: none; transition: opacity 0.15s, transform 0.12s;
+    color: #fff;
+  }
+  .modal-btn:hover { opacity: 0.88; transform: translateY(-2px); }
+  .modal-btn-design { background: linear-gradient(135deg, var(--terracotta), #a0391a); }
+  .modal-btn-feaso  { background: linear-gradient(135deg, #2e74b5, #1a4d80); }
+  .modal-btn-icon { font-size: 1rem; }
+
+  /* light mode modal */
+  [data-theme="light"] .modal-box { background: #fff; border-color: rgba(10,10,15,0.1); }
+  [data-theme="light"] .modal-title { color: var(--ink); }
+  [data-theme="light"] .modal-loc { color: rgba(10,10,15,0.45); }
+  [data-theme="light"] .modal-close { background: rgba(10,10,15,0.05); color: rgba(10,10,15,0.4); }
+  [data-theme="light"] .modal-close:hover { background: rgba(10,10,15,0.1); color: var(--ink); }
+  [data-theme="light"] .modal-metric { background: rgba(10,10,15,0.02); border-color: rgba(10,10,15,0.07); }
+  [data-theme="light"] .modal-metric-lbl { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .modal-metric-val { color: var(--ink); }
+  [data-theme="light"] .modal-divider { border-top-color: rgba(10,10,15,0.07); }
+  [data-theme="light"] .modal-readiness-title { color: rgba(10,10,15,0.35); }
+  [data-theme="light"] .modal-dim-label { color: rgba(10,10,15,0.5); }
+  [data-theme="light"] .modal-dim-bar-wrap { background: rgba(10,10,15,0.07); }
+  [data-theme="light"] .modal-upi { color: rgba(10,10,15,0.3); }
+
+  .modal-btn-edit   { background: linear-gradient(135deg, #1e6b42, #155232); }
+  .modal-btn-delete { background: linear-gradient(135deg, #b91c1c, #7f1d1d); }
+  .modal-manage-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.6rem; }
+
+  .modal-delete-confirm {
+    display: none; margin-top: 1rem; padding: 1rem 1.1rem;
+    background: rgba(185,28,28,0.07); border: 1px solid rgba(185,28,28,0.25);
+    border-radius: 12px;
+  }
+  .delete-warn-icon { font-size: 1.4rem; margin-bottom: 0.5rem; }
+  .delete-warn-text { font-size: 0.84rem; color: rgba(245,240,232,0.75); line-height: 1.55; margin-bottom: 0.9rem; }
+  [data-theme="light"] .delete-warn-text { color: rgba(10,10,15,0.7); }
+  .delete-confirm-btns { display: flex; gap: 0.6rem; }
+  .modal-btn-confirm-del {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 0.7rem 1rem; border-radius: 10px; border: none;
+    background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+    color: #fff; font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .modal-btn-confirm-del:hover { opacity: 0.85; }
+  .modal-btn-cancel-del {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 0.7rem 1rem; border-radius: 10px;
+    border: 1px solid rgba(245,240,232,0.12);
+    background: rgba(245,240,232,0.05);
+    color: rgba(245,240,232,0.6); font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .modal-btn-cancel-del:hover { background: rgba(245,240,232,0.09); }
+  [data-theme="light"] .modal-btn-cancel-del { border-color: rgba(10,10,15,0.12); background: rgba(10,10,15,0.04); color: rgba(10,10,15,0.55); }
+
+  @media (max-width: 600px) {
+    .modal-grid { grid-template-columns: repeat(2, 1fr); }
+    .modal-actions { grid-template-columns: 1fr; }
+    .modal-manage-row { grid-template-columns: 1fr; }
+    .modal-readiness-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -304,8 +428,46 @@
   </footer>
 </div>
 
+<!-- ─── Parcel Detail Modal ─────────────────────────────────────────────── -->
+<div class="modal-overlay" id="parcelModal" onclick="handleOverlayClick(event)">
+  <div class="modal-box" id="modalBox">
+    <div class="modal-stripe" id="modalStripe"></div>
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-loc" id="modalLoc"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <img class="modal-img" id="modalImg" src="" alt="">
+      <div class="modal-badges" id="modalBadges"></div>
+      <div class="modal-grid" id="modalGrid"></div>
+      <hr class="modal-divider">
+      <div class="modal-readiness-title">Development Readiness — by Dimension</div>
+      <div class="modal-readiness-grid" id="modalReadiness"></div>
+      <hr class="modal-divider">
+      <div class="modal-actions" id="modalActions"></div>
+      <div class="modal-manage-row" id="modalManageRow"></div>
+      <div class="modal-delete-confirm" id="modalDeleteConfirm">
+        <div class="delete-warn-icon">⚠️</div>
+        <div class="delete-warn-text">
+          Are you sure you want to permanently delete this parcel? It will be removed from the
+          inventory, overview stats, materials estimates, and opportunity map on every page reload.
+          This cannot be undone.
+        </div>
+        <div class="delete-confirm-btns">
+          <button class="modal-btn-confirm-del" onclick="executeDeleteParcel()">Yes, Delete Permanently</button>
+          <button class="modal-btn-cancel-del"  onclick="cancelDeleteParcel()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="data/pipeline.js"></script>
 <script src="data.js"></script>
+<script src="data/user-overrides.js"></script>
 <script>
   // ─── Cursor ──────────────────────────────────────────────────────────────
   const cursor = document.querySelector('.cursor');
@@ -397,7 +559,7 @@
     const grid = document.getElementById('cardsGrid');
     if (!data.length) { grid.innerHTML = '<div class="no-results">No parcels match your filters.</div>'; return; }
     grid.innerHTML = data.map(p => `
-      <div class="parcel-card reveal">
+      <div class="parcel-card reveal" onclick="openModal('${p.id}')" title="Click for details">
         <div class="card-stripe stripe-${p.type}"></div>
         <div class="card-img">
           <img src="${p.image}" alt="${p.name}" loading="lazy">
@@ -520,6 +682,159 @@
   document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
 
   renderAll();
+
+  // ─── Modal ────────────────────────────────────────────────────────────────
+  const parcelsById = Object.fromEntries(parcels.map(p => [p.id, p]));
+
+  const DIM_LABELS = {
+    legal: 'Legal & Title', physical: 'Physical', infrastructure: 'Infrastructure',
+    urban: 'Urban Planning', community: 'Community', tokenisation: 'Tokenisation'
+  };
+
+  function buildParcelURL(p, page) {
+    const params = new URLSearchParams({
+      upi:      p.id,
+      name:     p.name,
+      area:     p.size_sqm,
+      price:    p.land_price_rwf || '',
+      zone:     p.zone || '',
+      units:    p.units_planned || '',
+      district: p.district || '',
+      sector:   p.sector || '',
+    });
+    return page + '?' + params.toString();
+  }
+
+  function openModal(id) {
+    const p = parcelsById[id];
+    if (!p) return;
+
+    // Stripe colour
+    const stripeClass = { residential: 'stripe-residential', commercial: 'stripe-commercial', 'mixed-use': 'stripe-mixed-use' }[p.type] || 'stripe-residential';
+    document.getElementById('modalStripe').className = 'modal-stripe ' + stripeClass;
+
+    // Header
+    document.getElementById('modalTitle').textContent = p.name;
+    document.getElementById('modalLoc').innerHTML = '📍 ' + p.location + ' &nbsp;·&nbsp; ' + p.district + ', ' + p.sector;
+
+    // Image
+    const img = document.getElementById('modalImg');
+    img.src = p.image; img.alt = p.name;
+
+    // Badges
+    document.getElementById('modalBadges').innerHTML =
+      `<span class="type-chip type-${p.type}">${p.type}</span>` +
+      `<span class="status-pill status-${p.status}">${statusLabel(p.status)}</span>` +
+      (p.zone ? `<span class="type-chip" style="background:rgba(212,168,50,0.12);color:var(--gold);border-color:rgba(212,168,50,0.2);">Zone ${p.zone}</span>` : '') +
+      `<span class="modal-upi">UPI: ${p.id}</span>`;
+
+    // Metrics grid
+    const metrics = [
+      { lbl: 'Land Area', val: fmtNum(p.size_sqm) + ' sqm', gold: false },
+      { lbl: 'Units Planned', val: p.units_planned, gold: false },
+      { lbl: 'Land Price', val: fmtPrice(p.land_price_rwf), gold: true },
+      { lbl: 'Dev Cost', val: fmtPrice(p.dev_cost_rwf), gold: false },
+      { lbl: 'Price / sqm', val: fmtNum(p.price_per_sqm) + ' RWF', gold: false },
+      { lbl: 'Leverage', val: p.leverage_ratio + '×', gold: false },
+      { lbl: 'Added', val: p.added_date, gold: false },
+      { lbl: 'Readiness', val: p.avg_readiness + '%', gold: false },
+    ];
+    document.getElementById('modalGrid').innerHTML = metrics.map(m =>
+      `<div class="modal-metric">
+        <div class="modal-metric-lbl">${m.lbl}</div>
+        <div class="modal-metric-val${m.gold ? ' gold' : ''}">${m.val}</div>
+      </div>`
+    ).join('');
+
+    // Readiness dimensions
+    document.getElementById('modalReadiness').innerHTML =
+      Object.entries(p.readiness).map(([dim, score]) => {
+        const col = score >= 75 ? '#4caf7d' : score >= 50 ? '#d4a832' : '#ef5350';
+        return `<div class="modal-dim">
+          <span class="modal-dim-label">${DIM_LABELS[dim] || dim}</span>
+          <div class="modal-dim-bar-wrap"><div class="modal-dim-bar" style="width:${score}%;background:${col}"></div></div>
+          <span class="modal-dim-score" style="color:${col}">${score}</span>
+        </div>`;
+      }).join('');
+
+    // Action buttons
+    const deURL   = buildParcelURL(p, 'design-engine.html');
+    const feasURL = buildParcelURL(p, 'feasibility.html');
+    const editURL = 'edit-parcel.html?upi=' + encodeURIComponent(p.id);
+    document.getElementById('modalActions').innerHTML =
+      `<a href="${deURL}" class="modal-btn modal-btn-design">
+        <span class="modal-btn-icon">📐</span> Open in Design Engine
+      </a>
+      <a href="${feasURL}" class="modal-btn modal-btn-feaso">
+        <span class="modal-btn-icon">📊</span> Open in Feasibility
+      </a>`;
+
+    // Manage row (edit + delete)
+    const safeId = p.id.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    document.getElementById('modalManageRow').innerHTML =
+      `<a href="${editURL}" class="modal-btn modal-btn-edit">
+        <span class="modal-btn-icon">✏️</span> Edit Details
+      </a>
+      <button class="modal-btn modal-btn-delete" onclick="promptDeleteParcel('${safeId}')">
+        <span class="modal-btn-icon">🗑</span> Delete Parcel
+      </button>`;
+
+    // Reset delete confirm state
+    document.getElementById('modalDeleteConfirm').style.display = 'none';
+
+    // Open
+    document.getElementById('parcelModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('parcelModal').classList.remove('open');
+    document.body.style.overflow = '';
+    _pendingDeleteId = null;
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('parcelModal')) closeModal();
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // ─── Delete parcel ────────────────────────────────────────────────────────
+  var _pendingDeleteId = null;
+
+  function promptDeleteParcel(id) {
+    _pendingDeleteId = id;
+    document.getElementById('modalManageRow').style.display = 'none';
+    document.getElementById('modalDeleteConfirm').style.display = 'block';
+    document.getElementById('modalBox').scrollTop = document.getElementById('modalBox').scrollHeight;
+  }
+
+  function cancelDeleteParcel() {
+    _pendingDeleteId = null;
+    document.getElementById('modalDeleteConfirm').style.display = 'none';
+    document.getElementById('modalManageRow').style.display = '';
+  }
+
+  function executeDeleteParcel() {
+    if (!_pendingDeleteId) return;
+
+    // Write to localStorage deleted list
+    var deleted = [];
+    try { deleted = JSON.parse(localStorage.getItem('IMALI_PARCEL_DELETED') || '[]'); } catch(e) {}
+    if (deleted.indexOf(_pendingDeleteId) === -1) deleted.push(_pendingDeleteId);
+    localStorage.setItem('IMALI_PARCEL_DELETED', JSON.stringify(deleted));
+
+    // Splice from live array so re-render reflects immediately (no page reload needed)
+    var idx = parcels.findIndex(function(p) { return p.id === _pendingDeleteId; });
+    if (idx !== -1) parcels.splice(idx, 1);
+    delete parcelsById[_pendingDeleteId];
+
+    _pendingDeleteId = null;
+    closeModal();
+    renderAll();
+  }
 </script>
 </body>
 </html>

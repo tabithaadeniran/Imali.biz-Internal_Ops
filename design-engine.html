@@ -728,6 +728,7 @@ html, body { height: 100%; overflow: hidden; }
 <!-- Scripts -->
 <script src="data/pipeline.js"></script>
 <script src="data.js"></script>
+<script src="data/user-overrides.js"></script>
 <script src="shared/config.js"></script>
 <script src="shared/zoning.js"></script>
 <script src="shared/land-pricing.js"></script>
@@ -1738,6 +1739,52 @@ function shortRWF(n) {
 
 // Init mix section visibility
 document.getElementById('mixSection').classList.add('visible');
+
+// ─── Pre-fill from inventory URL params ──────────────────────────────────────
+(function prefillFromURL() {
+  var params = new URLSearchParams(window.location.search);
+  if (!params.has('upi') && !params.has('area')) return;
+
+  var upi = params.get('upi') || '';
+
+  // Try to match a portfolio parcel by UPI
+  if (upi) {
+    var idx = parcels.findIndex(function(p) { return p.id === upi; });
+    if (idx !== -1) {
+      setMode('portfolio');
+      document.getElementById('parcelSelect').value = idx;
+      onParcelChange();
+      // Also apply zone if provided
+      if (params.has('zone')) {
+        document.getElementById('zoneSelect').value = params.get('zone');
+        onZoneChange();
+      }
+      showPrefillBanner(params.get('name') || parcels[idx].name);
+      return;
+    }
+  }
+
+  // Fall back to custom mode
+  setMode('custom');
+  if (params.has('name'))     document.getElementById('customName').value     = params.get('name');
+  if (params.has('area'))     document.getElementById('customArea').value     = params.get('area');
+  if (params.has('price'))    document.getElementById('customPrice').value    = params.get('price');
+  if (params.has('district')) document.getElementById('customDistrict').value = params.get('district');
+  if (params.has('zone')) {
+    document.getElementById('zoneSelect').value = params.get('zone');
+    onZoneChange();
+  }
+  onCustomChange();
+  showPrefillBanner(params.get('name') || 'selected parcel');
+})();
+
+function showPrefillBanner(name) {
+  var banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#c8521a,#a0391a);color:#fff;padding:0.6rem 1.4rem;border-radius:2rem;font-family:DM Sans,sans-serif;font-size:0.82rem;display:flex;align-items:center;gap:0.75rem;box-shadow:0 4px 20px rgba(0,0,0,0.3);white-space:nowrap;';
+  banner.innerHTML = '<span>📐 Loaded from inventory: <strong>' + name + '</strong></span><button onclick="this.parentElement.remove()" style="background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:20px;height:20px;color:#fff;cursor:pointer;font-size:0.9rem;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>';
+  document.body.appendChild(banner);
+  setTimeout(function() { if (banner.parentElement) banner.remove(); }, 6000);
+}
 
 </script>
 </body>

@@ -659,6 +659,29 @@ html, body { height: 100%; overflow: hidden; }
   white-space: nowrap;
 }
 .parcel-popup-link:hover { background: rgba(200,82,26,0.28); }
+.parcel-popup-actions {
+  display: flex; gap: 0.4rem; margin-top: 0.6rem;
+  padding-top: 0.55rem; border-top: 1px solid rgba(245,240,232,0.07);
+}
+[data-theme="light"] .parcel-popup-actions { border-top-color: rgba(10,10,15,0.07); }
+.parcel-popup-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.3rem;
+  font-family: 'DM Sans', sans-serif; font-size: 0.64rem; font-weight: 600;
+  padding: 0.38rem 0.5rem; border-radius: 0.5rem; text-decoration: none;
+  transition: opacity 0.15s, background 0.15s; white-space: nowrap; text-align: center;
+}
+.parcel-popup-btn-de {
+  background: rgba(200,82,26,0.14); border: 1px solid rgba(200,82,26,0.32);
+  color: var(--terracotta);
+}
+.parcel-popup-btn-de:hover { background: rgba(200,82,26,0.26); }
+.parcel-popup-btn-feaso {
+  background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.28);
+  color: #60a5fa;
+}
+.parcel-popup-btn-feaso:hover { background: rgba(37,99,235,0.22); }
+[data-theme="light"] .parcel-popup-btn-feaso { color: #1d4ed8; border-color: rgba(29,78,216,0.28); background: rgba(29,78,216,0.06); }
+[data-theme="light"] .parcel-popup-btn-feaso:hover { background: rgba(29,78,216,0.14); }
 
 /* ══════════════════════════════════════════════════════════════
    HEADER ZOOM BUTTONS
@@ -978,6 +1001,7 @@ body.tool-active .leaflet-container { cursor: crosshair !important; }
 <!-- esri-leaflet: bridges Leaflet to ArcGIS REST services (dynamicMapLayer, featureLayer, etc.) -->
 <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
 <script src="data/pipeline.js"></script>
+<script src="data/user-overrides.js"></script>
 <script>
 'use strict';
 
@@ -1589,7 +1613,10 @@ function mkPipeline(p) {
       </div>
       <div class="parcel-popup-footer">
         <span style="font-size:0.6rem;padding:0.16rem 0.5rem;border-radius:2rem;background:${sc}1a;border:1px solid ${sc}44;color:${sc}">${sl}</span>
-        <a class="parcel-popup-link" href="feasibility.html">Feasibility →</a>
+      </div>
+      <div class="parcel-popup-actions">
+        <a class="parcel-popup-btn parcel-popup-btn-de" href="design-engine.html?name=${encodeURIComponent(p.name)}&area=${p.sqm||''}&price=${p.landVal||''}&zone=${encodeURIComponent(p.zone||'')}&district=${encodeURIComponent((p.loc||'').split(',').pop().trim())}">📐 Design Engine</a>
+        <a class="parcel-popup-btn parcel-popup-btn-feaso" href="feasibility.html?name=${encodeURIComponent(p.name)}&area=${p.sqm||''}&price=${p.landVal||''}&zone=${encodeURIComponent(p.zone||'')}&units=${p.units||''}">📊 Feasibility</a>
       </div>
     </div>`;
 
@@ -2124,7 +2151,10 @@ function buildPipelineGeoJSON() {
         + '</div>'
         + '<div class="parcel-popup-footer">'
         +   '<span style="font-size:0.6rem;padding:0.16rem 0.5rem;border-radius:2rem;background:'+sc+'1a;border:1px solid '+sc+'44;color:'+sc+'">Under Review</span>'
-        +   '<a class="parcel-popup-link" href="feasibility.html">Feasibility →</a>'
+        + '</div>'
+        + '<div class="parcel-popup-actions">'
+        +   '<a class="parcel-popup-btn parcel-popup-btn-de" href="design-engine.html?upi='+encodeURIComponent(upi)+'&name='+encodeURIComponent(upi)+'&area='+area+'&price='+(meta.price||'')+'&zone='+encodeURIComponent(zone)+'&district='+encodeURIComponent(p.district||'')+'">📐 Design Engine</a>'
+        +   '<a class="parcel-popup-btn parcel-popup-btn-feaso" href="feasibility.html?upi='+encodeURIComponent(upi)+'&name='+encodeURIComponent(upi)+'&area='+area+'&price='+(meta.price||'')+'&zone='+encodeURIComponent(zone)+'">📊 Feasibility</a>'
         + '</div>'
         + '</div>';
 
@@ -2168,6 +2198,102 @@ function buildParcelBoundaries() {
   });
 }
 
+// ── Locally-added parcels (from add-parcel.html → localStorage) ──────────────
+const DISTRICT_APPROX = {
+  gasabo:     [-1.930, 30.105],
+  kicukiro:   [-1.975, 30.105],
+  nyarugenge: [-1.955, 30.060],
+};
+
+function buildAddedParcels() {
+  var mc    = '#d4a832';
+  var group = L.layerGroup();
+  var stored;
+  try { stored = JSON.parse(localStorage.getItem('IMALI_ADDED_PARCELS') || '[]'); } catch(e) { stored = []; }
+  if (!stored.length) return group;
+
+  var icon = L.divIcon({
+    className: '',
+    html: '<div class="imali-marker" style="--mc:'+mc+'"><div class="imali-pulse"></div><div class="imali-dot"></div></div>',
+    iconSize: [32, 32], iconAnchor: [16, 16], popupAnchor: [0, -18],
+  });
+
+  stored.forEach(function(p) {
+    // Build lat/lng centroid
+    var ll = null;
+    var polyLatLngs = null;
+
+    if (p.geometry && p.geometry.length > 2) {
+      // geometry stored as [[lng, lat], ...] from Esri API
+      var sumLat = 0, sumLng = 0;
+      p.geometry.forEach(function(c) { sumLng += c[0]; sumLat += c[1]; });
+      ll = [sumLat / p.geometry.length, sumLng / p.geometry.length];
+      polyLatLngs = p.geometry.map(function(c) { return [c[1], c[0]]; });
+    } else {
+      ll = DISTRICT_APPROX[(p.district || '').toLowerCase()] || [-1.955, 30.065];
+    }
+
+    var fmtM = function(n) { return n != null && n > 0 ? (n / 1e6).toFixed(1) + 'M RWF' : '—'; };
+    var fmtA = function(n) { return n >= 10000 ? (n / 10000).toFixed(1) + ' ha' : (n || 0).toLocaleString() + ' m²'; };
+    var sc   = { listed:'#26a69a', under_review:'#ffb74d', pending:'#90a4ae' }[p.status] || '#90a4ae';
+    var sl   = { listed:'Listed', under_review:'Under Review', pending:'Pending' }[p.status] || p.status;
+    var pill = ['land', p.zone].filter(Boolean).join(' · ');
+    var loc  = [p.sector, p.district].filter(Boolean).join(', ') || 'Kigali';
+    var deURL = 'design-engine.html?upi=' + encodeURIComponent(p.upi)
+      + '&name='     + encodeURIComponent(p.name || p.upi)
+      + '&area='     + (p.size_sqm || '')
+      + '&price='    + (p.price || '')
+      + '&zone='     + encodeURIComponent(p.zone || '')
+      + '&district=' + encodeURIComponent(p.district || '');
+    var feasURL = 'feasibility.html?upi=' + encodeURIComponent(p.upi)
+      + '&name='     + encodeURIComponent(p.name || p.upi)
+      + '&area='     + (p.size_sqm || '')
+      + '&price='    + (p.price || '')
+      + '&zone='     + encodeURIComponent(p.zone || '')
+      + '&district=' + encodeURIComponent(p.district || '');
+
+    var popup = '<div class="parcel-popup">'
+      + '<div class="parcel-popup-type-pill">' + pill + '</div>'
+      + '<div class="parcel-popup-name">' + (p.name || p.upi) + '</div>'
+      + '<div class="parcel-popup-loc">📍 ' + loc + '</div>'
+      + (p.notes ? '<div style="font-size:0.62rem;color:rgba(245,240,232,0.45);margin:0.25rem 0 0.5rem;line-height:1.4">' + p.notes + '</div>' : '')
+      + '<div class="parcel-popup-grid">'
+      +   '<div class="parcel-popup-kv"><span class="parcel-popup-k">Plot Area</span><span class="parcel-popup-v">' + fmtA(p.size_sqm) + '</span></div>'
+      +   '<div class="parcel-popup-kv"><span class="parcel-popup-k">Asking Price</span><span class="parcel-popup-v">' + fmtM(p.price) + '</span></div>'
+      +   (p.zone ? '<div class="parcel-popup-kv"><span class="parcel-popup-k">Zone</span><span class="parcel-popup-v">' + p.zone + '</span></div>' : '')
+      +   '<div class="parcel-popup-kv"><span class="parcel-popup-k">UPI</span><span class="parcel-popup-v" style="font-size:0.65rem">' + p.upi + '</span></div>'
+      + '</div>'
+      + '<div class="parcel-popup-footer">'
+      +   '<span style="font-size:0.6rem;padding:0.16rem 0.5rem;border-radius:2rem;background:' + sc + '1a;border:1px solid ' + sc + '44;color:' + sc + '">' + sl + '</span>'
+      + '</div>'
+      + '<div class="parcel-popup-actions">'
+      +   '<a class="parcel-popup-btn parcel-popup-btn-de" href="' + deURL + '">📐 Design Engine</a>'
+      +   '<a class="parcel-popup-btn parcel-popup-btn-feaso" href="' + feasURL + '">📊 Feasibility</a>'
+      + '</div>'
+      + '</div>';
+
+    var dot = L.marker(ll, { icon: icon }).bindPopup(popup, { maxWidth: 300, className: 'imali-popup' }).addTo(group);
+
+    if (polyLatLngs) {
+      L.polygon(polyLatLngs, { color: mc, weight: 2, opacity: 0.85, fillColor: mc, fillOpacity: 0.10 })
+        .bindPopup(popup, { maxWidth: 300, className: 'imali-popup' })
+        .addTo(group);
+    }
+
+    PARCEL_SEARCH_INDEX.push({
+      label: p.name || p.upi,
+      sub:   loc,
+      badge: 'added',
+      ll:    ll,
+      zoom:  17,
+      tags:  [p.name, p.upi, p.sector, p.district, p.zone].filter(Boolean).map(function(s){ return s.toLowerCase(); }),
+      open:  function() { dot.openPopup(); },
+    });
+  });
+
+  return group;
+}
+
 const BUILDERS = {
   imali_parcels: () => {
     const group = L.layerGroup();
@@ -2175,6 +2301,8 @@ const BUILDERS = {
     group.addLayer(mkPipeline(IMALI_PARCELS[0]));
     // Official pipeline parcels from Kigali Master Plan GIS
     group.addLayer(buildPipelineGeoJSON());
+    // Locally-added parcels from add-parcel.html
+    group.addLayer(buildAddedParcels());
     return group;
   },
   parcel_boundaries: () => buildParcelBoundaries(),

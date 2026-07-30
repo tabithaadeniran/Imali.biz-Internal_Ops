@@ -366,6 +366,43 @@
       </div>
     </div>
 
+    <!-- Seller Compensation -->
+    <div class="form-card">
+      <div class="section-heading">Seller Compensation Preference</div>
+      <div class="field-grid">
+        <div class="field">
+          <label class="field-label" for="f_comp_type">Preferred Payment Type</label>
+          <select class="field-select" id="f_comp_type" name="comp_type">
+            <option value="">Not specified</option>
+            <option value="cash">Cash (full lump sum)</option>
+            <option value="installments">Cash — Instalments</option>
+            <option value="tokens">Tokens (tokenised equity)</option>
+            <option value="equity">Equity stake in project</option>
+            <option value="cash_tokens">Mix — Cash + Tokens</option>
+            <option value="cash_equity">Mix — Cash + Equity</option>
+            <option value="land_swap">Land swap / exchange</option>
+            <option value="other">Other (see notes)</option>
+          </select>
+          <span class="field-hint">How the seller wants to be compensated for the land.</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="f_comp_timeline">Preferred Timeline</label>
+          <select class="field-select" id="f_comp_timeline" name="comp_timeline">
+            <option value="">Not specified</option>
+            <option value="immediate">Immediate / at transfer</option>
+            <option value="phased">Phased (tied to construction)</option>
+            <option value="on_sale">On unit sale / exit</option>
+            <option value="flexible">Flexible — open to discussion</option>
+          </select>
+          <span class="field-hint">When they expect to receive payment.</span>
+        </div>
+        <div class="field full">
+          <label class="field-label" for="f_comp_notes">Compensation Notes</label>
+          <textarea class="field-textarea" id="f_comp_notes" name="comp_notes" placeholder="e.g. Seller wants 30% upfront cash and 70% in tokens — open to negotiation on token vesting schedule…"></textarea>
+        </div>
+      </div>
+    </div>
+
     <!-- Notes -->
     <div class="form-card">
       <div class="section-heading">Notes &amp; Description</div>
@@ -592,9 +629,12 @@ function submitParcel(e) {
     size_sqm: parseFloat(fd.get('size_sqm')) || 0,
     zone:     fd.get('zone') || '',
     price:    isNaN(priceRaw) || priceRaw <= 0 ? null : priceRaw,
-    status:   fd.get('status') || 'pending',
-    notes:    (fd.get('notes') || '').trim(),
-    geometry: lastGeometry || null,
+    status:      fd.get('status') || 'pending',
+    comp_type:     fd.get('comp_type') || '',
+    comp_timeline: fd.get('comp_timeline') || '',
+    comp_notes:    (fd.get('comp_notes') || '').trim(),
+    notes:         (fd.get('notes') || '').trim(),
+    geometry:      lastGeometry || null,
     added_at: new Date().toISOString(),
   };
 
@@ -637,7 +677,9 @@ function renderAddedList() {
   var html = '<div class="added-list-title">Previously Saved (' + parcels.length + ')</div>';
   parcels.slice().reverse().forEach(function(p, i) {
     var realIdx = parcels.length - 1 - i;
-    var meta = [p.district, p.sector, p.size_sqm ? p.size_sqm.toLocaleString() + ' m²' : null].filter(Boolean).join(' · ');
+    var COMP_LABELS = { cash:'Cash', installments:'Cash (instalments)', tokens:'Tokens', equity:'Equity', cash_tokens:'Cash + Tokens', cash_equity:'Cash + Equity', land_swap:'Land swap', other:'Other' };
+    var compTag = p.comp_type ? ' · ' + (COMP_LABELS[p.comp_type] || p.comp_type) : '';
+    var meta = [p.district, p.sector, p.size_sqm ? p.size_sqm.toLocaleString() + ' m²' : null].filter(Boolean).join(' · ') + compTag;
     html += '<div class="added-item">' +
       '<span class="added-dot"></span>' +
       '<span class="added-name">' + p.name + ' <span style="font-weight:400;opacity:0.5;font-size:0.78em">(' + p.upi + ')</span></span>' +
