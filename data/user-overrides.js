@@ -56,9 +56,20 @@
         if (ov[f] !== undefined) p[f] = ov[f];
       });
 
+      if (ov.photos      !== undefined) p.photos      = ov.photos;
+      if (ov.plans       !== undefined) p.plans       = ov.plans;
+      if (ov.cover_photo !== undefined) p.cover_photo = ov.cover_photo;
+      if (ov.unit_type   !== undefined) p.unit_type   = ov.unit_type;
+
       if (ov.size_sqm !== undefined && ov.size_sqm !== null) {
-        p.size_sqm      = ov.size_sqm;
+        p.size_sqm = ov.size_sqm;
+      }
+      if (ov.units_planned !== undefined && ov.units_planned !== null && ov.units_planned > 0) {
+        p.units_planned = ov.units_planned;
+      } else if (ov.size_sqm !== undefined && ov.size_sqm !== null) {
         p.units_planned = Math.floor(ov.size_sqm / 100);
+      }
+      if (ov.size_sqm !== undefined && ov.size_sqm !== null) {
         p.gfa_sqm       = p.units_planned * 100;
         p.dev_cost_rwf  = p.gfa_sqm * DEV_COST_PER_SQM;
         p.dev_cost_per_unit = p.units_planned > 0 ? Math.round(p.dev_cost_rwf / p.units_planned) : 0;
@@ -146,11 +157,26 @@
              : zone.charAt(0) === 'C' ? 'commercial'
              : 'mixed-use';
 
-    var imgArr = IMG[type] || IMG['mixed-use'];
-    var image  = imgArr[imgIdx[type] % imgArr.length];
-    imgIdx[type]++;
+    var photos      = ov.photos      !== undefined ? ov.photos      : (p.photos      || []);
+    var plans       = ov.plans       !== undefined ? ov.plans       : (p.plans       || []);
+    var cover_photo = ov.cover_photo !== undefined ? ov.cover_photo : (p.cover_photo || '');
+    var unit_type   = ov.unit_type   !== undefined ? ov.unit_type   : (p.unit_type   || '');
 
-    var units_planned   = Math.floor(size_sqm / 100);
+    var imgArr = IMG[type] || IMG['mixed-use'];
+    var image;
+    if (cover_photo) {
+      image = cover_photo;
+    } else if (photos[0]) {
+      image = photos[0];
+    } else {
+      image = imgArr[imgIdx[type] % imgArr.length];
+      imgIdx[type]++;
+    }
+
+    var storedUnits = ov.units_planned !== undefined ? ov.units_planned : p.units_planned;
+    var units_planned = (storedUnits !== undefined && storedUnits !== null && storedUnits > 0)
+      ? storedUnits
+      : Math.floor(size_sqm / 100);
     var gfa_sqm         = units_planned * 100;
     var dev_cost_rwf    = gfa_sqm * DEV_COST_PER_SQM;
     var price_per_sqm   = size_sqm > 0 && land_price_rwf ? Math.round(land_price_rwf / size_sqm) : 0;
@@ -200,6 +226,10 @@
       comp_type:        ov.comp_type     || p.comp_type     || '',
       comp_timeline:    ov.comp_timeline || p.comp_timeline || '',
       comp_notes:       ov.comp_notes    || p.comp_notes    || '',
+      photos:           photos,
+      plans:            plans,
+      unit_type:        unit_type,
+      cover_photo:      cover_photo,
     });
   });
 })();

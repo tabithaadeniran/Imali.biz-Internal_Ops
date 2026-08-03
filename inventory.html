@@ -91,8 +91,21 @@
   }
   .filter-select option { background: #1a1a24; color: var(--cream); }
   .filter-count { font-size: 0.72rem; color: rgba(245,240,232,0.35); white-space: nowrap; }
+  .btn-archive-link {
+    background: rgba(245,240,232,0.06);
+    border: 1px solid rgba(245,240,232,0.12); border-radius: 0.5rem; padding: 0.5rem 1rem;
+    color: rgba(245,240,232,0.55); font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 600;
+    cursor: none; text-decoration: none; white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-archive-link:hover { background: rgba(245,240,232,0.1); color: rgba(245,240,232,0.8); }
+  [data-theme="light"] .btn-archive-link {
+    background: rgba(10,10,15,0.05); border-color: rgba(10,10,15,0.12); color: rgba(10,10,15,0.5);
+  }
+  [data-theme="light"] .btn-archive-link:hover { background: rgba(10,10,15,0.09); color: rgba(10,10,15,0.75); }
+
   .btn-add-parcel {
-    margin-left: auto;
     background: linear-gradient(135deg, var(--terracotta), #a0391a);
     border: none; border-radius: 0.5rem; padding: 0.5rem 1.1rem;
     color: #fff; font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700;
@@ -286,7 +299,7 @@
   [data-theme="light"] .modal-upi { color: rgba(10,10,15,0.3); }
 
   .modal-btn-edit   { background: linear-gradient(135deg, #1e6b42, #155232); }
-  .modal-btn-delete { background: linear-gradient(135deg, #b91c1c, #7f1d1d); }
+  .modal-btn-delete { background: linear-gradient(135deg, #92400e, #5c2d0a); }
   .modal-manage-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.6rem; }
 
   .modal-delete-confirm {
@@ -301,7 +314,7 @@
   .modal-btn-confirm-del {
     flex: 1; display: flex; align-items: center; justify-content: center;
     padding: 0.7rem 1rem; border-radius: 10px; border: none;
-    background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+    background: linear-gradient(135deg, #92400e, #5c2d0a);
     color: #fff; font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700;
     cursor: pointer; transition: opacity 0.15s;
   }
@@ -323,6 +336,77 @@
     .modal-manage-row { grid-template-columns: 1fr; }
     .modal-readiness-grid { grid-template-columns: 1fr; }
   }
+
+  /* ─── Modal photo gallery ──────────────────────────────────────────────── */
+  .modal-photo-main {
+    width: 100%; height: 200px; object-fit: cover; border-radius: 12px;
+    margin-bottom: 0.5rem; display: block; cursor: zoom-in;
+  }
+  .modal-photo-strip {
+    display: flex; gap: 0.45rem; overflow-x: auto; padding-bottom: 4px; margin-bottom: 1rem;
+    scrollbar-width: thin; scrollbar-color: rgba(212,168,50,0.3) transparent;
+  }
+  .modal-photo-strip::-webkit-scrollbar { height: 3px; }
+  .modal-photo-strip::-webkit-scrollbar-thumb { background: rgba(212,168,50,0.3); border-radius: 2px; }
+  .modal-photo-thumb {
+    flex-shrink: 0; width: 72px; height: 52px; border-radius: 6px;
+    object-fit: cover; cursor: pointer; border: 2px solid transparent;
+    transition: border-color 0.15s, opacity 0.15s;
+  }
+  .modal-photo-thumb.active { border-color: var(--gold); }
+  .modal-photo-thumb:hover { opacity: 0.85; }
+
+  .modal-plans-section { margin-bottom: 1.25rem; }
+  .modal-plans-label {
+    font-size: 0.6rem; letter-spacing: 0.09em; text-transform: uppercase;
+    color: rgba(245,240,232,0.3); margin-bottom: 0.4rem;
+  }
+  [data-theme="light"] .modal-plans-label { color: rgba(10,10,15,0.35); }
+  .modal-plans-strip { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+  .modal-plan-thumb {
+    width: 72px; height: 52px; border-radius: 6px;
+    object-fit: cover; cursor: pointer; border: 1px solid rgba(245,240,232,0.1);
+    transition: opacity 0.15s;
+  }
+  .modal-plan-thumb:hover { opacity: 0.85; }
+  .modal-plan-doc {
+    width: 72px; height: 52px; border-radius: 6px;
+    border: 1px solid rgba(245,240,232,0.1);
+    background: rgba(245,240,232,0.04);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; cursor: pointer; text-decoration: none; transition: background 0.15s;
+  }
+  .modal-plan-doc:hover { background: rgba(245,240,232,0.08); }
+  .modal-plan-doc-icon { font-size: 1.25rem; line-height: 1; }
+  .modal-plan-doc-label { font-size: 0.5rem; color: rgba(245,240,232,0.4); }
+  [data-theme="light"] .modal-plan-doc { background: rgba(10,10,15,0.04); border-color: rgba(10,10,15,0.1); }
+  [data-theme="light"] .modal-plan-doc-label { color: rgba(10,10,15,0.4); }
+
+  /* Lightbox */
+  .img-lightbox {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.92);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s; cursor: zoom-out;
+  }
+  .img-lightbox.open { opacity: 1; pointer-events: all; }
+  .img-lightbox .lb-img { max-width: 80vw; max-height: 88vh; object-fit: contain; border-radius: 8px; cursor: default; }
+  .img-lightbox-close {
+    position: absolute; top: 1rem; right: 1.5rem;
+    color: rgba(255,255,255,0.7); font-size: 2rem; cursor: pointer;
+    background: none; border: none; line-height: 1; transition: color 0.15s;
+  }
+  .img-lightbox-close:hover { color: #fff; }
+  .lb-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,0.1); border: none; border-radius: 50%;
+    color: rgba(255,255,255,0.85); font-size: 2.2rem; width: 46px; height: 46px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s; padding: 0;
+  }
+  .lb-nav:hover { background: rgba(255,255,255,0.22); }
+  .lb-prev { left: 1.25rem; }
+  .lb-next { right: 1.25rem; }
 </style>
 </head>
 <body>
@@ -382,6 +466,7 @@
         <option value="pending">Pending</option>
       </select>
       <span class="filter-count" id="filterCount"></span>
+      <a href="archived-parcels.html" class="btn-archive-link">Archive</a>
       <a href="add-parcel.html" class="btn-add-parcel">+ Add Parcel</a>
     </div>
   </div>
@@ -440,7 +525,20 @@
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
+      <!-- Photo gallery (shown when parcel has uploaded photos) -->
+      <div id="modalPhotoGallery" style="display:none">
+        <img class="modal-photo-main" id="modalPhotoMain" src="" alt="" onclick="openLightbox(this.src)">
+        <div class="modal-photo-strip" id="modalPhotoStrip"></div>
+      </div>
+      <!-- Fallback: pipeline/default image -->
       <img class="modal-img" id="modalImg" src="" alt="">
+
+      <!-- Project plans -->
+      <div class="modal-plans-section" id="modalPlansSection" style="display:none">
+        <div class="modal-plans-label">Project Plans &amp; Drawings</div>
+        <div class="modal-plans-strip" id="modalPlansStrip"></div>
+      </div>
+
       <div class="modal-badges" id="modalBadges"></div>
       <div class="modal-grid" id="modalGrid"></div>
       <hr class="modal-divider">
@@ -450,19 +548,27 @@
       <div class="modal-actions" id="modalActions"></div>
       <div class="modal-manage-row" id="modalManageRow"></div>
       <div class="modal-delete-confirm" id="modalDeleteConfirm">
-        <div class="delete-warn-icon">⚠️</div>
+        <div class="delete-warn-icon">📦</div>
         <div class="delete-warn-text">
-          Are you sure you want to permanently delete this parcel? It will be removed from the
-          inventory, overview stats, materials estimates, and opportunity map on every page reload.
-          This cannot be undone.
+          Remove this parcel from the site? It will be hidden from the inventory, overview stats,
+          materials estimates, and opportunity map — but <strong>all its data is kept</strong> in
+          the parcel archive and can be restored at any time.
         </div>
         <div class="delete-confirm-btns">
-          <button class="modal-btn-confirm-del" onclick="executeDeleteParcel()">Yes, Delete Permanently</button>
+          <button class="modal-btn-confirm-del" onclick="executeArchiveParcel()">Yes, Remove from Site</button>
           <button class="modal-btn-cancel-del"  onclick="cancelDeleteParcel()">Cancel</button>
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- Lightbox -->
+<div class="img-lightbox" id="imgLightbox" onclick="closeLightbox()">
+  <button class="img-lightbox-close" onclick="closeLightbox()">×</button>
+  <button class="lb-nav lb-prev" onclick="lbNav(-1,event)" style="display:none">&#8249;</button>
+  <button class="lb-nav lb-next" onclick="lbNav(1,event)" style="display:none">&#8250;</button>
+  <img class="lb-img" src="" alt="" onclick="event.stopPropagation()">
 </div>
 
 <script src="data/pipeline.js"></script>
@@ -495,6 +601,10 @@
   document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
 
   // ─── Helpers ─────────────────────────────────────────────────────────────
+  function unitTypeLabel(t) {
+    return { apartments:'Apartments', warehouse_bays:'Warehouse Bays', office_suites:'Office Suites', retail_units:'Retail Units', industrial:'Industrial Units', other:'Units' }[t] || 'Units Planned';
+  }
+
   function readinessColor(score) {
     if (score >= 75) return '#4caf7d';
     if (score >= 50) return '#d4a832';
@@ -562,7 +672,7 @@
       <div class="parcel-card reveal" onclick="openModal('${p.id}')" title="Click for details">
         <div class="card-stripe stripe-${p.type}"></div>
         <div class="card-img">
-          <img src="${p.image}" alt="${p.name}" loading="lazy">
+          <img src="${p.cover_photo || (p.photos && p.photos[0]) || p.image}" alt="${p.name}" loading="lazy">
           <div class="card-img-overlay"></div>
           <div class="card-img-badge">
             <span class="status-pill status-${p.status}">${statusLabel(p.status)}</span>
@@ -582,8 +692,8 @@
               <div class="card-metric-val">${fmtNum(p.size_sqm)} sqm</div>
             </div>
             <div>
-              <div class="card-metric-lbl">Units Planned</div>
-              <div class="card-metric-val">${p.units_planned}</div>
+              <div class="card-metric-lbl">${p.unit_type ? unitTypeLabel(p.unit_type) : 'Units Planned'}</div>
+              <div class="card-metric-val">${p.units_planned || '—'}</div>
             </div>
             <div>
               <div class="card-metric-lbl">Land Price</div>
@@ -685,6 +795,7 @@
 
   // ─── Modal ────────────────────────────────────────────────────────────────
   const parcelsById = Object.fromEntries(parcels.map(p => [p.id, p]));
+  var _modalPhotos = [], _modalCurrentPhotoIdx = 0, _modalPlanImages = [];
 
   const DIM_LABELS = {
     legal: 'Legal & Title', physical: 'Physical', infrastructure: 'Infrastructure',
@@ -717,9 +828,51 @@
     document.getElementById('modalTitle').textContent = p.name;
     document.getElementById('modalLoc').innerHTML = '📍 ' + p.location + ' &nbsp;·&nbsp; ' + p.district + ', ' + p.sector;
 
-    // Image
-    const img = document.getElementById('modalImg');
-    img.src = p.image; img.alt = p.name;
+    // Photos
+    const photos = (p.photos && p.photos.length) ? p.photos : [];
+    const plans  = (p.plans  && p.plans.length)  ? p.plans  : [];
+    const gallery = document.getElementById('modalPhotoGallery');
+    const fallback = document.getElementById('modalImg');
+    if (photos.length > 0) {
+      _modalPhotos = photos; _modalCurrentPhotoIdx = 0;
+      gallery.style.display = '';
+      fallback.style.display = 'none';
+      const mainImg = document.getElementById('modalPhotoMain');
+      mainImg.src = photos[0]; mainImg.alt = p.name;
+      mainImg.onclick = function() { openLightbox(_modalPhotos, _modalCurrentPhotoIdx); };
+      const strip = document.getElementById('modalPhotoStrip');
+      strip.style.display = photos.length > 1 ? '' : 'none';
+      strip.innerHTML = photos.map((url, i) =>
+        `<img class="modal-photo-thumb${i === 0 ? ' active' : ''}" src="${url}" alt=""
+          onclick="modalSelectPhoto(this,${i})">`
+      ).join('');
+    } else {
+      _modalPhotos = []; _modalCurrentPhotoIdx = 0;
+      gallery.style.display = 'none';
+      fallback.style.display = '';
+      fallback.src = p.cover_photo || (p.photos && p.photos[0]) || p.image;
+      fallback.alt = p.name;
+    }
+    // Plans
+    const plansSection = document.getElementById('modalPlansSection');
+    if (plans.length > 0) {
+      _modalPlanImages = plans.filter(u => /\.(jpg|jpeg|png|webp|gif|heic)(\?|$)/i.test(u));
+      plansSection.style.display = '';
+      let planImgIdx = 0;
+      document.getElementById('modalPlansStrip').innerHTML = plans.map(url => {
+        const isImg = /\.(jpg|jpeg|png|webp|gif|heic)(\?|$)/i.test(url);
+        if (isImg) {
+          const idx = planImgIdx++;
+          return `<img class="modal-plan-thumb" src="${url}" alt="Plan" onclick="openLightbox(_modalPlanImages,${idx})">`;
+        }
+        return `<a class="modal-plan-doc" href="${url}" target="_blank" rel="noopener">
+               <span class="modal-plan-doc-icon">📄</span>
+               <span class="modal-plan-doc-label">Open PDF</span>
+             </a>`;
+      }).join('');
+    } else {
+      plansSection.style.display = 'none';
+    }
 
     // Badges
     document.getElementById('modalBadges').innerHTML =
@@ -731,7 +884,7 @@
     // Metrics grid
     const metrics = [
       { lbl: 'Land Area', val: fmtNum(p.size_sqm) + ' sqm', gold: false },
-      { lbl: 'Units Planned', val: p.units_planned, gold: false },
+      { lbl: p.unit_type ? unitTypeLabel(p.unit_type) : 'Units Planned', val: p.units_planned || '—', gold: false },
       { lbl: 'Land Price', val: fmtPrice(p.land_price_rwf), gold: true },
       { lbl: 'Dev Cost', val: fmtPrice(p.dev_cost_rwf), gold: false },
       { lbl: 'Price / sqm', val: fmtNum(p.price_per_sqm) + ' RWF', gold: false },
@@ -776,7 +929,7 @@
         <span class="modal-btn-icon">✏️</span> Edit Details
       </a>
       <button class="modal-btn modal-btn-delete" onclick="promptDeleteParcel('${safeId}')">
-        <span class="modal-btn-icon">🗑</span> Delete Parcel
+        <span class="modal-btn-icon">📦</span> Remove from Site
       </button>`;
 
     // Reset delete confirm state
@@ -797,7 +950,43 @@
     if (e.target === document.getElementById('parcelModal')) closeModal();
   }
 
+  function modalSelectPhoto(thumbEl, idx) {
+    _modalCurrentPhotoIdx = idx;
+    document.getElementById('modalPhotoMain').src = _modalPhotos[idx];
+    document.querySelectorAll('.modal-photo-thumb').forEach(t => t.classList.remove('active'));
+    thumbEl.classList.add('active');
+  }
+
+  var _lbImages = [], _lbIdx = 0;
+
+  function openLightbox(images, idx) {
+    if (typeof images === 'string') { _lbImages = [images]; _lbIdx = 0; }
+    else { _lbImages = images; _lbIdx = idx || 0; }
+    _lbShow();
+    document.getElementById('imgLightbox').classList.add('open');
+  }
+  function _lbShow() {
+    const lb = document.getElementById('imgLightbox');
+    lb.querySelector('.lb-img').src = _lbImages[_lbIdx];
+    lb.querySelector('.lb-prev').style.display = _lbImages.length > 1 ? '' : 'none';
+    lb.querySelector('.lb-next').style.display = _lbImages.length > 1 ? '' : 'none';
+  }
+  function lbNav(dir, e) {
+    if (e) e.stopPropagation();
+    _lbIdx = (_lbIdx + dir + _lbImages.length) % _lbImages.length;
+    _lbShow();
+  }
+  function closeLightbox() {
+    document.getElementById('imgLightbox').classList.remove('open');
+  }
+
   document.addEventListener('keydown', function(e) {
+    if (document.getElementById('imgLightbox').classList.contains('open')) {
+      if (e.key === 'ArrowLeft')  lbNav(-1);
+      if (e.key === 'ArrowRight') lbNav(1);
+      if (e.key === 'Escape')     closeLightbox();
+      return;
+    }
     if (e.key === 'Escape') closeModal();
   });
 
@@ -817,19 +1006,30 @@
     document.getElementById('modalManageRow').style.display = '';
   }
 
-  function executeDeleteParcel() {
+  function executeArchiveParcel() {
     if (!_pendingDeleteId) return;
+    var id = _pendingDeleteId;
 
-    // Write to localStorage deleted list
+    // Save full parcel data to archive BEFORE removing from the live array
+    var parcelSnap = parcelsById[id] || null;
+    if (parcelSnap) {
+      try {
+        var archive = JSON.parse(localStorage.getItem('IMALI_PARCEL_ARCHIVE') || '{}');
+        archive[id] = Object.assign({}, parcelSnap, { archived_at: new Date().toISOString() });
+        localStorage.setItem('IMALI_PARCEL_ARCHIVE', JSON.stringify(archive));
+      } catch(e) {}
+    }
+
+    // Add to the hidden list (hides it sitewide via user-overrides.js)
     var deleted = [];
     try { deleted = JSON.parse(localStorage.getItem('IMALI_PARCEL_DELETED') || '[]'); } catch(e) {}
-    if (deleted.indexOf(_pendingDeleteId) === -1) deleted.push(_pendingDeleteId);
+    if (deleted.indexOf(id) === -1) deleted.push(id);
     localStorage.setItem('IMALI_PARCEL_DELETED', JSON.stringify(deleted));
 
     // Splice from live array so re-render reflects immediately (no page reload needed)
-    var idx = parcels.findIndex(function(p) { return p.id === _pendingDeleteId; });
+    var idx = parcels.findIndex(function(p) { return p.id === id; });
     if (idx !== -1) parcels.splice(idx, 1);
-    delete parcelsById[_pendingDeleteId];
+    delete parcelsById[id];
 
     _pendingDeleteId = null;
     closeModal();

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<script>(function(){var t=localStorage.getItem('imali-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parcel Archive — Imali.biz Internal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-wrap { max-width: 900px; margin: 0 auto; padding: calc(var(--nav-h) + 2.5rem) 2rem 6rem; }
+
+  .back-link {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    font-size: 0.78rem; color: rgba(245,240,232,0.4);
+    text-decoration: none; margin-bottom: 2.5rem; transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--gold); }
+  [data-theme="light"] .back-link { color: rgba(10,10,15,0.4); }
+  [data-theme="light"] .back-link:hover { color: var(--gold); }
+
+  .form-eyebrow { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.6rem; }
+  .form-title { font-family: 'Syne', sans-serif; font-size: clamp(1.8rem,3.5vw,2.6rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 0.6rem; }
+  .form-title em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--terracotta); }
+  .form-sub { font-size: 0.88rem; color: rgba(245,240,232,0.45); line-height: 1.65; margin-bottom: 2.5rem; }
+  [data-theme="light"] .form-sub { color: rgba(10,10,15,0.45); }
+
+  /* ── Count badge ── */
+  .archive-count-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+  .archive-count-badge {
+    font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(245,240,232,0.4); font-weight: 500;
+  }
+  [data-theme="light"] .archive-count-badge { color: rgba(10,10,15,0.4); }
+
+  /* ── Empty state ── */
+  .archive-empty {
+    text-align: center; padding: 5rem 2rem;
+    color: rgba(245,240,232,0.28); display: none;
+  }
+  [data-theme="light"] .archive-empty { color: rgba(10,10,15,0.28); }
+  .archive-empty-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+  .archive-empty-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .archive-empty-sub { font-size: 0.82rem; line-height: 1.6; }
+
+  /* ── Archive card ── */
+  .archive-card {
+    background: rgba(245,240,232,0.03);
+    border: 1px solid rgba(245,240,232,0.08);
+    border-radius: 16px; padding: 1.3rem 1.5rem;
+    margin-bottom: 1rem; display: flex; gap: 1.5rem;
+    align-items: flex-start; transition: border-color 0.2s;
+  }
+  .archive-card:hover { border-color: rgba(245,240,232,0.14); }
+  [data-theme="light"] .archive-card { background: rgba(10,10,15,0.02); border-color: rgba(10,10,15,0.08); }
+  [data-theme="light"] .archive-card:hover { border-color: rgba(10,10,15,0.14); }
+
+  .archive-card-icon {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(146,64,14,0.15); border: 1px solid rgba(146,64,14,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+  }
+
+  .archive-card-main { flex: 1; min-width: 0; }
+  .archive-card-name {
+    font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700;
+    color: var(--cream); margin-bottom: 0.2rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  [data-theme="light"] .archive-card-name { color: var(--ink); }
+
+  .archive-card-upi {
+    font-size: 0.68rem; font-family: monospace; color: rgba(245,240,232,0.35);
+    margin-bottom: 0.65rem;
+  }
+  [data-theme="light"] .archive-card-upi { color: rgba(10,10,15,0.38); }
+
+  .archive-card-meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-bottom: 0.75rem; }
+  .archive-meta-item { display: flex; flex-direction: column; gap: 0.1rem; }
+  .archive-meta-key { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(245,240,232,0.3); }
+  [data-theme="light"] .archive-meta-key { color: rgba(10,10,15,0.38); }
+  .archive-meta-val { font-size: 0.75rem; font-weight: 500; color: var(--cream); }
+  [data-theme="light"] .archive-meta-val { color: var(--ink); }
+
+  .archive-card-date {
+    font-size: 0.66rem; color: rgba(245,240,232,0.28); margin-bottom: 0.85rem;
+  }
+  [data-theme="light"] .archive-card-date { color: rgba(10,10,15,0.32); }
+
+  .archive-card-actions { display: flex; gap: 0.6rem; }
+
+  .btn-restore {
+    padding: 0.52rem 1.1rem; border-radius: 8px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #166534, #14532d);
+    color: #fff; font-family: 'Syne', sans-serif; font-size: 0.76rem; font-weight: 700;
+    transition: opacity 0.15s; display: flex; align-items: center; gap: 0.35rem;
+  }
+  .btn-restore:hover { opacity: 0.85; }
+
+  .btn-purge {
+    padding: 0.52rem 1.1rem; border-radius: 8px; cursor: pointer;
+    background: transparent; border: 1px solid rgba(185,28,28,0.35);
+    color: rgba(239,68,68,0.7); font-family: 'DM Sans', sans-serif; font-size: 0.76rem;
+    font-weight: 500; transition: background 0.15s, color 0.15s;
+    display: flex; align-items: center; gap: 0.35rem;
+  }
+  .btn-purge:hover { background: rgba(185,28,28,0.1); color: #ef4444; }
+
+  /* ── Restore success toast ── */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: #166534; color: #fff; padding: 0.75rem 1.5rem;
+    border-radius: 10px; font-size: 0.82rem; font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35); transition: transform 0.35s ease;
+    z-index: 9999; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── Purge confirm dialog ── */
+  .purge-confirm {
+    display: none; margin-top: 0.75rem; padding: 0.85rem 1rem;
+    background: rgba(185,28,28,0.07); border: 1px solid rgba(185,28,28,0.25);
+    border-radius: 10px; font-size: 0.78rem; color: rgba(245,240,232,0.65);
+    line-height: 1.5;
+  }
+  [data-theme="light"] .purge-confirm { color: rgba(10,10,15,0.6); }
+  .purge-confirm-btns { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+  .btn-purge-yes {
+    padding: 0.45rem 1rem; border-radius: 7px; border: none; cursor: pointer;
+    background: #b91c1c; color: #fff; font-size: 0.74rem; font-family: 'Syne', sans-serif; font-weight: 700;
+    transition: opacity 0.15s;
+  }
+  .btn-purge-yes:hover { opacity: 0.85; }
+  .btn-purge-cancel {
+    padding: 0.45rem 1rem; border-radius: 7px; cursor: pointer;
+    background: transparent; border: 1px solid rgba(245,240,232,0.12);
+    color: rgba(245,240,232,0.5); font-size: 0.74rem; font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+  .btn-purge-cancel:hover { background: rgba(245,240,232,0.05); }
+  [data-theme="light"] .btn-purge-cancel { border-color: rgba(10,10,15,0.12); color: rgba(10,10,15,0.5); }
+</style>
+</head>
+<body>
+<div class="cursor"></div>
+<div class="cursor-ring"></div>
+
+<nav class="int-nav">
+  <div class="int-nav-left">
+    <a href="index.html" class="int-nav-logo">Imali<span>.</span>biz</a>
+    <div class="int-nav-divider"></div>
+    <span class="int-nav-badge">Internal Ops</span>
+  </div>
+  <div class="int-nav-right">
+    <a href="index.html"         class="int-nav-link">Overview</a>
+    <a href="inventory.html"     class="int-nav-link">Inventory</a>
+    <a href="materials.html"     class="int-nav-link">Materials</a>
+    <a href="map.html"           class="int-nav-link">Opportunity Map</a>
+    <a href="design-engine.html" class="int-nav-link">Design Engine</a>
+    <a href="units.html"         class="int-nav-link">Home Catalogue</a>
+    <a href="valuation.html"     class="int-nav-link">Valuation</a>
+    <a href="feasibility.html"   class="int-nav-link">Feasibility</a>
+    <button class="theme-toggle" onclick="toggleTheme()">☀ Light</button>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <a href="inventory.html" class="back-link">← Back to Inventory</a>
+
+  <div class="form-eyebrow">Data Vault</div>
+  <h1 class="form-title">Parcel <em>Archive</em></h1>
+  <p class="form-sub">
+    Parcels removed from the site live here. They are invisible everywhere else but their data is
+    fully preserved — restore any parcel at any time to bring it back into the active inventory.
+  </p>
+
+  <div class="archive-count-row">
+    <span class="archive-count-badge" id="archiveCountBadge">Loading…</span>
+  </div>
+
+  <div id="archiveList"></div>
+
+  <div class="archive-empty" id="archiveEmpty">
+    <span class="archive-empty-icon">📦</span>
+    <div class="archive-empty-title">Archive is empty</div>
+    <div class="archive-empty-sub">
+      When you remove a parcel from the site via the Inventory page,<br>
+      it will appear here with all its data intact.
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Cursor ──────────────────────────────────────────────────────────────────
+  const cursor = document.querySelector('.cursor');
+  const ring   = document.querySelector('.cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  (function loop() {
+    rx += (mx - rx - 5) * 0.15; ry += (my - ry - 5) * 0.15;
+    cursor.style.left = mx - 5 + 'px'; cursor.style.top = my - 5 + 'px';
+    ring.style.left   = rx + 'px';     ring.style.top   = ry + 'px';
+    requestAnimationFrame(loop);
+  })();
+
+  // ── Theme ────────────────────────────────────────────────────────────────────
+  function toggleTheme() {
+    var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('imali-theme', t);
+    document.querySelector('.theme-toggle').textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+  }
+  (function() {
+    var t = localStorage.getItem('imali-theme') || 'dark';
+    document.querySelector('.theme-toggle').textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+  })();
+
+  // ── Formatting helpers ───────────────────────────────────────────────────────
+  function fmtNum(n) {
+    if (!n && n !== 0) return '—';
+    return Number(n).toLocaleString();
+  }
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch(e) { return iso; }
+  }
+
+  // ── Archive keys ─────────────────────────────────────────────────────────────
+  var ARCHIVE_KEY = 'IMALI_PARCEL_ARCHIVE';
+  var DELETED_KEY = 'IMALI_PARCEL_DELETED';
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+  function loadArchive() {
+    try { return JSON.parse(localStorage.getItem(ARCHIVE_KEY) || '{}'); } catch(e) { return {}; }
+  }
+
+  function render() {
+    var archive = loadArchive();
+    var keys = Object.keys(archive);
+    var listEl   = document.getElementById('archiveList');
+    var emptyEl  = document.getElementById('archiveEmpty');
+    var countEl  = document.getElementById('archiveCountBadge');
+
+    countEl.textContent = keys.length + ' parcel' + (keys.length !== 1 ? 's' : '') + ' archived';
+
+    if (!keys.length) {
+      listEl.innerHTML = '';
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+
+    // Sort newest-first
+    keys.sort(function(a, b) {
+      var da = archive[a].archived_at || '';
+      var db = archive[b].archived_at || '';
+      return da < db ? 1 : -1;
+    });
+
+    listEl.innerHTML = keys.map(function(upi) {
+      var p = archive[upi];
+      var typeIcon = p.type === 'commercial' ? '🏢' : p.type === 'mixed-use' ? '🏘' : '🏠';
+      var sizeTxt  = p.size_sqm ? fmtNum(p.size_sqm) + ' m²' : '—';
+      var priceTxt = p.land_price_rwf ? 'RWF ' + fmtNum(p.land_price_rwf) : '—';
+      var zoneTxt  = p.zone || '—';
+      var distTxt  = [p.sector, p.district].filter(Boolean).join(', ') || p.location || '—';
+      var safeUpi  = upi.replace(/'/g, "\\'");
+
+      return '<div class="archive-card" id="card-' + upi + '">' +
+        '<div class="archive-card-icon">' + typeIcon + '</div>' +
+        '<div class="archive-card-main">' +
+          '<div class="archive-card-name">' + (p.name || upi) + '</div>' +
+          '<div class="archive-card-upi">' + upi + '</div>' +
+          '<div class="archive-card-meta">' +
+            '<div class="archive-meta-item"><div class="archive-meta-key">Zone</div><div class="archive-meta-val">' + zoneTxt + '</div></div>' +
+            '<div class="archive-meta-item"><div class="archive-meta-key">Location</div><div class="archive-meta-val">' + distTxt + '</div></div>' +
+            '<div class="archive-meta-item"><div class="archive-meta-key">Size</div><div class="archive-meta-val">' + sizeTxt + '</div></div>' +
+            '<div class="archive-meta-item"><div class="archive-meta-key">Land Price</div><div class="archive-meta-val">' + priceTxt + '</div></div>' +
+            '<div class="archive-meta-item"><div class="archive-meta-key">Type</div><div class="archive-meta-val">' + (p.type || '—') + '</div></div>' +
+            '<div class="archive-meta-item"><div class="archive-meta-key">Status</div><div class="archive-meta-val">' + (p.status || '—') + '</div></div>' +
+          '</div>' +
+          '<div class="archive-card-date">Archived ' + fmtDate(p.archived_at) + '</div>' +
+          '<div class="archive-card-actions">' +
+            '<button class="btn-restore" onclick="restoreParcel(\'' + safeUpi + '\')">↩ Restore to Inventory</button>' +
+            '<button class="btn-purge"   onclick="promptPurge(\'' + safeUpi + '\')">🗑 Delete Permanently</button>' +
+          '</div>' +
+          '<div class="purge-confirm" id="purge-' + upi + '">' +
+            'This will permanently erase all data for this parcel. It cannot be undone.' +
+            '<div class="purge-confirm-btns">' +
+              '<button class="btn-purge-yes"    onclick="executePurge(\'' + safeUpi + '\')">Yes, Erase Permanently</button>' +
+              '<button class="btn-purge-cancel" onclick="cancelPurge(\'' + safeUpi + '\')">Cancel</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // ── Restore ──────────────────────────────────────────────────────────────────
+  function restoreParcel(upi) {
+    // Remove from deleted list
+    var deleted = [];
+    try { deleted = JSON.parse(localStorage.getItem(DELETED_KEY) || '[]'); } catch(e) {}
+    deleted = deleted.filter(function(d) { return d !== upi; });
+    localStorage.setItem(DELETED_KEY, JSON.stringify(deleted));
+
+    // Remove from archive
+    var archive = loadArchive();
+    delete archive[upi];
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archive));
+
+    showToast('✓ Parcel restored to inventory');
+    render();
+  }
+
+  // ── Purge (true permanent delete) ────────────────────────────────────────────
+  function promptPurge(upi) {
+    document.getElementById('purge-' + upi).style.display = 'block';
+  }
+  function cancelPurge(upi) {
+    document.getElementById('purge-' + upi).style.display = 'none';
+  }
+  function executePurge(upi) {
+    // Remove from deleted list
+    var deleted = [];
+    try { deleted = JSON.parse(localStorage.getItem(DELETED_KEY) || '[]'); } catch(e) {}
+    deleted = deleted.filter(function(d) { return d !== upi; });
+    localStorage.setItem(DELETED_KEY, JSON.stringify(deleted));
+
+    // Remove from archive
+    var archive = loadArchive();
+    delete archive[upi];
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archive));
+
+    // Also remove from IMALI_ADDED_PARCELS if it came from there
+    try {
+      var added = JSON.parse(localStorage.getItem('IMALI_ADDED_PARCELS') || '[]');
+      added = added.filter(function(p) { return p.upi !== upi; });
+      localStorage.setItem('IMALI_ADDED_PARCELS', JSON.stringify(added));
+    } catch(e) {}
+
+    showToast('Parcel data permanently erased');
+    render();
+  }
+
+  // ── Toast ────────────────────────────────────────────────────────────────────
+  var _toastTimer;
+  function showToast(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function() { el.classList.remove('show'); }, 3000);
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  render();
+</script>
+</body>
+</html>
