@@ -768,7 +768,7 @@ const PIPELINE_PARCELS = (function() {
     };
   }
 
-  return Object.keys(PIPELINE_PRICES).map(function(upi) {
+  var result = Object.keys(PIPELINE_PRICES).map(function(upi) {
     var pp   = PIPELINE_PRICES[upi];
     var geo  = _PARCEL_GEO[upi] || {};
     var zone = pp.zone || '';
@@ -807,4 +807,68 @@ const PIPELINE_PARCELS = (function() {
       readiness: _readiness(upi),
     };
   });
+
+  // ── Promoted parcels (added via add-parcel, 03 Aug 2026) ───────────────────
+  var _DEV_PER_SQM = 500000;
+  [
+    {
+      id: '1/01/02/02/123',       upi: '1/01/02/02/123',
+      name: 'test parcel',        location: 'Kanyinya, Nyarugenge',
+      district: 'Nyarugenge',     sector: 'Kanyinya',   zone: 'R1A',
+      size_sqm: 326,              land_price_rwf: 5000000,
+      status: 'under_review',     photos: [],  plans: [],
+      cover_photo: '',            unit_type: '',
+      added_date: '03 Aug 2026',
+    },
+    {
+      id: '1/01/02/02/5248',      upi: '1/01/02/02/5248',
+      name: 'Kanyinya Warehouse', location: 'Kanyinya, Nyarugenge',
+      district: 'Nyarugenge',     sector: 'Kanyinya',   zone: 'I1',
+      size_sqm: 835,              land_price_rwf: null,
+      status: 'under_review',     photos: [],
+      plans: [
+        'https://res.cloudinary.com/nfykhohc/image/upload/v1785764892/imali-parcels/tu5mizws6mub2zcjznle.jpg',
+        'https://res.cloudinary.com/nfykhohc/image/upload/v1785764892/imali-parcels/gpiad95dqcjq4lm1xsrk.jpg',
+        'https://res.cloudinary.com/nfykhohc/image/upload/v1785764892/imali-parcels/aiclzlxydpqrydbomoac.jpg',
+        'https://res.cloudinary.com/nfykhohc/image/upload/v1785764892/imali-parcels/dfkrni6sfajh6lfdmdex.jpg',
+        'https://res.cloudinary.com/nfykhohc/image/upload/v1785764892/imali-parcels/tcexpqucjyep4bdzw0hg.jpg',
+        'https://res.cloudinary.com/nfykhohc/image/upload/v1785764892/imali-parcels/wuxyxwganxo7z71pljgy.jpg',
+        'https://res.cloudinary.com/nfykhohc/image/upload/v1785764892/imali-parcels/hsjd99mliafnebjfodgg.jpg',
+        'https://res.cloudinary.com/nfykhohc/image/upload/v1785764892/imali-parcels/pfskkssyu1j3lpab9roz.jpg',
+        'https://res.cloudinary.com/nfykhohc/image/upload/v1785764892/imali-parcels/utuqqdlm1qqhwmgatc49.jpg',
+        'https://res.cloudinary.com/nfykhohc/image/upload/v1785764892/imali-parcels/omt0zpxu9rgwafvosbga.jpg',
+      ],
+      cover_photo: '',            unit_type: '',
+      added_date: '03 Aug 2026',
+    },
+  ].forEach(function(p) {
+    var type  = /^R/i.test(p.zone) ? 'residential'
+              : /^C/i.test(p.zone) ? 'commercial'
+              : 'mixed-use';
+    var units = Math.floor(p.size_sqm / 100);
+    var gfa   = units * 100;
+    var dev   = gfa * _DEV_PER_SQM;
+    var ppsqm = p.size_sqm > 0 && p.land_price_rwf ? Math.round(p.land_price_rwf / p.size_sqm) : 0;
+    var dcu   = units > 0 ? Math.round(dev / units) : 0;
+    var lev   = p.land_price_rwf > 0 ? parseFloat((dev / p.land_price_rwf).toFixed(2)) : 0;
+    var img   = p.cover_photo || (p.photos && p.photos[0]) || (p.plans && p.plans[0])
+              || (typeImgs[type] || mixedImgs)[0];
+    var rd    = _readiness(p.id);
+    var avg   = Math.round((rd.legal + rd.physical + rd.infrastructure + rd.urban + rd.community + rd.tokenisation) / 6);
+    result.push({
+      id: p.id,               upi: p.upi,            name: p.name,
+      location: p.location,   district: p.district,  sector: p.sector,
+      zone: p.zone,           note: p.name,           size_sqm: p.size_sqm,
+      land_price_rwf: p.land_price_rwf || 0,
+      type: type,             status: p.status,       image: img,
+      photos: p.photos,       plans: p.plans,         cover_photo: p.cover_photo,
+      unit_type: p.unit_type, units_planned: units,   gfa_sqm: gfa,
+      dev_cost_rwf: dev,      price_per_sqm: ppsqm,   dev_cost_per_unit: dcu,
+      leverage_ratio: lev,    avg_readiness: avg,     added_date: p.added_date,
+      readiness: rd,
+      comp_type: '', comp_timeline: '', comp_notes: '',
+    });
+  });
+
+  return result;
 })();
