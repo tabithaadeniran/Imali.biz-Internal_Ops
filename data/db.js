@@ -70,8 +70,32 @@
     return p;
   }
 
+  // ── Session cache (avoids re-reading Firestore on every page load / refresh) ──
+  var CACHE_KEY = 'imali_parcels_v1';
+  var CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+  function getCached() {
+    try {
+      var raw = sessionStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      var entry = JSON.parse(raw);
+      if (Date.now() - entry.ts > CACHE_TTL) { sessionStorage.removeItem(CACHE_KEY); return null; }
+      return entry.data;
+    } catch (e) { return null; }
+  }
+
+  function setCache(arr) {
+    try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: arr })); }
+    catch (e) {}
+  }
+
   // ── Fetch parcels ────────────────────────────────────────────────────────────
   function fetchParcels() {
+    var cached = getCached();
+    if (cached) {
+      window.parcels = cached;
+      return Promise.resolve(cached);
+    }
     return _db.collection('parcels').get().then(function (snap) {
       var arr = [];
       snap.forEach(function (doc) {
@@ -81,7 +105,8 @@
         applyComputed(data);
         arr.push(data);
       });
-      window.parcels = arr; // updates the global `var parcels` in data.js
+      window.parcels = arr;
+      setCache(arr);
       return arr;
     });
   }
@@ -116,8 +141,8 @@
     /** Resolves with the parcels array once Firestore data has loaded. */
     ready: _ready,
 
-    /** Re-fetch all live parcels and refresh window.parcels. */
-    reload: function () { return fetchParcels(); },
+    /** Re-fetch all live parcels and refresh window.parcels (bypasses cache). */
+    reload: function () { sessionStorage.removeItem(CACHE_KEY); return fetchParcels(); },
 
     /** Save a brand-new parcel document. Returns Promise<DocumentReference>. */
     saveParcel: function (data) {
