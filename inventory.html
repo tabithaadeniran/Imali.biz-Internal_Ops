@@ -547,6 +547,18 @@
       <hr class="modal-divider">
       <div class="modal-actions" id="modalActions"></div>
       <div class="modal-manage-row" id="modalManageRow"></div>
+      <div class="modal-delete-confirm" id="modalDeleteConfirm" style="display:none">
+        <div class="delete-warn-icon">📦</div>
+        <div class="delete-warn-text">
+          Remove this parcel from the site? It will be hidden from the inventory, overview stats,
+          materials estimates, and opportunity map — but <strong>all its data is kept</strong> in
+          the parcel archive and can be restored at any time.
+        </div>
+        <div class="delete-confirm-btns">
+          <button class="modal-btn-confirm-del" id="btnConfirmDel" onclick="executeArchiveParcel()">Yes, Remove from Site</button>
+          <button class="modal-btn-cancel-del"  onclick="cancelDeleteParcel()">Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -928,6 +940,11 @@
         <span class="modal-btn-icon">📦</span> Remove from Site
       </button>`;
 
+    // Reset delete confirm state
+    document.getElementById('modalDeleteConfirm').style.display = 'none';
+    document.getElementById('modalManageRow').style.display = '';
+    _pendingDeleteId = null;
+
     // Open
     document.getElementById('parcelModal').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -983,25 +1000,51 @@
   });
 
   // ─── Delete parcel ────────────────────────────────────────────────────────
+  var _pendingDeleteId = null;
+
   function promptDeleteParcel(id) {
+    _pendingDeleteId = id;
+    document.getElementById('modalManageRow').style.display = 'none';
+    var confirmEl = document.getElementById('modalDeleteConfirm');
+    confirmEl.style.display = 'block';
+    confirmEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function cancelDeleteParcel() {
+    _pendingDeleteId = null;
+    document.getElementById('modalDeleteConfirm').style.display = 'none';
+    document.getElementById('modalManageRow').style.display = '';
+  }
+
+  function executeArchiveParcel() {
+    if (!_pendingDeleteId) return;
+    var id = _pendingDeleteId;
     var parcel = parcelsById[id];
+
     if (!parcel || !parcel._docId) {
       alert('Cannot remove: parcel not found in database.');
+      _pendingDeleteId = null;
+      closeModal();
       return;
     }
-    if (!confirm('Remove "' + parcel.name + '" from the site?\n\nIt will be hidden from all views but all data is kept — you can restore it from the Archive page at any time.')) return;
 
-    closeModal();
+    var confirmBtn = document.getElementById('btnConfirmDel');
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Removing…'; }
+
     imaliDB.archiveParcel(parcel._docId)
       .then(function () { return imaliDB.reload(); })
       .then(function (newParcels) {
         parcels = newParcels;
         parcelsById = {};
         newParcels.forEach(function (p) { parcelsById[p.id] = p; });
+        _pendingDeleteId = null;
+        closeModal();
         renderAll();
       })
       .catch(function (err) {
         alert('Error removing parcel: ' + err.message);
+        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Yes, Remove from Site'; }
+        _pendingDeleteId = null;
       });
   }
 
@@ -1009,6 +1052,8 @@
   window.openModal            = openModal;
   window.closeModal           = closeModal;
   window.promptDeleteParcel   = promptDeleteParcel;
+  window.cancelDeleteParcel   = cancelDeleteParcel;
+  window.executeArchiveParcel = executeArchiveParcel;
   window.modalSelectPhoto     = modalSelectPhoto;
   window.openLightbox         = openLightbox;
   window.lbNav                = lbNav;
