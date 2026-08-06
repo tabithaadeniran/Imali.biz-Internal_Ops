@@ -2244,9 +2244,17 @@ function _populateExtraParcels(group) {
     iconSize: [32, 32], iconAnchor: [16, 16], popupAnchor: [0, -18],
   });
 
+  // Build UPI → GeoJSON feature lookup so parcels with cadastral data get real boundaries
+  var geoByUPI = {};
+  if (typeof PIPELINE_GEOJSON !== 'undefined' && PIPELINE_GEOJSON.features) {
+    PIPELINE_GEOJSON.features.forEach(function(feat) {
+      var fu = feat.properties && feat.properties.upi;
+      if (fu) geoByUPI[fu] = feat;
+    });
+  }
+
   extra.forEach(function(p) {
     var upi  = p.upi || p.id || '';
-    var ll   = DISTRICT_APPROX[(p.district || '').toLowerCase()] || [-1.955, 30.065];
 
     var fmtM = function(n) { return n != null && n > 0 ? (n / 1e6).toFixed(1) + 'M RWF' : '—'; };
     var fmtA = function(n) { return n >= 10000 ? (n / 10000).toFixed(1) + ' ha' : (n || 0).toLocaleString() + ' m²'; };
@@ -2287,6 +2295,28 @@ function _populateExtraParcels(group) {
       + '</div>'
       + '</div>';
 
+    var ll;
+    var geoFeat = geoByUPI[upi];
+
+    if (geoFeat) {
+      // Render real cadastral boundary polygon
+      L.geoJSON(geoFeat, {
+        renderer: CANVAS_RENDERER,
+        style: { color: mc, weight: 1.8, opacity: 0.85, fillColor: mc, fillOpacity: 0.08 },
+      }).bindPopup(popup, { maxWidth: 300, className: 'imali-popup' }).addTo(group);
+
+      // Compute centroid from polygon ring for the glowing dot marker
+      var ring = geoFeat.geometry.type === 'Polygon'
+        ? geoFeat.geometry.coordinates[0]
+        : geoFeat.geometry.coordinates[0][0];
+      var sumLat = 0, sumLng = 0;
+      ring.forEach(function(c) { sumLng += c[0]; sumLat += c[1]; });
+      ll = [sumLat / ring.length, sumLng / ring.length];
+    } else {
+      // Fallback: approximate location by district
+      ll = DISTRICT_APPROX[(p.district || '').toLowerCase()] || [-1.955, 30.065];
+    }
+
     var dot = L.marker(ll, { icon: icon }).bindPopup(popup, { maxWidth: 300, className: 'imali-popup' }).addTo(group);
 
     PARCEL_SEARCH_INDEX.push({
@@ -2296,7 +2326,7 @@ function _populateExtraParcels(group) {
       ll:    ll,
       zoom:  17,
       tags:  [p.name, upi, p.sector, p.district, p.zone].filter(Boolean).map(function(s){ return s.toLowerCase(); }),
-      open:  function() { dot.openPopup(); },
+      open:  (function(d) { return function() { d.openPopup(); }; })(dot),
     });
   });
 }
