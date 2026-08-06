@@ -547,18 +547,6 @@
       <hr class="modal-divider">
       <div class="modal-actions" id="modalActions"></div>
       <div class="modal-manage-row" id="modalManageRow"></div>
-      <div class="modal-delete-confirm" id="modalDeleteConfirm">
-        <div class="delete-warn-icon">📦</div>
-        <div class="delete-warn-text">
-          Remove this parcel from the site? It will be hidden from the inventory, overview stats,
-          materials estimates, and opportunity map — but <strong>all its data is kept</strong> in
-          the parcel archive and can be restored at any time.
-        </div>
-        <div class="delete-confirm-btns">
-          <button class="modal-btn-confirm-del" onclick="executeArchiveParcel()">Yes, Remove from Site</button>
-          <button class="modal-btn-cancel-del"  onclick="cancelDeleteParcel()">Cancel</button>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -619,10 +607,9 @@
   // ─── Data (waits for Firestore) ───────────────────────────────────────────
   var sortCol = null, sortDir = 'asc';
   var parcelsById = {};
-  var _pendingDeleteId = null;
 
   imaliDB.ready.then(function () {
-  const parcels = window.parcels || [];
+  let parcels = window.parcels || [];
 
   // Build parcelsById for modal + delete lookups
   parcels.forEach(function (p) { parcelsById[p.id] = p; });
@@ -941,9 +928,6 @@
         <span class="modal-btn-icon">📦</span> Remove from Site
       </button>`;
 
-    // Reset delete confirm state
-    document.getElementById('modalDeleteConfirm').style.display = 'none';
-
     // Open
     document.getElementById('parcelModal').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -952,7 +936,6 @@
   function closeModal() {
     document.getElementById('parcelModal').classList.remove('open');
     document.body.style.overflow = '';
-    _pendingDeleteId = null;
   }
 
   function handleOverlayClick(e) {
@@ -1001,46 +984,24 @@
 
   // ─── Delete parcel ────────────────────────────────────────────────────────
   function promptDeleteParcel(id) {
-    _pendingDeleteId = id;
-    document.getElementById('modalManageRow').style.display = 'none';
-    document.getElementById('modalDeleteConfirm').style.display = 'block';
-    document.getElementById('modalBox').scrollTop = document.getElementById('modalBox').scrollHeight;
-  }
-
-  function cancelDeleteParcel() {
-    _pendingDeleteId = null;
-    document.getElementById('modalDeleteConfirm').style.display = 'none';
-    document.getElementById('modalManageRow').style.display = '';
-  }
-
-  function executeArchiveParcel() {
-    if (!_pendingDeleteId) return;
-    var id = _pendingDeleteId;
     var parcel = parcelsById[id];
-
     if (!parcel || !parcel._docId) {
-      alert('Cannot delete: parcel not found in database.');
-      _pendingDeleteId = null;
-      closeModal();
+      alert('Cannot remove: parcel not found in database.');
       return;
     }
+    if (!confirm('Remove "' + parcel.name + '" from the site?\n\nIt will be hidden from all views but all data is kept — you can restore it from the Archive page at any time.')) return;
 
-    var confirmBtn = document.querySelector('.btn-confirm');
-    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Archiving…'; }
-
+    closeModal();
     imaliDB.archiveParcel(parcel._docId)
       .then(function () { return imaliDB.reload(); })
       .then(function (newParcels) {
+        parcels = newParcels;
         parcelsById = {};
         newParcels.forEach(function (p) { parcelsById[p.id] = p; });
-        _pendingDeleteId = null;
-        closeModal();
         renderAll();
       })
       .catch(function (err) {
-        alert('Error archiving parcel: ' + err.message);
-        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm & Archive'; }
-        _pendingDeleteId = null;
+        alert('Error removing parcel: ' + err.message);
       });
   }
 
@@ -1048,8 +1009,6 @@
   window.openModal            = openModal;
   window.closeModal           = closeModal;
   window.promptDeleteParcel   = promptDeleteParcel;
-  window.cancelDeleteParcel   = cancelDeleteParcel;
-  window.executeArchiveParcel = executeArchiveParcel;
   window.modalSelectPhoto     = modalSelectPhoto;
   window.openLightbox         = openLightbox;
   window.lbNav                = lbNav;
