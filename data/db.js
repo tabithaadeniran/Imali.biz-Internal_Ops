@@ -104,7 +104,8 @@
   // ── Strip computed / internal fields before writing to Firestore ─────────────
   function _clean(data) {
     var out = Object.assign({}, data);
-    ['_docId', 'id', 'location', 'units_planned', 'gfa_sqm', 'dev_cost_rwf',
+    // Strip computed/internal fields — do NOT strip units_planned (user can override it)
+    ['_docId', 'id', 'location', 'gfa_sqm', 'dev_cost_rwf',
      'price_per_sqm', 'dev_cost_per_unit', 'leverage_ratio', 'avg_readiness']
       .forEach(function (k) { delete out[k]; });
     return out;
