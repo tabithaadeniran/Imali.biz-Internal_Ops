@@ -2296,24 +2296,30 @@ function _populateExtraParcels(group) {
       + '</div>';
 
     var ll;
-    var geoFeat = geoByUPI[upi];
+    // Priority 1: geometry stored in Firestore at add-time (national parcels)
+    // Priority 2: GeoJSON embedded in PIPELINE_GEOJSON (Kigali pipeline parcels)
+    // Priority 3: district-level approximation fallback
+    var renderGeom = null;
+    if (p.geometry && p.geometry.type === 'Polygon' && p.geometry.coordinates) {
+      renderGeom = p.geometry;
+    } else {
+      var geoFeat = geoByUPI[upi];
+      if (geoFeat) renderGeom = geoFeat.geometry;
+    }
 
-    if (geoFeat) {
-      // Render real cadastral boundary polygon
-      L.geoJSON(geoFeat, {
+    if (renderGeom) {
+      L.geoJSON({ type: 'Feature', geometry: renderGeom, properties: {} }, {
         renderer: CANVAS_RENDERER,
         style: { color: mc, weight: 1.8, opacity: 0.85, fillColor: mc, fillOpacity: 0.08 },
       }).bindPopup(popup, { maxWidth: 300, className: 'imali-popup' }).addTo(group);
 
-      // Compute centroid from polygon ring for the glowing dot marker
-      var ring = geoFeat.geometry.type === 'Polygon'
-        ? geoFeat.geometry.coordinates[0]
-        : geoFeat.geometry.coordinates[0][0];
+      var ring = renderGeom.type === 'Polygon'
+        ? renderGeom.coordinates[0]
+        : renderGeom.coordinates[0][0];
       var sumLat = 0, sumLng = 0;
       ring.forEach(function(c) { sumLng += c[0]; sumLat += c[1]; });
       ll = [sumLat / ring.length, sumLng / ring.length];
     } else {
-      // Fallback: approximate location by district
       ll = DISTRICT_APPROX[(p.district || '').toLowerCase()] || [-1.955, 30.065];
     }
 

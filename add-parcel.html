@@ -345,7 +345,7 @@
 
   <div class="form-eyebrow">Pipeline Management</div>
   <h1 class="form-title">Add New <em>Land Parcel</em></h1>
-  <p class="form-sub">Enter a UPI to auto-fill location and zoning data from the CoK GIS cadastral registry, then fill in any additional fields manually. The parcel will appear in your saved list immediately after saving.</p>
+  <p class="form-sub">Enter a UPI to auto-fill location and size from Rwanda's cadastral registry. Kigali UPIs pull from Kigali City GIS; all other districts pull from the Rwanda Space Agency national UPI database. Fill in any remaining fields manually.</p>
 
   <!-- UPI Lookup -->
   <div class="upi-card">
@@ -354,7 +354,7 @@
       <input class="upi-input" id="upiLookup" type="text" placeholder="e.g. 1/02/04/02/1234" autocomplete="off" spellcheck="false">
       <button class="upi-btn" id="lookupBtn" onclick="lookupUPI()">Look Up →</button>
     </div>
-    <div class="upi-status" id="upiStatus">Enter a UPI to auto-fill district, sector, size, and zoning from CoK GIS.</div>
+    <div class="upi-status" id="upiStatus">Enter a UPI to auto-fill district, sector, and size from the national cadastral registry.</div>
   </div>
 
   <form id="parcelForm" onsubmit="submitParcel(event)">
@@ -382,9 +382,46 @@
           <label class="field-label" for="f_district">District *</label>
           <select class="field-select" id="f_district" name="district" required>
             <option value="">Select district…</option>
-            <option>Gasabo</option>
-            <option>Kicukiro</option>
-            <option>Nyarugenge</option>
+            <optgroup label="Kigali City">
+              <option>Gasabo</option>
+              <option>Kicukiro</option>
+              <option>Nyarugenge</option>
+            </optgroup>
+            <optgroup label="Eastern Province">
+              <option>Bugesera</option>
+              <option>Gatsibo</option>
+              <option>Kayonza</option>
+              <option>Kirehe</option>
+              <option>Ngoma</option>
+              <option>Nyagatare</option>
+              <option>Rwamagana</option>
+            </optgroup>
+            <optgroup label="Northern Province">
+              <option>Burera</option>
+              <option>Gakenke</option>
+              <option>Gicumbi</option>
+              <option>Musanze</option>
+              <option>Rulindo</option>
+            </optgroup>
+            <optgroup label="Southern Province">
+              <option>Gisagara</option>
+              <option>Huye</option>
+              <option>Kamonyi</option>
+              <option>Muhanga</option>
+              <option>Nyamagabe</option>
+              <option>Nyanza</option>
+              <option>Nyaruguru</option>
+              <option>Ruhango</option>
+            </optgroup>
+            <optgroup label="Western Province">
+              <option>Karongi</option>
+              <option>Ngororero</option>
+              <option>Nyabihu</option>
+              <option>Nyamasheke</option>
+              <option>Rubavu</option>
+              <option>Rusizi</option>
+              <option>Rutsiro</option>
+            </optgroup>
           </select>
         </div>
         <div class="field">
@@ -668,6 +705,8 @@ function showOnMap(lat, lng, ring) {
 }
 
 // ── UPI lookup ─────────────────────────────────────────────────────────────────
+// lastGeometry is stored as GeoJSON Polygon { type:'Polygon', coordinates:[[...]] }
+// so the map can render the real boundary without re-querying the GIS server.
 var lastGeometry = null;
 
 function setAutoFilled(id, value) {
@@ -681,82 +720,138 @@ function clearAutoFilled(id) {
   if (el) el.classList.remove('auto-filled');
 }
 
+function _capitalize(s) {
+  if (!s) return '';
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
+function _selectDistrict(districtName) {
+  var sel = document.getElementById('f_district');
+  var lower = (districtName || '').toLowerCase();
+  for (var i = 0; i < sel.options.length; i++) {
+    if (sel.options[i].value.toLowerCase() === lower) { sel.selectedIndex = i; break; }
+  }
+  sel.classList.add('auto-filled');
+}
+
+function _applyResult(upi, result) {
+  setAutoFilled('f_upi', upi);
+  if (result.district) _selectDistrict(result.district);
+  if (result.sector)   setAutoFilled('f_sector', result.sector);
+  if (result.cell)     setAutoFilled('f_cell',   result.cell);
+  if (result.size > 0) {
+    setAutoFilled('f_size', result.size);
+    var unitsEl = document.getElementById('f_units');
+    if (!unitsEl.classList.contains('user-edited')) {
+      unitsEl.value = Math.floor(result.size / 100);
+      unitsEl.classList.add('auto-filled');
+    }
+  }
+  if (result.zone) {
+    var zoneSel = document.getElementById('f_zone');
+    for (var z = 0; z < zoneSel.options.length; z++) {
+      if (zoneSel.options[z].value === result.zone) { zoneSel.selectedIndex = z; break; }
+    }
+    zoneSel.classList.add('auto-filled');
+  }
+  if (result.geometry) {
+    lastGeometry = result.geometry;
+    var ring = result.geometry.coordinates[0];
+    var sumX = 0, sumY = 0;
+    ring.forEach(function(c) { sumX += c[0]; sumY += c[1]; });
+    showOnMap(sumY / ring.length, sumX / ring.length, ring);
+  }
+  var locStr  = [result.sector, result.district].filter(Boolean).join(', ');
+  var sizeStr = result.size > 0 ? ' — ' + result.size.toLocaleString() + ' m²' : '';
+  var zoneStr = result.zone ? ' · Zone ' + result.zone : '';
+  var src     = result.source === 'CoK' ? ' [Kigali City GIS]' : ' [RSA National]';
+  var st = document.getElementById('upiStatus');
+  st.className = 'upi-status ok';
+  st.textContent = '✓ Found: ' + locStr + sizeStr + zoneStr + src;
+}
+
+// Query Kigali City GIS — best data for Kigali parcels (has zoning)
+function _tryCoKGIS(upi) {
+  var url = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Hosted/KigaliParcels_withZoning/FeatureServer/0/query' +
+    '?where=' + encodeURIComponent("upi='" + upi + "'") +
+    '&outFields=upi,district,sector,cell,size,main_zone_code' +
+    '&returnGeometry=true&outSR=4326&f=json';
+  return fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.features || !data.features.length) return null;
+      var attr = data.features[0].attributes;
+      var geo  = data.features[0].geometry;
+      var ring = (geo && geo.rings && geo.rings[0]) ? geo.rings[0] : null;
+      return {
+        district: attr.district || '',
+        sector:   attr.sector   || '',
+        cell:     attr.cell     || '',
+        size:     Math.round(attr.size || 0),
+        zone:     attr.main_zone_code || '',
+        geometry: ring ? { type: 'Polygon', coordinates: [ring] } : null,
+        source:   'CoK',
+      };
+    });
+}
+
+// Query RSA national Merged_UPIs — covers all 30 districts of Rwanda
+function _tryRSANational(upi) {
+  var where = "UPI='" + upi.replace(/'/g, "''") + "'";
+  var url = 'https://portal.space.gov.rw/server/rest/services/Merged_UPIs/MapServer/1/query' +
+    '?where=' + encodeURIComponent(where) +
+    '&outFields=UPI,district,sector,cell,village,area_in_we' +
+    '&returnGeometry=true&outSR=4326&f=json';
+  return fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.features || !data.features.length) return null;
+      var attr = data.features[0].attributes;
+      var geo  = data.features[0].geometry;
+      var ring = (geo && geo.rings && geo.rings[0]) ? geo.rings[0] : null;
+      return {
+        district: _capitalize(attr.district || ''),
+        sector:   _capitalize(attr.sector   || ''),
+        cell:     _capitalize(attr.cell     || ''),
+        size:     Math.round(attr.area_in_we || 0),
+        zone:     '',
+        geometry: ring ? { type: 'Polygon', coordinates: [ring] } : null,
+        source:   'RSA',
+      };
+    });
+}
+
 function lookupUPI() {
   var upi = document.getElementById('upiLookup').value.trim();
   if (!upi) return;
-  var status = document.getElementById('upiStatus');
-  var btn    = document.getElementById('lookupBtn');
-  status.className = 'upi-status loading';
-  status.textContent = 'Querying CoK GIS cadastral registry…';
+  var st  = document.getElementById('upiStatus');
+  var btn = document.getElementById('lookupBtn');
+  st.className = 'upi-status loading';
+  st.textContent = 'Searching cadastral registry…';
   btn.disabled = true;
   lastGeometry = null;
 
-  var encoded = encodeURIComponent("upi='" + upi + "'");
-  var url = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Hosted/KigaliParcels_withZoning/FeatureServer/0/query' +
-    '?where=' + encoded +
-    '&outFields=upi,district,sector,cell,size,main_zone_code' +
-    '&returnGeometry=true&outSR=4326&f=json';
-
-  fetch(url)
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
+  // Try CoK GIS first (best for Kigali), then fall back to national RSA database
+  _tryCoKGIS(upi)
+    .catch(function() { return null; })
+    .then(function(result) {
+      if (result) return result;
+      st.textContent = 'Not in Kigali GIS — checking national database…';
+      return _tryRSANational(upi).catch(function() { return null; });
+    })
+    .then(function(result) {
       btn.disabled = false;
-      if (!data.features || data.features.length === 0) {
-        status.className = 'upi-status err';
-        status.textContent = '✗ UPI not found in CoK GIS registry. You can still fill in details manually.';
+      if (!result) {
+        st.className = 'upi-status err';
+        st.textContent = '✗ UPI not found in either registry. Check the format (e.g. 1/01/02/03/1234) or fill in manually.';
         return;
       }
-      var feat = data.features[0];
-      var attr = feat.attributes;
-      var geo  = feat.geometry;
-
-      // Auto-fill form fields
-      setAutoFilled('f_upi', upi);
-      if (attr.district) {
-        var sel = document.getElementById('f_district');
-        for (var i = 0; i < sel.options.length; i++) {
-          if (sel.options[i].value.toLowerCase() === attr.district.toLowerCase()) { sel.selectedIndex = i; break; }
-        }
-        sel.classList.add('auto-filled');
-      }
-      if (attr.sector)  setAutoFilled('f_sector', attr.sector);
-      if (attr.cell)    setAutoFilled('f_cell',   attr.cell);
-      if (attr.size) {
-        setAutoFilled('f_size', Math.round(attr.size));
-        var unitsEl = document.getElementById('f_units');
-        if (!unitsEl.classList.contains('user-edited')) {
-          unitsEl.value = Math.floor(Math.round(attr.size) / 100);
-          unitsEl.classList.add('auto-filled');
-        }
-      }
-
-      // Auto-fill zone from GIS, fall back to pipeline data
-      var zoneCode = attr.main_zone_code ||
-        (typeof PIPELINE_PRICES !== 'undefined' && PIPELINE_PRICES[upi] && PIPELINE_PRICES[upi].zone) || '';
-      if (zoneCode) {
-        var zoneSel = document.getElementById('f_zone');
-        for (var z = 0; z < zoneSel.options.length; z++) {
-          if (zoneSel.options[z].value === zoneCode) { zoneSel.selectedIndex = z; break; }
-        }
-        zoneSel.classList.add('auto-filled');
-      }
-
-      // Store geometry for saving
-      if (geo && geo.rings && geo.rings[0]) {
-        lastGeometry = geo.rings[0];
-        var ring = geo.rings[0];
-        var sumX = 0, sumY = 0;
-        ring.forEach(function(c) { sumX += c[0]; sumY += c[1]; });
-        showOnMap(sumY / ring.length, sumX / ring.length, ring);
-      }
-
-      status.className = 'upi-status ok';
-      status.textContent = '✓ Found: ' + (attr.sector || '') + ', ' + (attr.district || '') + ' — ' + Math.round(attr.size || 0).toLocaleString() + ' m²' + (zoneCode ? ' · Zone ' + zoneCode : '');
+      _applyResult(upi, result);
     })
     .catch(function() {
       btn.disabled = false;
-      status.className = 'upi-status err';
-      status.textContent = '✗ Could not reach CoK GIS. Check your connection or fill in manually.';
+      st.className = 'upi-status err';
+      st.textContent = '✗ Network error — check your connection or fill in manually.';
     });
 }
 
@@ -832,6 +927,7 @@ function submitParcel(e) {
     units_planned: parseInt(fd.get('units_planned')) || 0,
     unit_type:     fd.get('unit_type') || '',
     added_date:    new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }),
+    geometry:      lastGeometry || null,
   };
 
   var submitBtn = document.querySelector('#parcelForm button[type="submit"]');
