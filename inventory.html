@@ -1000,8 +1000,6 @@
   });
 
   // ─── Delete parcel ────────────────────────────────────────────────────────
-  var _pendingDeleteId = null;
-
   function promptDeleteParcel(id) {
     _pendingDeleteId = id;
     document.getElementById('modalManageRow').style.display = 'none';
@@ -1047,11 +1045,17 @@
   }
 
   // Expose functions needed by onclick attributes in dynamically generated HTML
-  window.openModal    = openModal;
-  window.closeModal   = closeModal;
-  window.confirmDelete = confirmDelete;
-  window.setSort      = setSort;
-  window.renderAll    = renderAll;
+  window.openModal            = openModal;
+  window.closeModal           = closeModal;
+  window.promptDeleteParcel   = promptDeleteParcel;
+  window.cancelDeleteParcel   = cancelDeleteParcel;
+  window.executeArchiveParcel = executeArchiveParcel;
+  window.modalSelectPhoto     = modalSelectPhoto;
+  window.openLightbox         = openLightbox;
+  window.lbNav                = lbNav;
+  window.closeLightbox        = closeLightbox;
+  window.handleOverlayClick   = handleOverlayClick;
+  window.renderAll            = renderAll;
 
   }); // imaliDB.ready
 </script>
