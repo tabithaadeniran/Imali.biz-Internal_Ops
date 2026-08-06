@@ -132,12 +132,14 @@ async function setAdminPassword() {
 // ── Seed parcels ──────────────────────────────────────────────────────────────
 function seedParcels() {
   if (!_db) { log('Not connected.', 'err'); return; }
-  if (!window.PIPELINE_PARCELS || !PIPELINE_PARCELS.length) {
+  var _pp;
+  try { _pp = PIPELINE_PARCELS; } catch(e) { _pp = null; }
+  if (!_pp || !_pp.length) {
     log('PIPELINE_PARCELS is empty — pipeline.js may not have loaded.', 'err');
     return;
   }
 
-  var parcels = PIPELINE_PARCELS;
+  var parcels = _pp;
   log('\nStarting seed: ' + parcels.length + ' parcels from pipeline.js', 'warn');
 
   document.getElementById('btnSeed').disabled  = true;
