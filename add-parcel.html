@@ -610,7 +610,8 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="data/pipeline.js"></script>
+<script src="data/db.js"></script>
+<script src="data/admin-auth.js"></script>
 <script src="shared/cloudinary.js"></script>
 <script>
 
@@ -805,47 +806,52 @@ function submitParcel(e) {
   var upi = (fd.get('upi') || '').trim();
   if (!upi) { alert('UPI is required.'); return; }
 
-  var existing = JSON.parse(localStorage.getItem('IMALI_ADDED_PARCELS') || '[]');
-  if (existing.some(function(p) { return p.upi === upi; })) {
-    if (!confirm('A parcel with this UPI is already saved. Replace it?')) return;
-    existing = existing.filter(function(p) { return p.upi !== upi; });
+  // Check for duplicate in Firestore-loaded parcels
+  var existing = imaliDB.findByUPI(upi);
+  if (existing) {
+    if (!confirm('A parcel with UPI "' + upi + '" already exists in the database. Add a new record anyway?')) return;
   }
 
   var priceRaw = parseFloat(fd.get('price'));
   var entry = {
-    upi:      upi,
-    name:     (fd.get('name') || '').trim() || upi,
-    district: fd.get('district') || '',
-    sector:   (fd.get('sector') || '').trim(),
-    cell:     (fd.get('cell') || '').trim(),
-    size_sqm: parseFloat(fd.get('size_sqm')) || 0,
-    zone:     fd.get('zone') || '',
-    price:    isNaN(priceRaw) || priceRaw <= 0 ? null : priceRaw,
-    status:      fd.get('status') || 'pending',
+    upi:           upi,
+    name:          (fd.get('name') || '').trim() || upi,
+    district:      fd.get('district') || '',
+    sector:        (fd.get('sector') || '').trim(),
+    size_sqm:      parseFloat(fd.get('size_sqm')) || 0,
+    zone:          fd.get('zone') || '',
+    land_price_rwf: isNaN(priceRaw) || priceRaw <= 0 ? null : priceRaw,
+    status:        fd.get('status') || 'pending',
     comp_type:     fd.get('comp_type') || '',
     comp_timeline: fd.get('comp_timeline') || '',
     comp_notes:    (fd.get('comp_notes') || '').trim(),
     notes:         (fd.get('notes') || '').trim(),
-    geometry:      lastGeometry || null,
     photos:        _landPhotoUrls.slice(),
     plans:         _planUrls.slice(),
     cover_photo:   _coverPhotoUrl || (_landPhotoUrls.length ? _landPhotoUrls[0] : ''),
     units_planned: parseInt(fd.get('units_planned')) || 0,
     unit_type:     fd.get('unit_type') || '',
-    added_at: new Date().toISOString(),
+    added_date:    new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }),
   };
 
-  existing.push(entry);
-  localStorage.setItem('IMALI_ADDED_PARCELS', JSON.stringify(existing));
+  var submitBtn = document.querySelector('#parcelForm button[type="submit"]');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving…'; }
 
-  document.getElementById('parcelForm').style.display = 'none';
-  document.querySelector('.upi-card').style.display = 'none';
-  var banner = document.getElementById('successBanner');
-  banner.classList.add('visible');
-  document.getElementById('successSub').textContent =
-    '"' + entry.name + '" (' + entry.upi + ') has been saved to your local list.';
-
-  renderAddedList();
+  imaliDB.saveParcel(entry)
+    .then(function () { return imaliDB.reload(); })
+    .then(function () {
+      document.getElementById('parcelForm').style.display = 'none';
+      document.querySelector('.upi-card').style.display = 'none';
+      var banner = document.getElementById('successBanner');
+      banner.classList.add('visible');
+      document.getElementById('successSub').textContent =
+        '"' + entry.name + '" (' + entry.upi + ') has been saved to the database.';
+      renderAddedList();
+    })
+    .catch(function (err) {
+      alert('Error saving parcel: ' + err.message);
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Save Parcel'; }
+    });
 }
 
 function resetForm() {
@@ -871,32 +877,38 @@ function resetForm() {
 
 // ── Previously saved list ──────────────────────────────────────────────────────
 function renderAddedList() {
-  var parcels = JSON.parse(localStorage.getItem('IMALI_ADDED_PARCELS') || '[]');
+  var ps = (window.parcels || []).slice().reverse();
   var el = document.getElementById('addedList');
-  if (parcels.length === 0) { el.innerHTML = ''; return; }
+  if (!ps.length) { el.innerHTML = ''; return; }
 
-  var html = '<div class="added-list-title">Previously Saved (' + parcels.length + ')</div>';
-  parcels.slice().reverse().forEach(function(p, i) {
-    var realIdx = parcels.length - 1 - i;
-    var COMP_LABELS = { cash:'Cash', installments:'Cash (instalments)', tokens:'Tokens', equity:'Equity', cash_tokens:'Cash + Tokens', cash_equity:'Cash + Equity', land_swap:'Land swap', other:'Other' };
+  var COMP_LABELS = { cash:'Cash', installments:'Cash (instalments)', tokens:'Tokens', equity:'Equity', cash_tokens:'Cash + Tokens', cash_equity:'Cash + Equity', land_swap:'Land swap', other:'Other' };
+  var html = '<div class="added-list-title">Parcels in Database (' + ps.length + ')</div>';
+  ps.forEach(function (p) {
     var compTag = p.comp_type ? ' · ' + (COMP_LABELS[p.comp_type] || p.comp_type) : '';
     var meta = [p.district, p.sector, p.size_sqm ? p.size_sqm.toLocaleString() + ' m²' : null].filter(Boolean).join(' · ') + compTag;
+    var docId = p._docId ? 'data-docid="' + p._docId + '"' : '';
     html += '<div class="added-item">' +
       '<span class="added-dot"></span>' +
-      '<span class="added-name">' + p.name + ' <span style="font-weight:400;opacity:0.5;font-size:0.78em">(' + p.upi + ')</span></span>' +
+      '<span class="added-name">' + (p.name || p.upi) + ' <span style="font-weight:400;opacity:0.5;font-size:0.78em">(' + p.upi + ')</span></span>' +
       '<span class="added-meta">' + meta + '</span>' +
-      '<button class="added-remove" onclick="removeParcel(' + realIdx + ')" title="Remove">✕</button>' +
+      '<button class="added-remove" ' + docId + ' onclick="removeParcel(this)" title="Archive">✕</button>' +
     '</div>';
   });
   el.innerHTML = html;
 }
 
-function removeParcel(idx) {
-  var parcels = JSON.parse(localStorage.getItem('IMALI_ADDED_PARCELS') || '[]');
-  parcels.splice(idx, 1);
-  localStorage.setItem('IMALI_ADDED_PARCELS', JSON.stringify(parcels));
-  renderAddedList();
+function removeParcel(btn) {
+  var docId = btn.getAttribute('data-docid');
+  if (!docId || !confirm('Archive this parcel from the database?')) return;
+  btn.disabled = true;
+  imaliDB.archiveParcel(docId)
+    .then(function () { return imaliDB.reload(); })
+    .then(function () { renderAddedList(); })
+    .catch(function (err) { alert('Error: ' + err.message); btn.disabled = false; });
 }
+
+// Load the initial list once DB is ready
+imaliDB.ready.then(function () { renderAddedList(); });
 
 // ── Photo / Plan Upload ────────────────────────────────────────────────────────
 var _landPhotoUrls = [];

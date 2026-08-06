@@ -571,9 +571,8 @@
   <img class="lb-img" src="" alt="" onclick="event.stopPropagation()">
 </div>
 
-<script src="data/pipeline.js"></script>
 <script src="data.js"></script>
-<script src="data/user-overrides.js"></script>
+<script src="data/db.js"></script>
 <script>
   // ─── Cursor ──────────────────────────────────────────────────────────────
   const cursor = document.querySelector('.cursor');
@@ -617,7 +616,18 @@
     return '#ef5350';
   }
 
-  // ─── Hero stats ───────────────────────────────────────────────────────────
+  // ─── Data (waits for Firestore) ───────────────────────────────────────────
+  var sortCol = null, sortDir = 'asc';
+  var parcelsById = {};
+  var _pendingDeleteId = null;
+
+  imaliDB.ready.then(function () {
+  const parcels = window.parcels || [];
+
+  // Build parcelsById for modal + delete lookups
+  parcels.forEach(function (p) { parcelsById[p.id] = p; });
+
+  // ─── Hero stats ─────────────────────────────────────────────────────────
   const s = getSummary();
   document.getElementById('heroStats').innerHTML = [
     { val: s.totalParcels, lbl: 'Total Parcels' },
@@ -1009,32 +1019,42 @@
   function executeArchiveParcel() {
     if (!_pendingDeleteId) return;
     var id = _pendingDeleteId;
+    var parcel = parcelsById[id];
 
-    // Save full parcel data to archive BEFORE removing from the live array
-    var parcelSnap = parcelsById[id] || null;
-    if (parcelSnap) {
-      try {
-        var archive = JSON.parse(localStorage.getItem('IMALI_PARCEL_ARCHIVE') || '{}');
-        archive[id] = Object.assign({}, parcelSnap, { archived_at: new Date().toISOString() });
-        localStorage.setItem('IMALI_PARCEL_ARCHIVE', JSON.stringify(archive));
-      } catch(e) {}
+    if (!parcel || !parcel._docId) {
+      alert('Cannot delete: parcel not found in database.');
+      _pendingDeleteId = null;
+      closeModal();
+      return;
     }
 
-    // Add to the hidden list (hides it sitewide via user-overrides.js)
-    var deleted = [];
-    try { deleted = JSON.parse(localStorage.getItem('IMALI_PARCEL_DELETED') || '[]'); } catch(e) {}
-    if (deleted.indexOf(id) === -1) deleted.push(id);
-    localStorage.setItem('IMALI_PARCEL_DELETED', JSON.stringify(deleted));
+    var confirmBtn = document.querySelector('.btn-confirm');
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Archiving…'; }
 
-    // Splice from live array so re-render reflects immediately (no page reload needed)
-    var idx = parcels.findIndex(function(p) { return p.id === id; });
-    if (idx !== -1) parcels.splice(idx, 1);
-    delete parcelsById[id];
-
-    _pendingDeleteId = null;
-    closeModal();
-    renderAll();
+    imaliDB.archiveParcel(parcel._docId)
+      .then(function () { return imaliDB.reload(); })
+      .then(function (newParcels) {
+        parcelsById = {};
+        newParcels.forEach(function (p) { parcelsById[p.id] = p; });
+        _pendingDeleteId = null;
+        closeModal();
+        renderAll();
+      })
+      .catch(function (err) {
+        alert('Error archiving parcel: ' + err.message);
+        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm & Archive'; }
+        _pendingDeleteId = null;
+      });
   }
+
+  // Expose functions needed by onclick attributes in dynamically generated HTML
+  window.openModal    = openModal;
+  window.closeModal   = closeModal;
+  window.confirmDelete = confirmDelete;
+  window.setSort      = setSort;
+  window.renderAll    = renderAll;
+
+  }); // imaliDB.ready
 </script>
 </body>
 </html>

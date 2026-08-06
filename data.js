@@ -4,19 +4,23 @@ const DEV_COST_PER_SQM = 500000;  // RWF per sqm of GFA
 const MIN_INVESTOR_STAKE = 75000; // RWF minimum fractional investment
 
 // ─── Land Parcels ─────────────────────────────────────────────────────────────
-// Sourced from data/pipeline.js — loaded before this script on every page.
-const parcels = (typeof PIPELINE_PARCELS !== 'undefined') ? PIPELINE_PARCELS : [];
+// After migration: window.parcels is set by data/db.js (Firestore).
+// This var declaration makes `parcels` the same reference as window.parcels,
+// so db.js replacing window.parcels also updates all callers of `parcels`.
+var parcels = (typeof PIPELINE_PARCELS !== 'undefined') ? PIPELINE_PARCELS : [];
 
-// ─── Computed fields (mutates parcels in place) ────────────────────────────────
+// Apply computed fields to any pipeline.js fallback data (no-op once db.js sets window.parcels).
 parcels.forEach(p => {
-  p.units_planned     = Math.floor(p.size_sqm / 100);
-  p.gfa_sqm           = p.units_planned * 100;
-  p.dev_cost_rwf      = p.gfa_sqm * DEV_COST_PER_SQM;
-  p.price_per_sqm     = p.size_sqm       > 0 ? Math.round(p.land_price_rwf / p.size_sqm)       : 0;
-  p.dev_cost_per_unit = p.units_planned  > 0 ? Math.round(p.dev_cost_rwf   / p.units_planned)  : 0;
-  p.leverage_ratio    = p.land_price_rwf > 0 ? parseFloat((p.dev_cost_rwf  / p.land_price_rwf).toFixed(2)) : 0;
-  const rKeys = Object.keys(p.readiness);
-  p.avg_readiness = Math.round(rKeys.reduce((s, k) => s + p.readiness[k], 0) / rKeys.length);
+  if (p.units_planned === undefined) p.units_planned = Math.floor(p.size_sqm / 100);
+  if (p.gfa_sqm       === undefined) p.gfa_sqm       = p.units_planned * 100;
+  if (p.dev_cost_rwf  === undefined) p.dev_cost_rwf  = p.gfa_sqm * DEV_COST_PER_SQM;
+  if (p.price_per_sqm === undefined) p.price_per_sqm = p.size_sqm > 0 ? Math.round(p.land_price_rwf / p.size_sqm) : 0;
+  if (p.dev_cost_per_unit === undefined) p.dev_cost_per_unit = p.units_planned > 0 ? Math.round(p.dev_cost_rwf / p.units_planned) : 0;
+  if (p.leverage_ratio    === undefined) p.leverage_ratio    = p.land_price_rwf > 0 ? parseFloat((p.dev_cost_rwf / p.land_price_rwf).toFixed(2)) : 0;
+  if (p.avg_readiness     === undefined && p.readiness) {
+    const rKeys = Object.keys(p.readiness);
+    p.avg_readiness = Math.round(rKeys.reduce((s, k) => s + p.readiness[k], 0) / rKeys.length);
+  }
 });
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
@@ -63,15 +67,17 @@ function statusLabel(s) {
 
 // ─── Aggregated summary ────────────────────────────────────────────────────────
 function getSummary() {
-  const totalSizeSqm   = parcels.reduce((s, p) => s + p.size_sqm, 0);
-  const totalLandValue = parcels.reduce((s, p) => s + p.land_price_rwf, 0);
-  const totalDevCost   = parcels.reduce((s, p) => s + p.dev_cost_rwf, 0);
-  const totalUnits     = parcels.reduce((s, p) => s + p.units_planned, 0);
-  const totalGFA       = parcels.reduce((s, p) => s + p.gfa_sqm, 0);
+  // Use Firestore data when available (set by data/db.js); fall back to pipeline.js data.
+  const ps = (window.parcels && window.parcels.length > 0) ? window.parcels : parcels;
+  const totalSizeSqm    = ps.reduce((s, p) => s + (p.size_sqm || 0), 0);
+  const totalLandValue  = ps.reduce((s, p) => s + (p.land_price_rwf || 0), 0);
+  const totalDevCost    = ps.reduce((s, p) => s + (p.dev_cost_rwf || 0), 0);
+  const totalUnits      = ps.reduce((s, p) => s + (p.units_planned || 0), 0);
+  const totalGFA        = ps.reduce((s, p) => s + (p.gfa_sqm || 0), 0);
   const investorsNeeded = Math.ceil(totalDevCost / MIN_INVESTOR_STAKE);
 
   return {
-    totalParcels: parcels.length,
+    totalParcels: ps.length,
     totalSizeSqm,
     totalLandValue,
     totalDevCost,
@@ -79,9 +85,9 @@ function getSummary() {
     totalGFA,
     investorsNeeded,
     portfolioValue: totalLandValue + totalDevCost,
-    byDistrict: groupBy(parcels, 'district'),
-    byType:     groupBy(parcels, 'type'),
-    byStatus:   groupBy(parcels, 'status')
+    byDistrict: groupBy(ps, 'district'),
+    byType:     groupBy(ps, 'type'),
+    byStatus:   groupBy(ps, 'status'),
   };
 }
 

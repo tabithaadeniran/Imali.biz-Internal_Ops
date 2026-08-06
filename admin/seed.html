@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seed Firestore — Imali.biz Admin</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', system-ui, sans-serif; background: #0d0d12; color: #f5f0e8; min-height: 100vh; padding: 2rem; }
+  h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .sub { color: rgba(245,240,232,0.5); font-size: 0.88rem; margin-bottom: 2rem; }
+  .card { background: #1a1a24; border: 1px solid rgba(212,168,50,0.2); border-radius: 12px; padding: 1.5rem; max-width: 720px; margin-bottom: 1.5rem; }
+  .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: #d4a832; }
+  .btn { padding: 0.65rem 1.4rem; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+  .btn-primary { background: #d4a832; color: #0d0d12; }
+  .btn-primary:disabled { opacity: 0.5; cursor: default; }
+  .btn-danger  { background: #b71c1c; color: #fff; margin-left: 0.75rem; }
+  .btn-danger:disabled { opacity: 0.5; cursor: default; }
+  #log { background: #0d0d12; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem;
+         font-family: monospace; font-size: 0.8rem; height: 320px; overflow-y: auto; white-space: pre-wrap; }
+  .ok  { color: #4caf7d; }
+  .err { color: #ef5350; }
+  .info{ color: rgba(245,240,232,0.55); }
+  .warn{ color: #d4a832; }
+  .progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; margin: 0.75rem 0; }
+  .progress-fill { height: 6px; background: #d4a832; border-radius: 4px; transition: width 0.2s; width: 0; }
+  label { display: block; font-size: 0.85rem; color: rgba(245,240,232,0.65); margin-bottom: 0.3rem; }
+  input[type="password"], input[type="text"] {
+    width: 100%; padding: 0.6rem 0.9rem; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(212,168,50,0.2); border-radius: 7px; color: #f5f0e8;
+    font-size: 0.9rem; outline: none; margin-bottom: 0.75rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>🌱 Firestore Seeder — Imali.biz Admin</h1>
+<p class="sub">One-time tool to migrate all pipeline.js parcels into Firestore.
+  Run this once. After seeding, use add-parcel.html / edit-parcel.html to manage data.</p>
+
+<!-- ── Step 1: Set admin password ───────────────────────────────────────────── -->
+<div class="card">
+  <h2>Step 1 — Set Admin Password</h2>
+  <p style="color:rgba(245,240,232,0.55);font-size:0.84rem;margin-bottom:1rem">
+    The default admin password is <code style="background:rgba(255,255,255,0.1);padding:0.1em 0.4em;border-radius:4px">imali-admin</code>.
+    Set a custom password here (stored as a SHA-256 hash in Firestore — never plain text).
+  </p>
+  <label>New admin password</label>
+  <input type="password" id="newPass" placeholder="Enter new password" autocomplete="new-password">
+  <label>Confirm password</label>
+  <input type="password" id="confirmPass" placeholder="Confirm new password" autocomplete="new-password">
+  <button class="btn btn-primary" id="btnSetPass" onclick="setAdminPassword()">Set Password</button>
+  <span id="passMsg" style="margin-left:1rem;font-size:0.85rem"></span>
+</div>
+
+<!-- ── Step 2: Seed parcels ──────────────────────────────────────────────────── -->
+<div class="card">
+  <h2>Step 2 — Seed All Parcels into Firestore</h2>
+  <p style="color:rgba(245,240,232,0.55);font-size:0.84rem;margin-bottom:1rem">
+    Writes every parcel from <code>data/pipeline.js</code> into the Firestore <code>parcels</code> collection.
+    Skips parcels that already have a matching UPI in Firestore.
+  </p>
+  <button class="btn btn-primary" id="btnSeed" onclick="seedParcels()" disabled>Seed Parcels</button>
+  <button class="btn btn-danger"  id="btnClear" onclick="clearParcels()" disabled>Clear ALL Parcels</button>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div id="log" class="info">Waiting for Firebase to connect…</div>
+</div>
+
+<!-- Scripts ────────────────────────────────────────────────────────────────── -->
+<script src="../data/pipeline.js"></script>
+<script src="../data/db.js"></script>
+<script>
+'use strict';
+
+var _db  = null;
+var _log = document.getElementById('log');
+
+function log(msg, cls) {
+  var line = document.createElement('span');
+  line.className = cls || 'info';
+  line.textContent = msg + '\n';
+  _log.appendChild(line);
+  _log.scrollTop = _log.scrollHeight;
+}
+
+function setProgress(done, total) {
+  document.getElementById('progressFill').style.width = (total ? (done / total * 100) : 0) + '%';
+}
+
+// Wait for Firestore to boot
+imaliDB.ready.then(function () {
+  // Access the internal firebase object
+  _db = window.firebase.firestore();
+  log('✓ Connected to Firestore (project: imali-biz)', 'ok');
+  document.getElementById('btnSeed').disabled  = false;
+  document.getElementById('btnClear').disabled = false;
+  document.getElementById('btnSetPass').disabled = false;
+  log('Ready. Click "Seed Parcels" to migrate pipeline.js data.', 'info');
+}).catch(function (err) {
+  log('✗ Connection failed: ' + err.message, 'err');
+});
+
+// ── SHA-256 helper ────────────────────────────────────────────────────────────
+async function sha256(text) {
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+}
+
+// ── Set admin password ────────────────────────────────────────────────────────
+async function setAdminPassword() {
+  var pw1 = document.getElementById('newPass').value;
+  var pw2 = document.getElementById('confirmPass').value;
+  var msg = document.getElementById('passMsg');
+  if (!pw1) { msg.style.color='#ef5350'; msg.textContent = 'Enter a password.'; return; }
+  if (pw1 !== pw2) { msg.style.color='#ef5350'; msg.textContent = 'Passwords do not match.'; return; }
+  if (pw1.length < 8) { msg.style.color='#ef5350'; msg.textContent = 'Password must be at least 8 characters.'; return; }
+  var hash = await sha256(pw1);
+  imaliDB.setConfig('admin', { passwordHash: hash })
+    .then(function () {
+      msg.style.color = '#4caf7d';
+      msg.textContent = '✓ Password updated.';
+      document.getElementById('newPass').value = '';
+      document.getElementById('confirmPass').value = '';
+      log('✓ Admin password hash stored in Firestore _config/admin', 'ok');
+    })
+    .catch(function (err) {
+      msg.style.color = '#ef5350';
+      msg.textContent = 'Error: ' + err.message;
+    });
+}
+
+// ── Seed parcels ──────────────────────────────────────────────────────────────
+function seedParcels() {
+  if (!_db) { log('Not connected.', 'err'); return; }
+  if (!window.PIPELINE_PARCELS || !PIPELINE_PARCELS.length) {
+    log('PIPELINE_PARCELS is empty — pipeline.js may not have loaded.', 'err');
+    return;
+  }
+
+  var parcels = PIPELINE_PARCELS;
+  log('\nStarting seed: ' + parcels.length + ' parcels from pipeline.js', 'warn');
+
+  document.getElementById('btnSeed').disabled  = true;
+  document.getElementById('btnClear').disabled = true;
+
+  // First: fetch existing UPIs from Firestore to detect duplicates
+  _db.collection('parcels').get().then(function (snap) {
+    var existingUpis = {};
+    snap.forEach(function (doc) { existingUpis[doc.data().upi] = doc.id; });
+    log('Found ' + Object.keys(existingUpis).length + ' existing parcels in Firestore.', 'info');
+
+    var toWrite = parcels.filter(function (p) { return !existingUpis[p.upi]; });
+    var skipped = parcels.length - toWrite.length;
+    if (skipped) log('Skipping ' + skipped + ' parcels already in Firestore.', 'info');
+    if (!toWrite.length) {
+      log('Nothing to write — all parcels already seeded!', 'ok');
+      document.getElementById('btnSeed').disabled  = false;
+      document.getElementById('btnClear').disabled = false;
+      return;
+    }
+
+    log('Writing ' + toWrite.length + ' new parcels…', 'info');
+
+    // Write in chunks of 20 (Firestore batch limit is 500 but let's be conservative)
+    var CHUNK = 20;
+    var done  = 0;
+    var total = toWrite.length;
+
+    function writeChunk(startIdx) {
+      var batch = _db.batch();
+      var end   = Math.min(startIdx + CHUNK, total);
+      for (var i = startIdx; i < end; i++) {
+        var p   = toWrite[i];
+        var ref = _db.collection('parcels').doc();
+        // Strip computed fields before storing
+        var doc = {
+          upi:            p.upi,
+          name:           p.name,
+          district:       p.district || '',
+          sector:         p.sector   || '',
+          zone:           p.zone     || '',
+          size_sqm:       p.size_sqm || 0,
+          land_price_rwf: p.land_price_rwf || null,
+          status:         p.status   || 'under_review',
+          type:           p.type     || 'residential',
+          notes:          p.note     || '',
+          photos:         p.photos   || [],
+          plans:          p.plans    || [],
+          cover_photo:    p.cover_photo || '',
+          unit_type:      p.unit_type || '',
+          readiness:      p.readiness || {},
+          comp_type:      p.comp_type || '',
+          comp_timeline:  p.comp_timeline || '',
+          comp_notes:     p.comp_notes || '',
+          added_date:     p.added_date || '',
+          image:          p.image || '',
+        };
+        batch.set(ref, doc);
+      }
+      return batch.commit().then(function () {
+        done += (end - startIdx);
+        setProgress(done, total);
+        log('  Written ' + done + ' / ' + total + ' (' + toWrite[end-1].upi + ')', 'info');
+        if (done < total) return writeChunk(end);
+        log('\n✓ Seed complete! ' + done + ' parcels written to Firestore.', 'ok');
+        document.getElementById('btnSeed').disabled  = false;
+        document.getElementById('btnClear').disabled = false;
+        return imaliDB.reload();
+      });
+    }
+
+    return writeChunk(0);
+  }).catch(function (err) {
+    log('✗ Seed failed: ' + err.message, 'err');
+    document.getElementById('btnSeed').disabled  = false;
+    document.getElementById('btnClear').disabled = false;
+  });
+}
+
+// ── Clear all parcels (destructive!) ─────────────────────────────────────────
+function clearParcels() {
+  if (!_db) { log('Not connected.', 'err'); return; }
+  if (!confirm('DELETE ALL parcels from Firestore? This cannot be undone.')) return;
+  if (!confirm('Are you absolutely sure? Type OK to confirm.')) return;
+
+  log('\n⚠ Deleting all parcels…', 'warn');
+  document.getElementById('btnSeed').disabled  = true;
+  document.getElementById('btnClear').disabled = true;
+
+  _db.collection('parcels').get().then(function (snap) {
+    if (snap.empty) { log('Collection is already empty.', 'info'); return; }
+    var CHUNK = 20;
+    var docs  = [];
+    snap.forEach(function (doc) { docs.push(doc.ref); });
+
+    function deleteChunk(idx) {
+      var batch = _db.batch();
+      var end   = Math.min(idx + CHUNK, docs.length);
+      for (var i = idx; i < end; i++) batch.delete(docs[i]);
+      return batch.commit().then(function () {
+        setProgress(end, docs.length);
+        if (end < docs.length) return deleteChunk(end);
+        log('✓ All ' + docs.length + ' parcels deleted.', 'ok');
+        window.parcels = [];
+        document.getElementById('btnSeed').disabled  = false;
+        document.getElementById('btnClear').disabled = false;
+      });
+    }
+    return deleteChunk(0);
+  }).catch(function (err) {
+    log('✗ Delete failed: ' + err.message, 'err');
+    document.getElementById('btnSeed').disabled  = false;
+    document.getElementById('btnClear').disabled = false;
+  });
+}
+</script>
+</body>
+</html>

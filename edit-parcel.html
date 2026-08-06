@@ -532,9 +532,8 @@
   <img class="lb-img" src="" alt="" onclick="event.stopPropagation()">
 </div>
 
-<script src="data/pipeline.js"></script>
-<script src="data.js"></script>
-<script src="data/user-overrides.js"></script>
+<script src="data/db.js"></script>
+<script src="data/admin-auth.js"></script>
 <script src="shared/cloudinary.js"></script>
 <script>
 
@@ -571,13 +570,12 @@ var targetUPI = (params.get('upi') || '').trim();
 var originalParcel = null;
 var pendingOverride = null;
 
+// Wait for both auth and DB data before populating the form
+Promise.all([imaliAuth.ready, imaliDB.ready]).then(function () {
 (function init() {
   if (!targetUPI) { showNotFound(); return; }
 
-  var p = null;
-  for (var i = 0; i < parcels.length; i++) {
-    if (parcels[i].id === targetUPI) { p = parcels[i]; break; }
-  }
+  var p = imaliDB.findByUPI(targetUPI);
   if (!p) { showNotFound(); return; }
 
   originalParcel = p;
@@ -621,6 +619,7 @@ var pendingOverride = null;
   updatePriceHint();
   updateSizeHint();
 })();
+}); // Promise.all
 
 function showNotFound() {
   document.getElementById('formSub').style.display = 'none';
@@ -778,19 +777,31 @@ function backToForm() {
 function commitChanges() {
   if (!pendingOverride || !targetUPI) return;
 
-  var overrides = {};
-  try { overrides = JSON.parse(localStorage.getItem('IMALI_PARCEL_OVERRIDES') || '{}'); } catch(e) {}
-  overrides[targetUPI] = Object.assign({}, overrides[targetUPI] || {}, pendingOverride);
-  localStorage.setItem('IMALI_PARCEL_OVERRIDES', JSON.stringify(overrides));
+  var p = imaliDB.findByUPI(targetUPI);
+  if (!p || !p._docId) {
+    alert('Error: parcel not found in database. Please refresh and try again.');
+    return;
+  }
 
-  document.getElementById('confirmPanel').classList.remove('visible');
-  var banner = document.getElementById('successBanner');
-  banner.classList.add('visible');
-  document.getElementById('successSub').textContent =
-    '"' + (pendingOverride.name || targetUPI) + '" has been updated. Changes will appear across all pages on next load.';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  var confirmBtn = document.querySelector('.btn-confirm');
+  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Saving…'; }
 
-  pendingOverride = null;
+  imaliDB.updateParcel(p._docId, Object.assign({}, originalParcel, pendingOverride))
+    .then(function () { return imaliDB.reload(); })
+    .then(function () {
+      document.getElementById('confirmPanel').classList.remove('visible');
+      var banner = document.getElementById('successBanner');
+      banner.classList.add('visible');
+      document.getElementById('successSub').textContent =
+        '"' + (pendingOverride.name || targetUPI) + '" has been updated successfully.';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm & Save Changes'; }
+      pendingOverride = null;
+    })
+    .catch(function (err) {
+      alert('Error saving changes: ' + err.message);
+      if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm & Save Changes'; }
+    });
 }
 
 // ── Photos management ──────────────────────────────────────────────────────────

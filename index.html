@@ -444,9 +444,8 @@
   </footer>
 </div>
 
-<script src="data/pipeline.js"></script>
 <script src="data.js"></script>
-<script src="data/user-overrides.js"></script>
+<script src="data/db.js"></script>
 <script>
   // ─── Cursor ──────────────────────────────────────────────────────────────
   const cursor = document.querySelector('.cursor');
@@ -504,7 +503,9 @@
     return '#f5a0a0';
   }
 
-  // ─── Data ────────────────────────────────────────────────────────────────
+  // ─── Data (waits for Firestore) ──────────────────────────────────────────
+  imaliDB.ready.then(function () {
+  const parcels = window.parcels || [];
   const s = getSummary();
   const today = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
   document.getElementById('heroDate').textContent = today;
@@ -653,6 +654,7 @@
       `).join('')}
     </tbody>
   `;
+  }); // imaliDB.ready
 </script>
 </body>
 </html>

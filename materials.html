@@ -364,9 +364,8 @@
   </footer>
 </div>
 
-<script src="data/pipeline.js"></script>
 <script src="data.js"></script>
-<script src="data/user-overrides.js"></script>
+<script src="data/db.js"></script>
 <script>
   // ─── Cursor ──────────────────────────────────────────────────────────────
   const cursor = document.querySelector('.cursor');
@@ -428,7 +427,8 @@
     `;
   }
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // ─── Render (waits for Firestore) ────────────────────────────────────────
+  imaliDB.ready.then(function () {
   const s = getSummary();
   const materials = getMaterials(s.totalGFA, s.totalUnits);
 
@@ -484,6 +484,7 @@
     li.innerHTML = `<div class="legend-dot" style="background:${catColors[cat]}"></div>${cat}: <strong>${fmtUSD(catTotals[cat])}</strong> <span style="opacity:0.55">${fmtRWF(catTotals[cat])}</span> (${pct}%)`;
     legendEl.appendChild(li);
   });
+  }); // imaliDB.ready
 </script>
 </body>
 </html>

@@ -197,6 +197,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="data/db.js"></script>
 <script>
   // ── Cursor ──────────────────────────────────────────────────────────────────
   const cursor = document.querySelector('.cursor');
@@ -234,70 +235,56 @@
     } catch(e) { return iso; }
   }
 
-  // ── Archive keys ─────────────────────────────────────────────────────────────
-  var ARCHIVE_KEY = 'IMALI_PARCEL_ARCHIVE';
-  var DELETED_KEY = 'IMALI_PARCEL_DELETED';
-
   // ── Render ───────────────────────────────────────────────────────────────────
-  function loadArchive() {
-    try { return JSON.parse(localStorage.getItem(ARCHIVE_KEY) || '{}'); } catch(e) { return {}; }
-  }
+  var _archived = [];
 
-  function render() {
-    var archive = loadArchive();
-    var keys = Object.keys(archive);
-    var listEl   = document.getElementById('archiveList');
-    var emptyEl  = document.getElementById('archiveEmpty');
-    var countEl  = document.getElementById('archiveCountBadge');
+  function render(parcels) {
+    if (parcels) _archived = parcels;
+    var listEl  = document.getElementById('archiveList');
+    var emptyEl = document.getElementById('archiveEmpty');
+    var countEl = document.getElementById('archiveCountBadge');
+    var n = _archived.length;
 
-    countEl.textContent = keys.length + ' parcel' + (keys.length !== 1 ? 's' : '') + ' archived';
+    countEl.textContent = n + ' parcel' + (n !== 1 ? 's' : '') + ' archived';
 
-    if (!keys.length) {
+    if (!n) {
       listEl.innerHTML = '';
       emptyEl.style.display = 'block';
       return;
     }
     emptyEl.style.display = 'none';
 
-    // Sort newest-first
-    keys.sort(function(a, b) {
-      var da = archive[a].archived_at || '';
-      var db = archive[b].archived_at || '';
-      return da < db ? 1 : -1;
-    });
-
-    listEl.innerHTML = keys.map(function(upi) {
-      var p = archive[upi];
+    listEl.innerHTML = _archived.map(function(p) {
+      var docId    = p._docId;
+      var safeId   = docId.replace(/'/g, "\\'");
+      var safeSlug = docId.replace(/[^a-zA-Z0-9]/g, '_');
       var typeIcon = p.type === 'commercial' ? '🏢' : p.type === 'mixed-use' ? '🏘' : '🏠';
       var sizeTxt  = p.size_sqm ? fmtNum(p.size_sqm) + ' m²' : '—';
       var priceTxt = p.land_price_rwf ? 'RWF ' + fmtNum(p.land_price_rwf) : '—';
       var zoneTxt  = p.zone || '—';
-      var distTxt  = [p.sector, p.district].filter(Boolean).join(', ') || p.location || '—';
-      var safeUpi  = upi.replace(/'/g, "\\'");
+      var distTxt  = [p.sector, p.district].filter(Boolean).join(', ') || '—';
 
-      return '<div class="archive-card" id="card-' + upi + '">' +
+      return '<div class="archive-card" id="card-' + safeSlug + '">' +
         '<div class="archive-card-icon">' + typeIcon + '</div>' +
         '<div class="archive-card-main">' +
-          '<div class="archive-card-name">' + (p.name || upi) + '</div>' +
-          '<div class="archive-card-upi">' + upi + '</div>' +
+          '<div class="archive-card-name">' + (p.name || p.upi || docId) + '</div>' +
+          '<div class="archive-card-upi">' + (p.upi || docId) + '</div>' +
           '<div class="archive-card-meta">' +
             '<div class="archive-meta-item"><div class="archive-meta-key">Zone</div><div class="archive-meta-val">' + zoneTxt + '</div></div>' +
             '<div class="archive-meta-item"><div class="archive-meta-key">Location</div><div class="archive-meta-val">' + distTxt + '</div></div>' +
             '<div class="archive-meta-item"><div class="archive-meta-key">Size</div><div class="archive-meta-val">' + sizeTxt + '</div></div>' +
             '<div class="archive-meta-item"><div class="archive-meta-key">Land Price</div><div class="archive-meta-val">' + priceTxt + '</div></div>' +
             '<div class="archive-meta-item"><div class="archive-meta-key">Type</div><div class="archive-meta-val">' + (p.type || '—') + '</div></div>' +
-            '<div class="archive-meta-item"><div class="archive-meta-key">Status</div><div class="archive-meta-val">' + (p.status || '—') + '</div></div>' +
           '</div>' +
-          '<div class="archive-card-date">Archived ' + fmtDate(p.archived_at) + '</div>' +
           '<div class="archive-card-actions">' +
-            '<button class="btn-restore" onclick="restoreParcel(\'' + safeUpi + '\')">↩ Restore to Inventory</button>' +
-            '<button class="btn-purge"   onclick="promptPurge(\'' + safeUpi + '\')">🗑 Delete Permanently</button>' +
+            '<button class="btn-restore" onclick="restoreParcel(\'' + safeId + '\')">↩ Restore to Inventory</button>' +
+            '<button class="btn-purge"   onclick="promptPurge(\'' + safeId + '\', \'' + safeSlug + '\')">🗑 Delete Permanently</button>' +
           '</div>' +
-          '<div class="purge-confirm" id="purge-' + upi + '">' +
+          '<div class="purge-confirm" id="purge-' + safeSlug + '">' +
             'This will permanently erase all data for this parcel. It cannot be undone.' +
             '<div class="purge-confirm-btns">' +
-              '<button class="btn-purge-yes"    onclick="executePurge(\'' + safeUpi + '\')">Yes, Erase Permanently</button>' +
-              '<button class="btn-purge-cancel" onclick="cancelPurge(\'' + safeUpi + '\')">Cancel</button>' +
+              '<button class="btn-purge-yes"    onclick="executePurge(\'' + safeId + '\')">Yes, Erase Permanently</button>' +
+              '<button class="btn-purge-cancel" onclick="cancelPurge(\'' + safeSlug + '\')">Cancel</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -306,50 +293,25 @@
   }
 
   // ── Restore ──────────────────────────────────────────────────────────────────
-  function restoreParcel(upi) {
-    // Remove from deleted list
-    var deleted = [];
-    try { deleted = JSON.parse(localStorage.getItem(DELETED_KEY) || '[]'); } catch(e) {}
-    deleted = deleted.filter(function(d) { return d !== upi; });
-    localStorage.setItem(DELETED_KEY, JSON.stringify(deleted));
-
-    // Remove from archive
-    var archive = loadArchive();
-    delete archive[upi];
-    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archive));
-
-    showToast('✓ Parcel restored to inventory');
-    render();
+  function restoreParcel(docId) {
+    imaliDB.restoreParcel(docId)
+      .then(function () { return imaliDB.getArchived(); })
+      .then(function (arr) { render(arr); showToast('✓ Parcel restored to inventory'); })
+      .catch(function (err) { alert('Error: ' + err.message); });
   }
 
   // ── Purge (true permanent delete) ────────────────────────────────────────────
-  function promptPurge(upi) {
-    document.getElementById('purge-' + upi).style.display = 'block';
+  function promptPurge(docId, slug) {
+    document.getElementById('purge-' + slug).style.display = 'block';
   }
-  function cancelPurge(upi) {
-    document.getElementById('purge-' + upi).style.display = 'none';
+  function cancelPurge(slug) {
+    document.getElementById('purge-' + slug).style.display = 'none';
   }
-  function executePurge(upi) {
-    // Remove from deleted list
-    var deleted = [];
-    try { deleted = JSON.parse(localStorage.getItem(DELETED_KEY) || '[]'); } catch(e) {}
-    deleted = deleted.filter(function(d) { return d !== upi; });
-    localStorage.setItem(DELETED_KEY, JSON.stringify(deleted));
-
-    // Remove from archive
-    var archive = loadArchive();
-    delete archive[upi];
-    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(archive));
-
-    // Also remove from IMALI_ADDED_PARCELS if it came from there
-    try {
-      var added = JSON.parse(localStorage.getItem('IMALI_ADDED_PARCELS') || '[]');
-      added = added.filter(function(p) { return p.upi !== upi; });
-      localStorage.setItem('IMALI_ADDED_PARCELS', JSON.stringify(added));
-    } catch(e) {}
-
-    showToast('Parcel data permanently erased');
-    render();
+  function executePurge(docId) {
+    imaliDB.deleteParcel(docId)
+      .then(function () { return imaliDB.getArchived(); })
+      .then(function (arr) { render(arr); showToast('Parcel data permanently erased'); })
+      .catch(function (err) { alert('Error: ' + err.message); });
   }
 
   // ── Toast ────────────────────────────────────────────────────────────────────
@@ -363,7 +325,14 @@
   }
 
   // ── Init ─────────────────────────────────────────────────────────────────────
-  render();
+  document.getElementById('archiveCountBadge').textContent = 'Loading…';
+  imaliDB.ready
+    .then(function () { return imaliDB.getArchived(); })
+    .then(function (arr) { render(arr); })
+    .catch(function (err) {
+      document.getElementById('archiveCountBadge').textContent = 'Error loading archive';
+      console.error(err);
+    });
 </script>
 </body>
 </html>
