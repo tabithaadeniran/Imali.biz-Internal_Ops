@@ -1001,6 +1001,7 @@ body.tool-active .leaflet-container { cursor: crosshair !important; }
 <!-- esri-leaflet: bridges Leaflet to ArcGIS REST services (dynamicMapLayer, featureLayer, etc.) -->
 <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
 <script src="data/pipeline.js"></script>
+<script src="data/boundaries.js"></script>
 <script src="data/db.js"></script>
 <script src="data/user-overrides.js"></script>
 <script>
@@ -2199,6 +2200,70 @@ function buildPipelineGeoJSON() {
       });
     }
   }).addTo(group);
+
+  // Render pipeline parcels that have boundaries in PIPELINE_BOUNDARIES but not PIPELINE_GEOJSON
+  var geojsonUpis = new Set(
+    (PIPELINE_GEOJSON.features || []).map(function(f) { return f.properties && f.properties.upi; })
+  );
+  if (typeof PIPELINE_BOUNDARIES !== 'undefined') {
+    Object.keys(PIPELINE_PRICES).forEach(function(upi) {
+      if (geojsonUpis.has(upi)) return; // already rendered above
+      var bd = PIPELINE_BOUNDARIES[upi];
+      if (!bd || !bd.ring || bd.ring.length < 3) return;
+
+      var meta = PIPELINE_PRICES[upi];
+      var area = bd.size || 0;
+      var zone = meta.zone || '';
+      var note = meta.note || '';
+      var pill = [zone, note].filter(Boolean).join(' · ') || 'land';
+      var loc  = [bd.sector, bd.district].filter(Boolean)
+                   .map(function(s){ return s.charAt(0).toUpperCase()+s.slice(1); }).join(', ');
+      var landPerM2 = (area && meta.price) ? Math.round(meta.price/area).toLocaleString()+' RWF' : null;
+
+      var popup = '<div class="parcel-popup">'
+        + '<div class="parcel-popup-type-pill">'+pill+'</div>'
+        + '<div class="parcel-popup-name">'+upi+'</div>'
+        + '<div class="parcel-popup-loc">📍 '+loc+'</div>'
+        + '<div class="parcel-popup-grid">'
+        +   '<div class="parcel-popup-kv"><span class="parcel-popup-k">Plot Area</span><span class="parcel-popup-v">'+fmtA(area)+'</span></div>'
+        +   '<div class="parcel-popup-kv"><span class="parcel-popup-k">Asking Price</span><span class="parcel-popup-v">'+fmtM(meta.price)+'</span></div>'
+        +   (landPerM2 ? '<div class="parcel-popup-kv"><span class="parcel-popup-k">Land / m²</span><span class="parcel-popup-v">'+landPerM2+'</span></div>' : '')
+        + '</div>'
+        + '<div class="parcel-popup-footer">'
+        +   '<span style="font-size:0.6rem;padding:0.16rem 0.5rem;border-radius:2rem;background:'+sc+'1a;border:1px solid '+sc+'44;color:'+sc+'">Under Review</span>'
+        + '</div>'
+        + '<div class="parcel-popup-actions">'
+        +   '<a class="parcel-popup-btn parcel-popup-btn-de" href="design-engine.html?upi='+encodeURIComponent(upi)+'&name='+encodeURIComponent(upi)+'&area='+area+'&price='+(meta.price||'')+'&zone='+encodeURIComponent(zone)+'&district='+encodeURIComponent(bd.district||'')+'">📐 Design Engine</a>'
+        +   '<a class="parcel-popup-btn parcel-popup-btn-feaso" href="feasibility.html?upi='+encodeURIComponent(upi)+'&name='+encodeURIComponent(upi)+'&area='+area+'&price='+(meta.price||'')+'&zone='+encodeURIComponent(zone)+'">📊 Feasibility</a>'
+        + '</div>'
+        + '</div>';
+
+      // Polygon boundary
+      L.geoJSON({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [bd.ring] }, properties: {} }, {
+        renderer: CANVAS_RENDERER,
+        style: { color: mc, weight: 1.8, opacity: 0.85, fillColor: mc, fillOpacity: 0.08 },
+      }).bindPopup(popup, { maxWidth: 300, className: 'imali-popup' }).addTo(group);
+
+      // Centroid glowing dot
+      var sumLat = 0, sumLng = 0;
+      bd.ring.forEach(function(c) { sumLng += c[0]; sumLat += c[1]; });
+      var centroid = [sumLat / bd.ring.length, sumLng / bd.ring.length];
+      var dot = L.marker(centroid, { icon: markerIcon })
+        .bindPopup(popup, { maxWidth: 300, className: 'imali-popup' })
+        .addTo(group);
+
+      PARCEL_SEARCH_INDEX.push({
+        label: upi,
+        sub:   loc,
+        badge: pill,
+        ll:    centroid,
+        zoom:  17,
+        tags:  [upi, bd.cell, bd.sector, bd.district, note, zone]
+                 .filter(Boolean).map(function(s){ return s.toLowerCase(); }),
+        open:  (function(d) { return function() { d.openPopup(); }; })(dot),
+      });
+    });
+  }
 
   return group;
 }

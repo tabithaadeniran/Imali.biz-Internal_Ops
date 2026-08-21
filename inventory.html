@@ -279,8 +279,9 @@
     color: #fff;
   }
   .modal-btn:hover { opacity: 0.88; transform: translateY(-2px); }
-  .modal-btn-design { background: linear-gradient(135deg, var(--terracotta), #a0391a); }
-  .modal-btn-feaso  { background: linear-gradient(135deg, #2e74b5, #1a4d80); }
+  .modal-btn-design   { background: linear-gradient(135deg, var(--terracotta), #a0391a); }
+  .modal-btn-feaso    { background: linear-gradient(135deg, #2e74b5, #1a4d80); }
+  .modal-btn-publish  { background: linear-gradient(135deg, #2e8b57, #155232); }
   .modal-btn-icon { font-size: 1rem; }
 
   /* light mode modal */
@@ -300,6 +301,70 @@
 
   .modal-btn-edit   { background: linear-gradient(135deg, #1e6b42, #155232); }
   .modal-btn-delete { background: linear-gradient(135deg, #92400e, #5c2d0a); }
+
+  /* ── Publish chip (inline badge) ─── */
+  .publish-chip {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+    background: rgba(76,175,130,0.12); color: #4caf7d;
+    border: 1px solid rgba(76,175,130,0.25); border-radius: 999px;
+    padding: 0.25rem 0.65rem; cursor: pointer; transition: background 0.15s;
+    font-family: 'DM Sans', sans-serif; white-space: nowrap;
+  }
+  .publish-chip:hover { background: rgba(76,175,130,0.22); }
+  [data-theme="light"] .publish-chip { background: rgba(46,139,87,0.08); color: #1e6b42; border-color: rgba(46,139,87,0.2); }
+
+  /* ── Publish panel ─── */
+  .publish-panel {
+    display: none; margin-top: 1rem;
+    background: rgba(76,175,130,0.04); border: 1px solid rgba(76,175,130,0.15);
+    border-radius: 14px; padding: 1.25rem 1.25rem 1rem;
+  }
+  .publish-panel.open { display: block; }
+  [data-theme="light"] .publish-panel { background: rgba(46,139,87,0.04); border-color: rgba(46,139,87,0.15); }
+  .pub-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #4caf7d; margin-bottom: 1rem; }
+  [data-theme="light"] .pub-title { color: #1e6b42; }
+  .pub-field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.85rem; }
+  .pub-label { font-size: 0.63rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; color: rgba(245,240,232,0.4); }
+  [data-theme="light"] .pub-label { color: rgba(10,10,15,0.45); }
+  .pub-input, .pub-select, .pub-textarea {
+    background: rgba(245,240,232,0.04); border: 1px solid rgba(245,240,232,0.1);
+    border-radius: 0.55rem; padding: 0.6rem 0.8rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--cream); outline: none;
+    transition: border-color 0.2s;
+  }
+  .pub-input:focus, .pub-select:focus, .pub-textarea:focus { border-color: rgba(76,175,130,0.4); }
+  .pub-input::placeholder, .pub-textarea::placeholder { color: rgba(245,240,232,0.2); }
+  .pub-textarea { resize: vertical; min-height: 70px; line-height: 1.45; }
+  [data-theme="light"] .pub-input, [data-theme="light"] .pub-select, [data-theme="light"] .pub-textarea {
+    background: rgba(10,10,15,0.03); border-color: rgba(10,10,15,0.1); color: var(--ink);
+  }
+  [data-theme="light"] .pub-input::placeholder, [data-theme="light"] .pub-textarea::placeholder { color: rgba(10,10,15,0.25); }
+  .pub-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .pub-featured-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.85rem; cursor: pointer; }
+  .pub-featured-box { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid rgba(212,168,50,0.4); background: transparent; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+  .pub-featured-box.checked { background: var(--gold); border-color: var(--gold); }
+  .pub-featured-box.checked::after { content: '✓'; font-size: 10px; color: #fff; font-weight: 700; }
+  .pub-featured-label { font-size: 0.78rem; color: rgba(245,240,232,0.6); }
+  [data-theme="light"] .pub-featured-label { color: rgba(10,10,15,0.55); }
+  .pub-hint { font-size: 0.68rem; color: rgba(245,240,232,0.3); margin-top: 0.1rem; }
+  [data-theme="light"] .pub-hint { color: rgba(10,10,15,0.35); }
+  .pub-submit-row { display: flex; gap: 0.75rem; align-items: center; margin-top: 0.5rem; }
+  .pub-btn {
+    background: linear-gradient(135deg, #2e8b57, #155232); border: none;
+    border-radius: 0.65rem; padding: 0.65rem 1.4rem; color: #fff;
+    font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .pub-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .pub-btn:not(:disabled):hover { opacity: 0.88; }
+  .pub-cancel { font-size: 0.78rem; color: rgba(245,240,232,0.35); cursor: pointer; transition: color 0.15s; background: none; border: none; }
+  .pub-cancel:hover { color: rgba(245,240,232,0.7); }
+  [data-theme="light"] .pub-cancel { color: rgba(10,10,15,0.35); }
+  .pub-success { text-align: center; padding: 1.25rem 0.5rem; }
+  .pub-success-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .pub-success-msg { font-size: 0.85rem; color: #4caf7d; font-weight: 600; margin-bottom: 0.25rem; }
+  .pub-success-sub { font-size: 0.75rem; color: rgba(245,240,232,0.4); }
   .modal-manage-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.6rem; }
 
   .modal-delete-confirm {
@@ -407,6 +472,27 @@
   .lb-nav:hover { background: rgba(255,255,255,0.22); }
   .lb-prev { left: 1.25rem; }
   .lb-next { right: 1.25rem; }
+
+  /* ─── Source toggle ──────────────────────────────────────────────────── */
+  .source-toggle { display: flex; gap: 3px; background: rgba(245,240,232,0.05); border: 1px solid rgba(245,240,232,0.08); border-radius: 8px; padding: 3px; flex-shrink: 0; }
+  .src-btn { padding: 0.3rem 0.85rem; border: none; border-radius: 6px; background: transparent; color: rgba(245,240,232,0.45); font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .src-btn.active { background: var(--gold); color: #000; }
+  .src-btn:not(.active):hover { background: rgba(245,240,232,0.08); color: rgba(245,240,232,0.8); }
+  [data-theme="light"] .source-toggle { background: rgba(10,10,15,0.04); border-color: rgba(10,10,15,0.1); }
+  [data-theme="light"] .src-btn { color: rgba(10,10,15,0.45); }
+  [data-theme="light"] .src-btn.active { background: var(--gold); color: #000; }
+  [data-theme="light"] .src-btn:not(.active):hover { background: rgba(10,10,15,0.07); color: rgba(10,10,15,0.7); }
+
+  /* ─── Listing card category stripe colours ───────────────────────────── */
+  .stripe-buy-land        { background: linear-gradient(90deg, #4caf7d, #3aaa65); }
+  .stripe-buy-home        { background: linear-gradient(90deg, #2196f3, #1565c0); }
+  .stripe-off-plan-buy    { background: linear-gradient(90deg, #9c27b0, #6a1b80); }
+  .stripe-off-plan-invest { background: linear-gradient(90deg, #7b1fa2, #4a148c); }
+  .stripe-invest-full     { background: linear-gradient(90deg, #d4a832, #a07820); }
+  .stripe-invest-fractional { background: linear-gradient(90deg, #ff9800, #e65100); }
+
+  /* ─── Trust score bars (listing modal) ───────────────────────────────── */
+  .modal-trust-section { margin-top: 1.25rem; }
 </style>
 </head>
 <body>
@@ -449,31 +535,51 @@
 
   <div class="filter-section">
     <div class="filter-inner">
-      <input class="filter-input" id="searchInput" type="text" placeholder="Search by name or location…">
+      <div class="source-toggle" id="sourceToggle">
+        <button class="src-btn active" data-src="all">All</button>
+        <button class="src-btn" data-src="parcels">Internal Listings</button>
+        <button class="src-btn" data-src="listings">Public Listings</button>
+      </div>
+      <input class="filter-input" id="searchInput" type="text" placeholder="Search by title, name or location…">
       <select class="filter-select" id="districtFilter">
         <option value="">All Districts</option>
       </select>
       <select class="filter-select" id="typeFilter">
         <option value="">All Types</option>
-        <option value="residential">Residential</option>
-        <option value="commercial">Commercial</option>
-        <option value="mixed-use">Mixed-Use</option>
+        <optgroup label="Parcel Types">
+          <option value="residential">Residential</option>
+          <option value="commercial">Commercial</option>
+          <option value="mixed-use">Mixed-Use</option>
+        </optgroup>
+        <optgroup label="Listing Categories">
+          <option value="buy-land">Land (Buy)</option>
+          <option value="buy-home">Homes (Buy)</option>
+          <option value="off-plan">Off-plan</option>
+          <option value="invest-full">Full Asset</option>
+          <option value="invest-fractional">Fractional</option>
+        </optgroup>
       </select>
       <select class="filter-select" id="statusFilter">
         <option value="">All Statuses</option>
-        <option value="listed">Listed</option>
-        <option value="under_review">Under Review</option>
-        <option value="pending">Pending</option>
+        <optgroup label="Parcels">
+          <option value="listed">Listed</option>
+          <option value="under_review">Under Review</option>
+          <option value="pending">Pending</option>
+        </optgroup>
+        <optgroup label="Listings">
+          <option value="live">Live</option>
+          <option value="draft">Draft</option>
+        </optgroup>
       </select>
       <span class="filter-count" id="filterCount"></span>
       <a href="archived-parcels.html" class="btn-archive-link">Archive</a>
-      <a href="add-parcel.html" class="btn-add-parcel">+ Add Parcel</a>
+      <a href="add-parcel.html" class="btn-add-parcel">+ Add Internal Listing</a>
     </div>
   </div>
 
   <div class="main">
     <div class="section-heading reveal">
-      Parcel Cards
+      Inventory
       <span id="cardSubCount" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.72rem;"></span>
     </div>
     <div class="cards-grid" id="cardsGrid"></div>
@@ -498,6 +604,7 @@
                 <th class="sortable" data-col="leverage_ratio">Leverage <span class="sort-icon">⇅</span></th>
                 <th class="sortable" data-col="avg_readiness">Readiness <span class="sort-icon">⇅</span></th>
                 <th>Status</th>
+                <th>Source</th>
               </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -541,12 +648,115 @@
 
       <div class="modal-badges" id="modalBadges"></div>
       <div class="modal-grid" id="modalGrid"></div>
-      <hr class="modal-divider">
-      <div class="modal-readiness-title">Development Readiness — by Dimension</div>
-      <div class="modal-readiness-grid" id="modalReadiness"></div>
+      <div id="modalDynamicSection"></div>
+      <div id="modalReadinessSection">
+        <hr class="modal-divider">
+        <div class="modal-readiness-title">Development Readiness — by Dimension</div>
+        <div class="modal-readiness-grid" id="modalReadiness"></div>
+      </div>
       <hr class="modal-divider">
       <div class="modal-actions" id="modalActions"></div>
       <div class="modal-manage-row" id="modalManageRow"></div>
+
+      <!-- Publish to public site panel (parcels only) -->
+      <div class="publish-panel" id="publishPanel">
+        <div class="pub-title">↑ Publish to Public Site</div>
+        <div id="publishPanelBody">
+          <div class="pub-field">
+            <span class="pub-label">Public Category <span style="color:#ef5350">*</span></span>
+            <select class="pub-select" id="pub_category">
+              <option value="">Choose where to list this…</option>
+              <option value="buy-land">Buy — Land</option>
+              <option value="buy-home">Buy — Home / Apartment</option>
+              <option value="invest">Invest</option>
+            </select>
+            <span class="pub-hint">This controls which page(s) it appears on the public site.</span>
+          </div>
+          <!-- Invest sub-types: shown when Invest selected -->
+          <div id="pub_invest_types" style="display:none">
+            <div class="pub-featured-row" onclick="togglePubInvestFull()">
+              <div class="pub-featured-box" id="pub_ifull_box"></div>
+              <span class="pub-featured-label">🏦 Full Asset — complete ownership investment</span>
+            </div>
+            <div class="pub-featured-row" onclick="togglePubInvestFrac()">
+              <div class="pub-featured-box" id="pub_ifrac_box"></div>
+              <span class="pub-featured-label">📊 Fractional — co-invest from RWF 75,000</span>
+            </div>
+          </div>
+          <div class="pub-featured-row" onclick="togglePubOffPlan()">
+            <div class="pub-featured-box" id="pub_offplan_box"></div>
+            <span class="pub-featured-label">🏗 Off-plan listing — construction not yet complete</span>
+          </div>
+          <div class="pub-field">
+            <span class="pub-label">Listing Title <span style="color:#ef5350">*</span></span>
+            <input class="pub-input" id="pub_title" type="text" placeholder="e.g. Gisozi Ruhango — Development Plot">
+          </div>
+          <div class="pub-row2">
+            <div class="pub-field">
+              <span class="pub-label">Price (RWF) <span style="color:#ef5350">*</span></span>
+              <input class="pub-input" id="pub_price" type="number" min="0" placeholder="e.g. 120000000">
+              <span class="pub-hint" id="pub_price_hint"></span>
+            </div>
+            <div class="pub-field">
+              <span class="pub-label">Status</span>
+              <select class="pub-select" id="pub_status">
+                <option value="live">Live (visible now)</option>
+                <option value="draft">Draft (hidden)</option>
+              </select>
+            </div>
+          </div>
+          <!-- Full Asset fields: yield + rental -->
+          <div id="pub_full_fields" style="display:none">
+            <div class="pub-row2">
+              <div class="pub-field">
+                <span class="pub-label">Projected Yield (% p.a.) <span style="color:#ef5350">*</span></span>
+                <input class="pub-input" id="pub_yield_pct" type="number" min="0" max="100" step="0.1" placeholder="e.g. 18">
+              </div>
+              <div class="pub-field">
+                <span class="pub-label">Rental Income (RWF/month) <span style="opacity:0.6;font-size:0.7rem">(opt.)</span></span>
+                <input class="pub-input" id="pub_rental_rwf" type="number" min="0" placeholder="Monthly rent">
+              </div>
+            </div>
+          </div>
+          <!-- Fractional fields: min invest + total raise + payout -->
+          <div id="pub_frac_fields" style="display:none">
+            <div class="pub-row2">
+              <div class="pub-field">
+                <span class="pub-label">Min Investment (RWF) <span style="color:#ef5350">*</span></span>
+                <input class="pub-input" id="pub_min_invest" type="number" min="0" placeholder="e.g. 75000">
+              </div>
+              <div class="pub-field">
+                <span class="pub-label">Total Raise (RWF) <span style="color:#ef5350">*</span></span>
+                <input class="pub-input" id="pub_total_raise" type="number" min="0" placeholder="Investment target">
+              </div>
+            </div>
+            <div class="pub-field">
+              <span class="pub-label">Payout Schedule</span>
+              <select class="pub-select" id="pub_payout">
+                <option value="">Not specified</option>
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="biannual">Bi-annual</option>
+                <option value="annual">Annual</option>
+                <option value="on_exit">On exit only</option>
+              </select>
+            </div>
+          </div>
+          <div class="pub-field">
+            <span class="pub-label">Short Description</span>
+            <textarea class="pub-textarea" id="pub_description" placeholder="Brief overview for buyers and investors…"></textarea>
+          </div>
+          <div class="pub-featured-row" onclick="togglePubFeatured()">
+            <div class="pub-featured-box" id="pub_featured_box"></div>
+            <span class="pub-featured-label">Mark as Featured — appears in hero carousels and top of listings</span>
+          </div>
+          <div class="pub-submit-row">
+            <button class="pub-btn" id="pubSubmitBtn" onclick="submitPublish()">Publish Listing →</button>
+            <button class="pub-cancel" onclick="hidePublishPanel()">Cancel</button>
+          </div>
+        </div>
+      </div>
+
       <div class="modal-delete-confirm" id="modalDeleteConfirm" style="display:none">
         <div class="delete-warn-icon">📦</div>
         <div class="delete-warn-text">
@@ -573,6 +783,7 @@
 
 <script src="data.js"></script>
 <script src="data/db.js"></script>
+<script src="data/listings-db.js"></script>
 <script>
   // ─── Cursor ──────────────────────────────────────────────────────────────
   const cursor = document.querySelector('.cursor');
@@ -616,154 +827,280 @@
     return '#ef5350';
   }
 
-  // ─── Data (waits for Firestore) ───────────────────────────────────────────
+  // ─── Data state ──────────────────────────────────────────────────────────
+  var _sourceFilter = 'all';
+  var _allParcels = [], _allListings = [];
+  var parcelsById = {}, listingsById = {};
   var sortCol = null, sortDir = 'asc';
-  var parcelsById = {};
 
-  imaliDB.ready.then(function () {
-  let parcels = window.parcels || [];
-
-  // Build parcelsById for modal + delete lookups
-  parcels.forEach(function (p) { parcelsById[p.id] = p; });
-
-  // ─── Hero stats ─────────────────────────────────────────────────────────
-  const s = getSummary();
-  document.getElementById('heroStats').innerHTML = [
-    { val: s.totalParcels, lbl: 'Total Parcels' },
-    { val: fmtNum(s.totalSizeSqm) + ' sqm', lbl: 'Total Land Area' },
-    { val: fmtPrice(s.totalLandValue), lbl: 'Total Land Value' }
-  ].map(x => `<div><div class="hero-stat-val">${x.val}</div><div class="hero-stat-lbl">${x.lbl}</div></div>`).join('');
-
-  // ─── Populate district filter ─────────────────────────────────────────────
-  const districts = [...new Set(parcels.map(p => p.district))].sort();
-  const distSel = document.getElementById('districtFilter');
-  districts.forEach(d => { const o = document.createElement('option'); o.value = d; o.textContent = d; distSel.appendChild(o); });
-
-  // ─── Filter state ─────────────────────────────────────────────────────────
-  let sortCol = null, sortDir = 'asc';
-
-  function getFiltered() {
-    const q  = document.getElementById('searchInput').value.toLowerCase();
-    const di = document.getElementById('districtFilter').value;
-    const ty = document.getElementById('typeFilter').value;
-    const st = document.getElementById('statusFilter').value;
-    return parcels.filter(p =>
-      (!q  || p.name.toLowerCase().includes(q) || p.location.toLowerCase().includes(q)) &&
-      (!di || p.district === di) &&
-      (!ty || p.type === ty) &&
-      (!st || p.status === st)
-    );
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // ─── Source toggle ────────────────────────────────────────────────────────
+  document.querySelectorAll('.src-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.src-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      _sourceFilter = btn.dataset.src;
+      renderAll();
+    });
+  });
+
+  // ─── Category label / colour maps ────────────────────────────────────────
+  var CAT_LABEL = {
+    'buy-land':          'Land',
+    'buy-home':          'Homes',
+    'off-plan-buy':      'Off-plan (Buy)',
+    'off-plan-invest':   'Off-plan (Invest)',
+    'invest-full':       'Full Asset',
+    'invest-fractional': 'Fractional'
+  };
+  var CAT_COLOR = {
+    'buy-land':          '#4caf7d',
+    'buy-home':          '#2196f3',
+    'off-plan-buy':      '#9c27b0',
+    'off-plan-invest':   '#7b1fa2',
+    'invest-full':       '#d4a832',
+    'invest-fractional': '#ff9800'
+  };
+  var PARCEL_TYPES  = ['residential', 'commercial', 'mixed-use'];
+  var LISTING_TYPES = ['buy-land', 'buy-home', 'off-plan', 'invest-full', 'invest-fractional'];
+
+  function hexToRgb(hex) {
+    var r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return r ? parseInt(r[1],16)+','+parseInt(r[2],16)+','+parseInt(r[3],16) : '128,128,128';
+  }
+
+  // ─── Combined boot ────────────────────────────────────────────────────────
+  Promise.all([imaliDB.ready, listingsDB.ready]).then(function(results) {
+    _allParcels  = results[0] || [];
+    _allListings = listingsDB.getListings();
+    _allParcels.forEach(function(p)  { p._source = 'parcel';  parcelsById[p.id]      = p; });
+    _allListings.forEach(function(l) { l._source = 'listing'; listingsById[l._docId] = l; });
+
+    // ─── Hero stats ──────────────────────────────────────────────────────
+    var s = getSummary();
+    var liveCnt = _allListings.filter(function(l){return l.status==='live';}).length;
+    document.getElementById('heroStats').innerHTML = [
+      { val: s.totalParcels, lbl: 'Parcels' },
+      { val: liveCnt,        lbl: 'Live Listings' },
+      { val: fmtNum(s.totalSizeSqm) + ' sqm', lbl: 'Land Area' }
+    ].map(function(x) {
+      return '<div><div class="hero-stat-val">'+x.val+'</div><div class="hero-stat-lbl">'+x.lbl+'</div></div>';
+    }).join('');
+
+    // ─── Populate district filter ─────────────────────────────────────────
+    var allDists = Array.from(new Set(
+      _allParcels.map(function(p){return p.district;}).concat(_allListings.map(function(l){return l.district;})).filter(Boolean)
+    )).sort();
+    var distSel = document.getElementById('districtFilter');
+    distSel.querySelectorAll('option:not([value=""])').forEach(function(o){o.remove();});
+    allDists.forEach(function(d) { var o=document.createElement('option'); o.value=d; o.textContent=d; distSel.appendChild(o); });
+
+    // ─── Footer date ────────────────────────────────────────────────────
+    document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+
+    // ─── Sort ────────────────────────────────────────────────────────────
+    document.querySelectorAll('th.sortable').forEach(function(th) {
+      th.addEventListener('click', function() {
+        var col = th.dataset.col;
+        if (sortCol === col) sortDir = sortDir==='asc'?'desc':'asc';
+        else { sortCol=col; sortDir='asc'; }
+        document.querySelectorAll('th.sortable').forEach(function(h){
+          h.classList.remove('sort-asc','sort-desc');
+          h.querySelector('.sort-icon').textContent = '⇅';
+        });
+        th.classList.add('sort-'+sortDir);
+        th.querySelector('.sort-icon').textContent = sortDir==='asc'?'▲':'▼';
+        renderAll();
+      });
+    });
+
+    // ─── Filter events ───────────────────────────────────────────────────
+    ['searchInput','districtFilter','typeFilter','statusFilter'].forEach(function(id){
+      document.getElementById(id).addEventListener('input', renderAll);
+    });
+
+    renderAll();
+  });
+
+  // ─── Filter ───────────────────────────────────────────────────────────────
+  function getFiltered() {
+    var q  = document.getElementById('searchInput').value.toLowerCase();
+    var di = document.getElementById('districtFilter').value;
+    var ty = document.getElementById('typeFilter').value;
+    var st = document.getElementById('statusFilter').value;
+
+    var showParcels  = _sourceFilter !== 'listings';
+    var showListings = _sourceFilter !== 'parcels';
+    if (ty && PARCEL_TYPES.indexOf(ty)  !== -1) showListings = false;
+    if (ty && LISTING_TYPES.indexOf(ty) !== -1) showParcels  = false;
+
+    var items = [];
+    if (showParcels) {
+      items = items.concat(_allParcels.filter(function(p) {
+        return (!q  || p.name.toLowerCase().includes(q) || (p.location||'').toLowerCase().includes(q)) &&
+               (!di || p.district===di) && (!ty || p.type===ty) && (!st || p.status===st);
+      }));
+    }
+    if (showListings) {
+      items = items.concat(_allListings.filter(function(l) {
+        var cat = l.listing_category || '';
+        var catMatch = !ty || (ty==='off-plan' ? cat.startsWith('off-plan') : cat===ty);
+        var q2 = [(l.title||''),(l.district||''),(l.sector||'')].join(' ').toLowerCase();
+        return (!q || q2.includes(q)) && (!di || l.district===di) && catMatch && (!st || l.status===st);
+      }));
+    }
+    return items;
+  }
+
+  // ─── Render all ───────────────────────────────────────────────────────────
   function renderAll() {
-    let data = getFiltered();
+    var data = getFiltered();
     if (sortCol) {
-      data = [...data].sort((a, b) => {
-        const av = a[sortCol], bv = b[sortCol];
-        const cmp = typeof av === 'string' ? av.localeCompare(bv) : av - bv;
-        return sortDir === 'asc' ? cmp : -cmp;
+      data = data.slice().sort(function(a,b) {
+        var av=a[sortCol], bv=b[sortCol];
+        av = (av===undefined||av===null) ? '' : av;
+        bv = (bv===undefined||bv===null) ? '' : bv;
+        var cmp = typeof av==='string' ? av.localeCompare(String(bv)) : (av-bv);
+        return sortDir==='asc' ? cmp : -cmp;
       });
     }
     renderCards(data);
     renderTable(data);
-    const n = data.length;
-    document.getElementById('filterCount').textContent = `${n} of ${parcels.length} parcels`;
-    document.getElementById('cardSubCount').textContent = `${n} parcel${n !== 1 ? 's' : ''}`;
+    var total = _allParcels.length + _allListings.length;
+    document.getElementById('filterCount').textContent = data.length+' of '+total+' items';
+    document.getElementById('cardSubCount').textContent = data.length+' item'+(data.length!==1?'s':'');
   }
 
   // ─── Render cards ─────────────────────────────────────────────────────────
   function renderCards(data) {
-    const dims = ['legal','physical','infrastructure','urban','community','tokenisation'];
-    const dimShort = ['Legal','Phys','Infra','Urban','Comm','Token'];
-    const grid = document.getElementById('cardsGrid');
-    if (!data.length) { grid.innerHTML = '<div class="no-results">No parcels match your filters.</div>'; return; }
-    grid.innerHTML = data.map(p => `
-      <div class="parcel-card reveal" onclick="openModal('${p.id}')" title="Click for details">
-        <div class="card-stripe stripe-${p.type}"></div>
+    var dims = ['legal','physical','infrastructure','urban','community','tokenisation'];
+    var dimShort = ['Legal','Phys','Infra','Urban','Comm','Token'];
+    var grid = document.getElementById('cardsGrid');
+    if (!data.length) { grid.innerHTML='<div class="no-results">No items match your filters.</div>'; return; }
+    grid.innerHTML = data.map(function(item) {
+      if (item._source === 'listing') return buildListingCard(item);
+      var p = item;
+      var safeId = escHtml(p.id);
+      return `<div class="parcel-card reveal" onclick="openModal('${safeId}')" title="Click for details">
+        <div class="card-stripe stripe-${p.type||'residential'}"></div>
         <div class="card-img">
-          <img src="${p.cover_photo || (p.photos && p.photos[0]) || p.image}" alt="${p.name}" loading="lazy">
+          <img src="${escHtml(p.cover_photo||(p.photos&&p.photos[0])||p.image)}" alt="${escHtml(p.name)}" loading="lazy">
           <div class="card-img-overlay"></div>
-          <div class="card-img-badge">
-            <span class="status-pill status-${p.status}">${statusLabel(p.status)}</span>
-          </div>
+          <div class="card-img-badge"><span class="status-pill status-${p.status}">${statusLabel(p.status)}</span></div>
         </div>
         <div class="card-body">
-          <div class="card-header">
-            <div>
-              <div class="card-id">${p.id}</div>
-              <div class="card-name">${p.name}</div>
-              <div class="card-location">📍 ${p.location}</div>
-            </div>
-          </div>
+          <div class="card-header"><div>
+            <div class="card-id">${safeId}</div>
+            <div class="card-name">${escHtml(p.name)}</div>
+            <div class="card-location">📍 ${escHtml(p.location||'')}</div>
+          </div></div>
           <div class="card-metrics">
-            <div>
-              <div class="card-metric-lbl">Land Area</div>
-              <div class="card-metric-val">${fmtNum(p.size_sqm)} sqm</div>
-            </div>
-            <div>
-              <div class="card-metric-lbl">${p.unit_type ? unitTypeLabel(p.unit_type) : 'Units Planned'}</div>
-              <div class="card-metric-val">${p.units_planned || '—'}</div>
-            </div>
-            <div>
-              <div class="card-metric-lbl">Land Price</div>
-              <div class="card-metric-val gold">${fmtPrice(p.land_price_rwf)}</div>
-            </div>
-            <div>
-              <div class="card-metric-lbl">Dev Cost</div>
-              <div class="card-metric-val">${fmtPrice(p.dev_cost_rwf)}</div>
-            </div>
+            <div><div class="card-metric-lbl">Land Area</div><div class="card-metric-val">${fmtNum(p.size_sqm)} sqm</div></div>
+            <div><div class="card-metric-lbl">${p.unit_type?unitTypeLabel(p.unit_type):'Units Planned'}</div><div class="card-metric-val">${p.units_planned||'—'}</div></div>
+            <div><div class="card-metric-lbl">Land Price</div><div class="card-metric-val gold">${fmtPrice(p.land_price_rwf)}</div></div>
+            <div><div class="card-metric-lbl">Dev Cost</div><div class="card-metric-val">${fmtPrice(p.dev_cost_rwf)}</div></div>
           </div>
           <hr class="card-divider">
           <div class="derived-metrics">
-            <div class="derived-item">
-              <div class="derived-val">${fmtNum(p.price_per_sqm)}</div>
-              <div class="derived-lbl">RWF/sqm</div>
-            </div>
-            <div class="derived-item">
-              <div class="derived-val">${p.leverage_ratio}×</div>
-              <div class="derived-lbl">Leverage</div>
-            </div>
-            <div class="derived-item">
-              <div class="derived-val" style="color:${scoreTextColor(p.avg_readiness)}">${p.avg_readiness}%</div>
-              <div class="derived-lbl">Readiness</div>
-            </div>
+            <div class="derived-item"><div class="derived-val">${fmtNum(p.price_per_sqm)}</div><div class="derived-lbl">RWF/sqm</div></div>
+            <div class="derived-item"><div class="derived-val">${p.leverage_ratio}×</div><div class="derived-lbl">Leverage</div></div>
+            <div class="derived-item"><div class="derived-val" style="color:${scoreTextColor(p.avg_readiness)}">${p.avg_readiness}%</div><div class="derived-lbl">Readiness</div></div>
           </div>
           <div class="readiness-section" style="margin-top:1rem;">
             <div class="readiness-label">
               <span class="readiness-title">Development Readiness</span>
               <span class="readiness-score" style="color:${scoreTextColor(p.avg_readiness)}">${p.avg_readiness}/100</span>
             </div>
-            <div class="readiness-segments">
-              ${dims.map(d => `<div class="readiness-seg" style="background:${readinessColor(p.readiness[d])}" title="${d}: ${p.readiness[d]}/100"></div>`).join('')}
-            </div>
-            <div class="readiness-dim-labels">
-              ${dimShort.map(d => `<div class="readiness-dim-lbl">${d}</div>`).join('')}
-            </div>
+            <div class="readiness-segments">${dims.map(function(d){return '<div class="readiness-seg" style="background:'+readinessColor(p.readiness[d])+'" title="'+d+': '+p.readiness[d]+'/100"></div>';}).join('')}</div>
+            <div class="readiness-dim-labels">${dimShort.map(function(d){return '<div class="readiness-dim-lbl">'+d+'</div>';}).join('')}</div>
           </div>
         </div>
         <div class="card-footer-bar">
-          <span class="type-chip type-${p.type}">${p.type}</span>
-          <span class="txt-faint txt-xs">Added ${p.added_date}</span>
+          <span class="type-chip type-${p.type||''}">${p.type||''}</span>
+          <span class="txt-faint txt-xs">Added ${p.added_date||''}</span>
         </div>
+      </div>`;
+    }).join('');
+    document.querySelectorAll('.parcel-card.reveal').forEach(function(r){obs.observe(r);});
+  }
+
+  function buildListingCard(l) {
+    var cat      = l.listing_category || '';
+    var catLabel = CAT_LABEL[cat] || cat;
+    var color    = CAT_COLOR[cat] || '#888';
+    var rgb      = hexToRgb(color);
+    var price    = l.price_rwf ? fmtPrice(l.price_rwf) : (l.min_invest_rwf ? 'Min: '+fmtPrice(l.min_invest_rwf) : '—');
+    var location = [(l.sector||''),(l.district||'')].filter(Boolean).join(', ') || 'Kigali';
+    var docId    = (l._docId||'').replace(/'/g,"\\'");
+    var isFeat   = (l.badges||[]).indexOf('Featured') !== -1;
+    var stLbl    = l.status==='live'?'Live':l.status==='draft'?'Draft':(l.status||'');
+    var badgesHtml = (l.badges||[]).filter(function(b){return b!=='Featured';})
+      .map(function(b){return '<span class="type-chip" style="font-size:0.62rem;padding:0.15rem 0.5rem;">'+escHtml(b)+'</span>';}).join('');
+    var yieldHtml = l.yield_pct
+      ? '<div><div class="card-metric-lbl">Yield</div><div class="card-metric-val">'+l.yield_pct+'%</div></div>'
+      : (l.projected_yield_pct ? '<div><div class="card-metric-lbl">Proj. Yield</div><div class="card-metric-val">'+l.projected_yield_pct+'%</div></div>' : '<div></div>');
+    var bedroomHtml = l.bedrooms
+      ? '<div><div class="card-metric-lbl">Beds</div><div class="card-metric-val">'+l.bedrooms+'</div></div>'
+      : '<div></div>';
+    return `<div class="parcel-card reveal" onclick="openListingModal('${docId}')" title="Click for details" style="border-color:rgba(${rgb},0.18);">
+      <div class="card-stripe stripe-${cat}"></div>
+      <div class="card-img">
+        <img src="${escHtml(l.cover_photo||(l.photos&&l.photos[0])||'images/pexels-bala-5120876.jpg')}" alt="${escHtml(l.title||'')}" loading="lazy">
+        <div class="card-img-overlay"></div>
+        <div class="card-img-badge"><span class="status-pill status-${l.status||''}">${stLbl}</span></div>
+        ${isFeat?`<div style="position:absolute;top:0.6rem;left:0.75rem;background:${color};color:#fff;font-size:0.58rem;font-weight:700;letter-spacing:0.08em;padding:0.2rem 0.55rem;border-radius:20px;">★ Featured</div>`:''}
       </div>
-    `).join('');
-    // Re-observe new reveals
-    document.querySelectorAll('.parcel-card.reveal').forEach(r => obs.observe(r));
+      <div class="card-body">
+        <div class="card-header"><div>
+          <div class="card-id" style="color:${color};">${catLabel}</div>
+          <div class="card-name">${escHtml(l.title||'(Untitled)')}</div>
+          <div class="card-location">📍 ${escHtml(location)}</div>
+        </div></div>
+        <div class="card-metrics">
+          <div><div class="card-metric-lbl">Size</div><div class="card-metric-val">${l.size_sqm?fmtNum(l.size_sqm)+' sqm':'—'}</div></div>
+          <div><div class="card-metric-lbl">${cat.startsWith('invest')?'Min. Invest':'Price'}</div><div class="card-metric-val gold">${price}</div></div>
+          ${bedroomHtml}${yieldHtml}
+        </div>
+        ${badgesHtml?'<hr class="card-divider"><div style="display:flex;flex-wrap:wrap;gap:0.3rem;">'+badgesHtml+'</div>':''}
+      </div>
+      <div class="card-footer-bar">
+        <span class="type-chip" style="background:rgba(${rgb},0.12);color:${color};border-color:rgba(${rgb},0.2);">${catLabel}</span>
+        <span class="txt-faint txt-xs">Public Listing</span>
+      </div>
+    </div>`;
   }
 
   // ─── Render table ─────────────────────────────────────────────────────────
   function renderTable(data) {
-    const tbody = document.getElementById('tableBody');
-    if (!data.length) { tbody.innerHTML = '<tr><td colspan="12" class="no-results">No parcels match your filters.</td></tr>'; return; }
-    tbody.innerHTML = data.map(p => `
-      <tr>
-        <td class="txt-muted txt-sm">${p.id}</td>
-        <td>
-          <div class="txt-primary txt-w5">${p.name}</div>
-          <div class="txt-muted txt-xs">${p.sector}</div>
-        </td>
-        <td>${p.district}</td>
-        <td><span class="type-chip type-${p.type}">${p.type}</span></td>
+    var tbody = document.getElementById('tableBody');
+    if (!data.length) { tbody.innerHTML='<tr><td colspan="13" class="no-results">No items match your filters.</td></tr>'; return; }
+    tbody.innerHTML = data.map(function(item) {
+      if (item._source === 'listing') {
+        var l=item, cat=l.listing_category||'', catLabel=CAT_LABEL[cat]||cat, color=CAT_COLOR[cat]||'#888', rgb=hexToRgb(color);
+        var price=l.price_rwf||l.min_invest_rwf||0;
+        var stLbl=l.status==='live'?'Live':l.status==='draft'?'Draft':(l.status||'');
+        var safeId=(l._docId||'').replace(/'/g,"\\'");
+        return `<tr onclick="openListingModal('${safeId}')" style="cursor:pointer;">
+          <td class="txt-muted txt-sm" style="font-size:0.58rem;">${escHtml((l._docId||'').slice(0,8))}…</td>
+          <td><div class="txt-primary txt-w5">${escHtml(l.title||'(Untitled)')}</div><div class="txt-muted txt-xs">${escHtml(l.sector||'')}</div></td>
+          <td>${escHtml(l.district||'—')}</td>
+          <td><span class="type-chip" style="background:rgba(${rgb},0.12);color:${color};border-color:rgba(${rgb},0.2);font-size:0.62rem;">${catLabel}</span></td>
+          <td>${l.size_sqm?fmtNum(l.size_sqm)+' sqm':'—'}</td>
+          <td style="color:var(--gold);font-family:'Syne',sans-serif;font-weight:600;">${price?fmtPrice(price):'—'}</td>
+          <td class="txt-muted">—</td><td class="txt-muted">—</td><td class="txt-muted">—</td><td class="txt-muted">—</td><td class="txt-muted">—</td>
+          <td><span class="status-pill status-${l.status||''}">${stLbl}</span></td>
+          <td><span class="type-chip" style="font-size:0.6rem;background:rgba(82,130,212,0.1);color:#5282d4;border-color:rgba(82,130,212,0.2);">Listing</span></td>
+        </tr>`;
+      }
+      var p=item;
+      return `<tr>
+        <td class="txt-muted txt-sm">${escHtml(p.id)}</td>
+        <td><div class="txt-primary txt-w5">${escHtml(p.name)}</div><div class="txt-muted txt-xs">${escHtml(p.sector||'')}</div></td>
+        <td>${escHtml(p.district||'')}</td>
+        <td><span class="type-chip type-${p.type||''}">${p.type||''}</span></td>
         <td><span style="font-family:'Syne',sans-serif;font-weight:700;">${fmtNum(p.size_sqm)}</span> sqm</td>
         <td style="color:var(--gold);font-family:'Syne',sans-serif;font-weight:600;">${fmtPrice(p.land_price_rwf)}</td>
         <td>${fmtPrice(p.dev_cost_rwf)}</td>
@@ -772,286 +1109,496 @@
         <td style="font-family:'Syne',sans-serif;font-weight:700;">${p.leverage_ratio}×</td>
         <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:${scoreTextColor(p.avg_readiness)}">${p.avg_readiness}%</span></td>
         <td><span class="status-pill status-${p.status}">${statusLabel(p.status)}</span></td>
-      </tr>
-    `).join('');
+        <td><span class="type-chip" style="font-size:0.6rem;background:rgba(92,203,161,0.1);color:#5ecba1;border-color:rgba(92,203,161,0.2);">Parcel</span></td>
+      </tr>`;
+    }).join('');
   }
 
-  // ─── Sort ─────────────────────────────────────────────────────────────────
-  document.querySelectorAll('th.sortable').forEach(th => {
-    th.addEventListener('click', () => {
-      const col = th.dataset.col;
-      if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-      else { sortCol = col; sortDir = 'asc'; }
-      document.querySelectorAll('th.sortable').forEach(h => {
-        h.classList.remove('sort-asc','sort-desc');
-        h.querySelector('.sort-icon').textContent = '⇅';
-      });
-      th.classList.add('sort-' + sortDir);
-      th.querySelector('.sort-icon').textContent = sortDir === 'asc' ? '▲' : '▼';
-      renderAll();
-    });
-  });
+  // ─── Listing modal ────────────────────────────────────────────────────────
+  function openListingModal(docId) {
+    var l = listingsById[docId];
+    if (!l) return;
+    var cat      = l.listing_category || '';
+    var catLabel = CAT_LABEL[cat] || cat;
+    var color    = CAT_COLOR[cat] || '#888';
+    var rgb      = hexToRgb(color);
+    var price    = l.price_rwf ? fmtPrice(l.price_rwf) : (l.min_invest_rwf ? fmtPrice(l.min_invest_rwf) : '—');
+    var location = [(l.sector||''),(l.district||'')].filter(Boolean).join(', ') || 'Kigali';
 
-  // ─── Filter events ────────────────────────────────────────────────────────
-  ['searchInput','districtFilter','typeFilter','statusFilter'].forEach(id =>
-    document.getElementById(id).addEventListener('input', renderAll)
-  );
+    var stripe = document.getElementById('modalStripe');
+    stripe.className = 'modal-stripe';
+    stripe.style.background = 'linear-gradient(90deg,'+color+','+color+'cc)';
 
-  // ─── Footer date ─────────────────────────────────────────────────────────
-  document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    document.getElementById('modalTitle').textContent = l.title || '(Untitled)';
+    document.getElementById('modalLoc').innerHTML = '📍 ' + escHtml(location);
 
-  renderAll();
+    var photos = (l.photos && l.photos.length) ? l.photos : [];
+    var gallery = document.getElementById('modalPhotoGallery');
+    var fallback = document.getElementById('modalImg');
+    if (photos.length > 0) {
+      _modalPhotos = photos; _modalCurrentPhotoIdx = 0;
+      gallery.style.display = ''; fallback.style.display = 'none';
+      var mainImg = document.getElementById('modalPhotoMain');
+      mainImg.src = photos[0]; mainImg.alt = l.title||'';
+      mainImg.onclick = function(){openLightbox(_modalPhotos,_modalCurrentPhotoIdx);};
+      var strip = document.getElementById('modalPhotoStrip');
+      strip.style.display = photos.length>1?'':'none';
+      strip.innerHTML = photos.map(function(u,i){return '<img class="modal-photo-thumb'+(i===0?' active':'')+'" src="'+escHtml(u)+'" alt="" onclick="modalSelectPhoto(this,'+i+')">';}).join('');
+    } else {
+      _modalPhotos=[]; _modalCurrentPhotoIdx=0;
+      gallery.style.display='none'; fallback.style.display='';
+      fallback.src = l.cover_photo||'images/pexels-bala-5120876.jpg';
+      fallback.alt = l.title||'';
+    }
+    document.getElementById('modalPlansSection').style.display='none';
 
-  // ─── Modal ────────────────────────────────────────────────────────────────
+    var isFeat = (l.badges||[]).indexOf('Featured') !== -1;
+    document.getElementById('modalBadges').innerHTML =
+      '<span class="type-chip" style="background:rgba('+rgb+',0.12);color:'+color+';border-color:rgba('+rgb+',0.2);">'+catLabel+'</span>'+
+      '<span class="status-pill status-'+(l.status||'')+'">'+escHtml(l.status||'')+'</span>'+
+      (isFeat?'<span class="type-chip" style="background:rgba(212,168,50,0.12);color:var(--gold);border-color:rgba(212,168,50,0.2);">★ Featured</span>':'')+
+      (l.upi?'<span class="modal-upi">UPI: '+escHtml(l.upi)+'</span>':'');
+
+    var metrics = [
+      { lbl: cat.startsWith('invest')?'Min. Investment':'Price', val: price, gold: true },
+      { lbl: 'Size', val: l.size_sqm?fmtNum(l.size_sqm)+' sqm':'—', gold: false }
+    ];
+    if (l.bedrooms)        metrics.push({lbl:'Bedrooms',       val:l.bedrooms,                   gold:false});
+    if (l.bathrooms)       metrics.push({lbl:'Bathrooms',      val:l.bathrooms,                  gold:false});
+    if (l.floor_area_sqm)  metrics.push({lbl:'Floor Area',     val:fmtNum(l.floor_area_sqm)+' sqm', gold:false});
+    if (l.yield_pct)       metrics.push({lbl:'Yield',          val:l.yield_pct+'%',              gold:false});
+    if (l.projected_yield_pct) metrics.push({lbl:'Proj. Yield',val:l.projected_yield_pct+'%',   gold:false});
+    if (l.total_raise_rwf) metrics.push({lbl:'Total Raise',    val:fmtPrice(l.total_raise_rwf),  gold:false});
+    if (l.zone)            metrics.push({lbl:'Zone',           val:l.zone,                       gold:false});
+    document.getElementById('modalGrid').innerHTML = metrics.map(function(m){
+      return '<div class="modal-metric"><div class="modal-metric-lbl">'+m.lbl+'</div><div class="modal-metric-val'+(m.gold?' gold':'')+'">'+m.val+'</div></div>';
+    }).join('');
+
+    // Trust scores + description in dynamic section (replaces readiness)
+    document.getElementById('modalReadinessSection').style.display = 'none';
+    var trustHtml = '';
+    var ts=l.trust_seller||0, tp=l.trust_property||0;
+    if (l.trust_seller!==undefined || l.trust_property!==undefined) {
+      var tc=function(v){return v>=75?'#4caf7d':v>=50?'#d4a832':'#ef5350';};
+      trustHtml='<hr class="modal-divider"><div class="modal-readiness-title">Trust Scores</div>'+
+        '<div class="modal-readiness-grid">'+
+          '<div class="modal-dim"><span class="modal-dim-label">Seller Trust</span><div class="modal-dim-bar-wrap"><div class="modal-dim-bar" style="width:'+ts+'%;background:'+tc(ts)+'"></div></div><span class="modal-dim-score" style="color:'+tc(ts)+'">'+ts+'</span></div>'+
+          '<div class="modal-dim"><span class="modal-dim-label">Property Trust</span><div class="modal-dim-bar-wrap"><div class="modal-dim-bar" style="width:'+tp+'%;background:'+tc(tp)+'"></div></div><span class="modal-dim-score" style="color:'+tc(tp)+'">'+tp+'</span></div>'+
+        '</div>';
+    }
+    var notesHtml = l.description?'<p style="margin-top:1rem;font-size:0.82rem;color:rgba(245,240,232,0.6);line-height:1.6;">'+escHtml(l.description)+'</p>':'';
+    document.getElementById('modalDynamicSection').innerHTML = trustHtml + notesHtml;
+
+    document.getElementById('modalActions').innerHTML =
+      '<a href="../../Imali.biz Website/admin/add-listing.html?edit='+encodeURIComponent(docId)+'" class="modal-btn modal-btn-edit" target="_blank">'+
+        '<span class="modal-btn-icon">✏️</span> Edit in Admin</a>'+
+      '<a href="../../Imali.biz Website/admin/manage-listings.html" class="modal-btn modal-btn-feaso" target="_blank">'+
+        '<span class="modal-btn-icon">📋</span> Manage Listings</a>';
+
+    var safeDocId = docId.replace(/'/g,"\\'");
+    document.getElementById('modalManageRow').innerHTML =
+      l.status==='archived'
+        ? '<button class="modal-btn" style="background:linear-gradient(135deg,#1e6b42,#155232);" onclick="restoreListing(\''+safeDocId+'\')"><span class="modal-btn-icon">♻️</span> Restore Listing</button>'
+        : '<button class="modal-btn modal-btn-delete" onclick="promptArchiveListing(\''+safeDocId+'\')"><span class="modal-btn-icon">📦</span> Archive Listing</button>';
+
+    document.getElementById('modalDeleteConfirm').style.display='none';
+    document.getElementById('modalManageRow').style.display='';
+    document.getElementById('btnConfirmDel').textContent='Yes, Archive';
+    _pendingDeleteId=null; _pendingDeleteSource='listing';
+    document.getElementById('parcelModal').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+
+  function promptArchiveListing(docId) {
+    _pendingDeleteId=docId; _pendingDeleteSource='listing';
+    document.getElementById('modalManageRow').style.display='none';
+    var el=document.getElementById('modalDeleteConfirm');
+    el.querySelector('.delete-warn-text').innerHTML='Archive this listing? It will be hidden from the public site but kept in the database and can be restored at any time.';
+    document.getElementById('btnConfirmDel').textContent='Yes, Archive';
+    el.style.display='block';
+    el.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+
+  function restoreListing(docId) {
+    listingsDB.restore(docId).then(function(){ return listingsDB.reload(); })
+      .then(function(newL) {
+        _allListings=newL; listingsById={};
+        _allListings.forEach(function(l){l._source='listing'; listingsById[l._docId]=l;});
+        closeModal(); renderAll();
+      }).catch(function(err){ alert('Error restoring: '+err.message); });
+  }
+
+  // ─── Parcel modal ─────────────────────────────────────────────────────────
   var _modalPhotos = [], _modalCurrentPhotoIdx = 0, _modalPlanImages = [];
 
-  const DIM_LABELS = {
+  var DIM_LABELS = {
     legal: 'Legal & Title', physical: 'Physical', infrastructure: 'Infrastructure',
     urban: 'Urban Planning', community: 'Community', tokenisation: 'Tokenisation'
   };
 
   function buildParcelURL(p, page) {
-    const params = new URLSearchParams({
-      upi:      p.id,
-      name:     p.name,
-      area:     p.size_sqm,
-      price:    p.land_price_rwf || '',
-      zone:     p.zone || '',
-      units:    p.units_planned || '',
-      district: p.district || '',
-      sector:   p.sector || '',
+    var params = new URLSearchParams({
+      upi:p.id, name:p.name, area:p.size_sqm, price:p.land_price_rwf||'',
+      zone:p.zone||'', units:p.units_planned||'', district:p.district||'', sector:p.sector||''
     });
     return page + '?' + params.toString();
   }
 
   function openModal(id) {
-    const p = parcelsById[id];
+    var p = parcelsById[id];
     if (!p) return;
 
-    // Stripe colour
-    const stripeClass = { residential: 'stripe-residential', commercial: 'stripe-commercial', 'mixed-use': 'stripe-mixed-use' }[p.type] || 'stripe-residential';
-    document.getElementById('modalStripe').className = 'modal-stripe ' + stripeClass;
+    var stripe = document.getElementById('modalStripe');
+    stripe.removeAttribute('style');
+    var sc = {residential:'stripe-residential',commercial:'stripe-commercial','mixed-use':'stripe-mixed-use'}[p.type]||'stripe-residential';
+    stripe.className = 'modal-stripe '+sc;
 
-    // Header
     document.getElementById('modalTitle').textContent = p.name;
-    document.getElementById('modalLoc').innerHTML = '📍 ' + p.location + ' &nbsp;·&nbsp; ' + p.district + ', ' + p.sector;
+    document.getElementById('modalLoc').innerHTML = '📍 '+p.location+' &nbsp;·&nbsp; '+p.district+', '+p.sector;
 
     // Photos
-    const photos = (p.photos && p.photos.length) ? p.photos : [];
-    const plans  = (p.plans  && p.plans.length)  ? p.plans  : [];
-    const gallery = document.getElementById('modalPhotoGallery');
-    const fallback = document.getElementById('modalImg');
+    var photos = (p.photos && p.photos.length) ? p.photos : [];
+    var plans  = (p.plans  && p.plans.length)  ? p.plans  : [];
+    var gallery  = document.getElementById('modalPhotoGallery');
+    var fallback = document.getElementById('modalImg');
     if (photos.length > 0) {
       _modalPhotos = photos; _modalCurrentPhotoIdx = 0;
-      gallery.style.display = '';
-      fallback.style.display = 'none';
-      const mainImg = document.getElementById('modalPhotoMain');
+      gallery.style.display = ''; fallback.style.display = 'none';
+      var mainImg = document.getElementById('modalPhotoMain');
       mainImg.src = photos[0]; mainImg.alt = p.name;
-      mainImg.onclick = function() { openLightbox(_modalPhotos, _modalCurrentPhotoIdx); };
-      const strip = document.getElementById('modalPhotoStrip');
-      strip.style.display = photos.length > 1 ? '' : 'none';
-      strip.innerHTML = photos.map((url, i) =>
-        `<img class="modal-photo-thumb${i === 0 ? ' active' : ''}" src="${url}" alt=""
-          onclick="modalSelectPhoto(this,${i})">`
-      ).join('');
+      mainImg.onclick = function(){openLightbox(_modalPhotos,_modalCurrentPhotoIdx);};
+      var strip = document.getElementById('modalPhotoStrip');
+      strip.style.display = photos.length>1?'':'none';
+      strip.innerHTML = photos.map(function(url,i){return '<img class="modal-photo-thumb'+(i===0?' active':'')+'" src="'+escHtml(url)+'" alt="" onclick="modalSelectPhoto(this,'+i+')">';}).join('');
     } else {
-      _modalPhotos = []; _modalCurrentPhotoIdx = 0;
-      gallery.style.display = 'none';
-      fallback.style.display = '';
-      fallback.src = p.cover_photo || (p.photos && p.photos[0]) || p.image;
-      fallback.alt = p.name;
+      _modalPhotos=[]; _modalCurrentPhotoIdx=0;
+      gallery.style.display='none'; fallback.style.display='';
+      fallback.src = p.cover_photo||(p.photos&&p.photos[0])||p.image; fallback.alt=p.name;
     }
-    // Plans
-    const plansSection = document.getElementById('modalPlansSection');
+    var plansSection = document.getElementById('modalPlansSection');
     if (plans.length > 0) {
-      _modalPlanImages = plans.filter(u => /\.(jpg|jpeg|png|webp|gif|heic)(\?|$)/i.test(u));
-      plansSection.style.display = '';
-      let planImgIdx = 0;
-      document.getElementById('modalPlansStrip').innerHTML = plans.map(url => {
-        const isImg = /\.(jpg|jpeg|png|webp|gif|heic)(\?|$)/i.test(url);
-        if (isImg) {
-          const idx = planImgIdx++;
-          return `<img class="modal-plan-thumb" src="${url}" alt="Plan" onclick="openLightbox(_modalPlanImages,${idx})">`;
-        }
-        return `<a class="modal-plan-doc" href="${url}" target="_blank" rel="noopener">
-               <span class="modal-plan-doc-icon">📄</span>
-               <span class="modal-plan-doc-label">Open PDF</span>
-             </a>`;
+      _modalPlanImages = plans.filter(function(u){return /\.(jpg|jpeg|png|webp|gif|heic)(\?|$)/i.test(u);});
+      plansSection.style.display='';
+      var planImgIdx=0;
+      document.getElementById('modalPlansStrip').innerHTML = plans.map(function(url){
+        var isImg=/\.(jpg|jpeg|png|webp|gif|heic)(\?|$)/i.test(url);
+        if (isImg){var idx=planImgIdx++;return '<img class="modal-plan-thumb" src="'+escHtml(url)+'" alt="Plan" onclick="openLightbox(_modalPlanImages,'+idx+')">';}
+        return '<a class="modal-plan-doc" href="'+escHtml(url)+'" target="_blank" rel="noopener"><span class="modal-plan-doc-icon">📄</span><span class="modal-plan-doc-label">Open PDF</span></a>';
       }).join('');
-    } else {
-      plansSection.style.display = 'none';
-    }
+    } else { plansSection.style.display='none'; }
 
-    // Badges
+    _publishParcel = p;
+    document.getElementById('publishPanel').classList.remove('open');
+    // Reset publish panel in case a previous publish succeeded
+    var ppBody = document.getElementById('publishPanelBody');
+    ppBody.style.display = '';
+    var oldSuccess = ppBody.nextElementSibling;
+    if (oldSuccess && oldSuccess.classList && oldSuccess.classList.contains('pub-success')) oldSuccess.remove();
+    document.getElementById('pubSubmitBtn').disabled = false;
+    document.getElementById('pubSubmitBtn').textContent = 'Publish Listing →';
     document.getElementById('modalBadges').innerHTML =
-      `<span class="type-chip type-${p.type}">${p.type}</span>` +
-      `<span class="status-pill status-${p.status}">${statusLabel(p.status)}</span>` +
-      (p.zone ? `<span class="type-chip" style="background:rgba(212,168,50,0.12);color:var(--gold);border-color:rgba(212,168,50,0.2);">Zone ${p.zone}</span>` : '') +
-      `<span class="modal-upi">UPI: ${p.id}</span>`;
+      '<span class="type-chip type-'+p.type+'">'+p.type+'</span>'+
+      '<span class="status-pill status-'+p.status+'">'+statusLabel(p.status)+'</span>'+
+      (p.zone?'<span class="type-chip" style="background:rgba(212,168,50,0.12);color:var(--gold);border-color:rgba(212,168,50,0.2);">Zone '+p.zone+'</span>':'')+
+      '<span class="publish-chip" onclick="showPublishPanel()">↑ Publish</span>'+
+      '<span class="modal-upi">UPI: '+p.id+'</span>';
 
-    // Metrics grid
-    const metrics = [
-      { lbl: 'Land Area', val: fmtNum(p.size_sqm) + ' sqm', gold: false },
-      { lbl: p.unit_type ? unitTypeLabel(p.unit_type) : 'Units Planned', val: p.units_planned || '—', gold: false },
-      { lbl: 'Land Price', val: fmtPrice(p.land_price_rwf), gold: true },
-      { lbl: 'Dev Cost', val: fmtPrice(p.dev_cost_rwf), gold: false },
-      { lbl: 'Price / sqm', val: fmtNum(p.price_per_sqm) + ' RWF', gold: false },
-      { lbl: 'Leverage', val: p.leverage_ratio + '×', gold: false },
-      { lbl: 'Added', val: p.added_date, gold: false },
-      { lbl: 'Readiness', val: p.avg_readiness + '%', gold: false },
+    var metrics2=[
+      {lbl:'Land Area',val:fmtNum(p.size_sqm)+' sqm',gold:false},
+      {lbl:p.unit_type?unitTypeLabel(p.unit_type):'Units Planned',val:p.units_planned||'—',gold:false},
+      {lbl:'Land Price',val:fmtPrice(p.land_price_rwf),gold:true},
+      {lbl:'Dev Cost',val:fmtPrice(p.dev_cost_rwf),gold:false},
+      {lbl:'Price / sqm',val:fmtNum(p.price_per_sqm)+' RWF',gold:false},
+      {lbl:'Leverage',val:p.leverage_ratio+'×',gold:false},
+      {lbl:'Added',val:p.added_date,gold:false},
+      {lbl:'Readiness',val:p.avg_readiness+'%',gold:false}
     ];
-    document.getElementById('modalGrid').innerHTML = metrics.map(m =>
-      `<div class="modal-metric">
-        <div class="modal-metric-lbl">${m.lbl}</div>
-        <div class="modal-metric-val${m.gold ? ' gold' : ''}">${m.val}</div>
-      </div>`
-    ).join('');
+    document.getElementById('modalGrid').innerHTML = metrics2.map(function(m){
+      return '<div class="modal-metric"><div class="modal-metric-lbl">'+m.lbl+'</div><div class="modal-metric-val'+(m.gold?' gold':'')+'">'+m.val+'</div></div>';
+    }).join('');
 
-    // Readiness dimensions
-    document.getElementById('modalReadiness').innerHTML =
-      Object.entries(p.readiness).map(([dim, score]) => {
-        const col = score >= 75 ? '#4caf7d' : score >= 50 ? '#d4a832' : '#ef5350';
-        return `<div class="modal-dim">
-          <span class="modal-dim-label">${DIM_LABELS[dim] || dim}</span>
-          <div class="modal-dim-bar-wrap"><div class="modal-dim-bar" style="width:${score}%;background:${col}"></div></div>
-          <span class="modal-dim-score" style="color:${col}">${score}</span>
-        </div>`;
-      }).join('');
+    // Clear dynamic section; show readiness section
+    document.getElementById('modalDynamicSection').innerHTML='';
+    document.getElementById('modalReadinessSection').style.display='';
+    document.getElementById('modalReadiness').innerHTML = Object.entries(p.readiness).map(function(e2){
+      var dim=e2[0],score=e2[1];
+      var col=score>=75?'#4caf7d':score>=50?'#d4a832':'#ef5350';
+      return '<div class="modal-dim"><span class="modal-dim-label">'+(DIM_LABELS[dim]||dim)+'</span><div class="modal-dim-bar-wrap"><div class="modal-dim-bar" style="width:'+score+'%;background:'+col+'"></div></div><span class="modal-dim-score" style="color:'+col+'">'+score+'</span></div>';
+    }).join('');
 
-    // Action buttons
-    const deURL   = buildParcelURL(p, 'design-engine.html');
-    const feasURL = buildParcelURL(p, 'feasibility.html');
-    const editURL = 'edit-parcel.html?upi=' + encodeURIComponent(p.id);
+    var deURL=buildParcelURL(p,'design-engine.html'), feasURL=buildParcelURL(p,'feasibility.html');
+    var editURL='edit-parcel.html?upi='+encodeURIComponent(p.id);
     document.getElementById('modalActions').innerHTML =
-      `<a href="${deURL}" class="modal-btn modal-btn-design">
-        <span class="modal-btn-icon">📐</span> Open in Design Engine
-      </a>
-      <a href="${feasURL}" class="modal-btn modal-btn-feaso">
-        <span class="modal-btn-icon">📊</span> Open in Feasibility
-      </a>`;
+      '<a href="'+deURL+'" class="modal-btn modal-btn-design"><span class="modal-btn-icon">📐</span> Open in Design Engine</a>'+
+      '<a href="'+feasURL+'" class="modal-btn modal-btn-feaso"><span class="modal-btn-icon">📊</span> Open in Feasibility</a>';
 
-    // Manage row (edit + delete)
-    const safeId = p.id.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    var safeId2=p.id.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     document.getElementById('modalManageRow').innerHTML =
-      `<a href="${editURL}" class="modal-btn modal-btn-edit">
-        <span class="modal-btn-icon">✏️</span> Edit Details
-      </a>
-      <button class="modal-btn modal-btn-delete" onclick="promptDeleteParcel('${safeId}')">
-        <span class="modal-btn-icon">📦</span> Remove from Site
-      </button>`;
+      '<a href="'+editURL+'" class="modal-btn modal-btn-edit"><span class="modal-btn-icon">✏️</span> Edit Details</a>'+
+      '<button class="modal-btn modal-btn-delete" onclick="promptDeleteParcel(\''+safeId2+'\')"><span class="modal-btn-icon">📦</span> Remove from Site</button>';
 
-    // Reset delete confirm state
-    document.getElementById('modalDeleteConfirm').style.display = 'none';
-    document.getElementById('modalManageRow').style.display = '';
-    _pendingDeleteId = null;
-
-    // Open
+    document.getElementById('modalDeleteConfirm').style.display='none';
+    document.getElementById('modalManageRow').style.display='';
+    document.getElementById('btnConfirmDel').textContent='Yes, Remove from Site';
+    _pendingDeleteId=null; _pendingDeleteSource='parcel';
     document.getElementById('parcelModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow='hidden';
   }
 
   function closeModal() {
     document.getElementById('parcelModal').classList.remove('open');
-    document.body.style.overflow = '';
+    document.body.style.overflow='';
   }
-
-  function handleOverlayClick(e) {
-    if (e.target === document.getElementById('parcelModal')) closeModal();
-  }
-
-  function modalSelectPhoto(thumbEl, idx) {
-    _modalCurrentPhotoIdx = idx;
-    document.getElementById('modalPhotoMain').src = _modalPhotos[idx];
-    document.querySelectorAll('.modal-photo-thumb').forEach(t => t.classList.remove('active'));
+  function handleOverlayClick(e) { if (e.target===document.getElementById('parcelModal')) closeModal(); }
+  function modalSelectPhoto(thumbEl,idx) {
+    _modalCurrentPhotoIdx=idx;
+    document.getElementById('modalPhotoMain').src=_modalPhotos[idx];
+    document.querySelectorAll('.modal-photo-thumb').forEach(function(t){t.classList.remove('active');});
     thumbEl.classList.add('active');
   }
 
-  var _lbImages = [], _lbIdx = 0;
-
-  function openLightbox(images, idx) {
-    if (typeof images === 'string') { _lbImages = [images]; _lbIdx = 0; }
-    else { _lbImages = images; _lbIdx = idx || 0; }
+  var _lbImages=[], _lbIdx=0;
+  function openLightbox(images,idx) {
+    if (typeof images==='string'){_lbImages=[images];_lbIdx=0;}
+    else {_lbImages=images;_lbIdx=idx||0;}
     _lbShow();
     document.getElementById('imgLightbox').classList.add('open');
   }
   function _lbShow() {
-    const lb = document.getElementById('imgLightbox');
-    lb.querySelector('.lb-img').src = _lbImages[_lbIdx];
-    lb.querySelector('.lb-prev').style.display = _lbImages.length > 1 ? '' : 'none';
-    lb.querySelector('.lb-next').style.display = _lbImages.length > 1 ? '' : 'none';
+    var lb=document.getElementById('imgLightbox');
+    lb.querySelector('.lb-img').src=_lbImages[_lbIdx];
+    lb.querySelector('.lb-prev').style.display=_lbImages.length>1?'':'none';
+    lb.querySelector('.lb-next').style.display=_lbImages.length>1?'':'none';
   }
-  function lbNav(dir, e) {
-    if (e) e.stopPropagation();
-    _lbIdx = (_lbIdx + dir + _lbImages.length) % _lbImages.length;
-    _lbShow();
-  }
-  function closeLightbox() {
-    document.getElementById('imgLightbox').classList.remove('open');
-  }
+  function lbNav(dir,e) { if(e)e.stopPropagation(); _lbIdx=(_lbIdx+dir+_lbImages.length)%_lbImages.length; _lbShow(); }
+  function closeLightbox() { document.getElementById('imgLightbox').classList.remove('open'); }
 
   document.addEventListener('keydown', function(e) {
     if (document.getElementById('imgLightbox').classList.contains('open')) {
-      if (e.key === 'ArrowLeft')  lbNav(-1);
-      if (e.key === 'ArrowRight') lbNav(1);
-      if (e.key === 'Escape')     closeLightbox();
+      if (e.key==='ArrowLeft')  lbNav(-1);
+      if (e.key==='ArrowRight') lbNav(1);
+      if (e.key==='Escape')     closeLightbox();
       return;
     }
-    if (e.key === 'Escape') closeModal();
+    if (e.key==='Escape') closeModal();
   });
 
-  // ─── Delete parcel ────────────────────────────────────────────────────────
+  // ─── Parcel archive ───────────────────────────────────────────────────────
   var _pendingDeleteId = null;
+  var _pendingDeleteSource = 'parcel';
 
   function promptDeleteParcel(id) {
-    _pendingDeleteId = id;
-    document.getElementById('modalManageRow').style.display = 'none';
-    var confirmEl = document.getElementById('modalDeleteConfirm');
-    confirmEl.style.display = 'block';
-    confirmEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    _pendingDeleteId=id; _pendingDeleteSource='parcel';
+    document.getElementById('modalManageRow').style.display='none';
+    var el=document.getElementById('modalDeleteConfirm');
+    el.querySelector('.delete-warn-text').innerHTML='Remove this parcel from the site? It will be hidden from the inventory, overview stats, materials estimates, and the opportunity map — but <strong>all its data is kept</strong> in the parcel archive and can be restored at any time.';
+    document.getElementById('btnConfirmDel').textContent='Yes, Remove from Site';
+    el.style.display='block';
+    el.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
-
   function cancelDeleteParcel() {
-    _pendingDeleteId = null;
-    document.getElementById('modalDeleteConfirm').style.display = 'none';
-    document.getElementById('modalManageRow').style.display = '';
+    _pendingDeleteId=null;
+    document.getElementById('modalDeleteConfirm').style.display='none';
+    document.getElementById('modalManageRow').style.display='';
   }
-
   function executeArchiveParcel() {
     if (!_pendingDeleteId) return;
-    var id = _pendingDeleteId;
-    var parcel = parcelsById[id];
+    var confirmBtn=document.getElementById('btnConfirmDel');
 
-    if (!parcel || !parcel._docId) {
-      alert('Cannot remove: parcel not found in database.');
-      _pendingDeleteId = null;
-      closeModal();
+    if (_pendingDeleteSource==='listing') {
+      var docId=_pendingDeleteId;
+      if (confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='Archiving…';}
+      listingsDB.archive(docId)
+        .then(function(){return listingsDB.reload();})
+        .then(function(newL){
+          _allListings=newL; listingsById={};
+          _allListings.forEach(function(l){l._source='listing';listingsById[l._docId]=l;});
+          _pendingDeleteId=null; closeModal(); renderAll();
+        }).catch(function(err){
+          alert('Error archiving: '+err.message);
+          if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent='Yes, Archive';}
+          _pendingDeleteId=null;
+        });
       return;
     }
 
-    var confirmBtn = document.getElementById('btnConfirmDel');
-    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Removing…'; }
-
+    var id=_pendingDeleteId, parcel=parcelsById[id];
+    if (!parcel||!parcel._docId){alert('Cannot remove: parcel not found.');_pendingDeleteId=null;closeModal();return;}
+    if (confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='Removing…';}
     imaliDB.archiveParcel(parcel._docId)
-      .then(function () { return imaliDB.reload(); })
-      .then(function (newParcels) {
-        parcels = newParcels;
-        parcelsById = {};
-        newParcels.forEach(function (p) { parcelsById[p.id] = p; });
-        _pendingDeleteId = null;
-        closeModal();
-        renderAll();
-      })
-      .catch(function (err) {
-        alert('Error removing parcel: ' + err.message);
-        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Yes, Remove from Site'; }
-        _pendingDeleteId = null;
+      .then(function(){return imaliDB.reload();})
+      .then(function(newP){
+        _allParcels=newP; parcelsById={};
+        _allParcels.forEach(function(p){p._source='parcel';parcelsById[p.id]=p;});
+        _pendingDeleteId=null; closeModal(); renderAll();
+      }).catch(function(err){
+        alert('Error removing parcel: '+err.message);
+        if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent='Yes, Remove from Site';}
+        _pendingDeleteId=null;
       });
   }
 
-  // Expose functions needed by onclick attributes in dynamically generated HTML
+  // ─── Publish panel ────────────────────────────────────────────────────────
+  var _publishParcel = null;
+  var _pubFeatured   = false;
+  var _pubOffPlan    = false;
+  var _pubInvestFull = false;
+  var _pubInvestFrac = false;
+
+  function showPublishPanel() {
+    var p = _publishParcel;
+    if (!p) return;
+    document.getElementById('publishPanel').classList.add('open');
+    document.getElementById('pub_title').value = p.name || p.id || '';
+    if (p.land_price_rwf && p.land_price_rwf > 0) {
+      document.getElementById('pub_price').value = Math.round(p.land_price_rwf);
+      var usd = Math.round(p.land_price_rwf / 1472);
+      document.getElementById('pub_price_hint').textContent = '≈ $' + usd.toLocaleString() + ' USD (pre-filled from internal price)';
+    } else {
+      document.getElementById('pub_price').value = '';
+      document.getElementById('pub_price_hint').textContent = 'No price set internally — please enter one.';
+    }
+    document.getElementById('pub_description').value = p.notes || '';
+    _pubFeatured   = false;
+    _pubOffPlan    = false;
+    _pubInvestFull = false;
+    _pubInvestFrac = false;
+    document.getElementById('pub_featured_box').classList.remove('checked');
+    document.getElementById('pub_offplan_box').classList.remove('checked');
+    document.getElementById('pub_ifull_box').classList.remove('checked');
+    document.getElementById('pub_ifrac_box').classList.remove('checked');
+    document.getElementById('pub_invest_types').style.display = 'none';
+    document.getElementById('pub_full_fields').style.display  = 'none';
+    document.getElementById('pub_frac_fields').style.display  = 'none';
+    // Auto-suggest category from internal category
+    var catMap = { 'land': 'buy-land', 'project': 'invest', 'off-plan': 'invest' };
+    var suggested = catMap[p.category] || '';
+    var catEl = document.getElementById('pub_category');
+    if (suggested) {
+      catEl.value = suggested;
+      onPubCategoryChange();
+    }
+    // If internal category is off-plan, pre-check the off-plan toggle
+    if (p.category === 'off-plan') {
+      _pubOffPlan = true;
+      document.getElementById('pub_offplan_box').classList.add('checked');
+    }
+    document.getElementById('pub_category').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function hidePublishPanel() {
+    document.getElementById('publishPanel').classList.remove('open');
+  }
+
+  function togglePubFeatured() {
+    _pubFeatured = !_pubFeatured;
+    document.getElementById('pub_featured_box').classList.toggle('checked', _pubFeatured);
+  }
+
+  function togglePubOffPlan() {
+    _pubOffPlan = !_pubOffPlan;
+    document.getElementById('pub_offplan_box').classList.toggle('checked', _pubOffPlan);
+  }
+
+  function onPubCategoryChange() {
+    var isInvest = document.getElementById('pub_category').value === 'invest';
+    document.getElementById('pub_invest_types').style.display = isInvest ? '' : 'none';
+    if (!isInvest) {
+      _pubInvestFull = false; _pubInvestFrac = false;
+      document.getElementById('pub_ifull_box').classList.remove('checked');
+      document.getElementById('pub_ifrac_box').classList.remove('checked');
+      document.getElementById('pub_full_fields').style.display = 'none';
+      document.getElementById('pub_frac_fields').style.display = 'none';
+    }
+  }
+
+  function togglePubInvestFull() {
+    _pubInvestFull = !_pubInvestFull;
+    document.getElementById('pub_ifull_box').classList.toggle('checked', _pubInvestFull);
+    document.getElementById('pub_full_fields').style.display = _pubInvestFull ? '' : 'none';
+  }
+
+  function togglePubInvestFrac() {
+    _pubInvestFrac = !_pubInvestFrac;
+    document.getElementById('pub_ifrac_box').classList.toggle('checked', _pubInvestFrac);
+    document.getElementById('pub_frac_fields').style.display = _pubInvestFrac ? '' : 'none';
+  }
+
+  function submitPublish() {
+    var category = document.getElementById('pub_category').value;
+    var title    = document.getElementById('pub_title').value.trim();
+    var priceRaw = parseFloat(document.getElementById('pub_price').value);
+    var desc     = document.getElementById('pub_description').value.trim();
+    var status   = document.getElementById('pub_status').value;
+    var p = _publishParcel;
+
+    if (!category) { alert('Please choose a public category.'); return; }
+    if (category === 'invest' && !_pubInvestFull && !_pubInvestFrac) {
+      alert('Please tick at least one invest type — Full Asset and/or Fractional.');
+      return;
+    }
+    if (!title) { alert('Please enter a listing title.'); return; }
+    if (isNaN(priceRaw) || priceRaw <= 0) { alert('Please enter a valid price.'); return; }
+
+    var btn = document.getElementById('pubSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Publishing…';
+
+    var payload = {
+      listing_category: category,
+      title:            title,
+      description:      desc,
+      price_rwf:        priceRaw,
+      district:         p.district || '',
+      sector:           p.sector   || '',
+      size_sqm:         p.size_sqm || null,
+      zone:             p.zone     || '',
+      upi:              p.id       || p.upi || '',
+      photos:           (p.photos && p.photos.length) ? p.photos : [],
+      cover_photo:      p.cover_photo || (p.photos && p.photos[0]) || '',
+      plans:            (p.plans  && p.plans.length)  ? p.plans  : [],
+      status:           status,
+      off_plan:         _pubOffPlan,
+      invest_types:     category === 'invest' ? [].concat(_pubInvestFull ? ['full'] : [], _pubInvestFrac ? ['fractional'] : []) : [],
+      yield_pct:        _pubInvestFull ? (parseFloat(document.getElementById('pub_yield_pct').value) || 0) : 0,
+      rental_income_rwf_pm: _pubInvestFull ? (parseFloat(document.getElementById('pub_rental_rwf').value) || 0) : 0,
+      min_invest_rwf:   _pubInvestFrac ? (parseFloat(document.getElementById('pub_min_invest').value) || 0) : 0,
+      total_raise_rwf:  _pubInvestFrac ? (parseFloat(document.getElementById('pub_total_raise').value) || 0) : 0,
+      payout_schedule:  _pubInvestFrac ? document.getElementById('pub_payout').value : '',
+      badges:           _pubFeatured ? ['Featured'] : [],
+      featured:         _pubFeatured,
+      internal_ref:     p._docId || '',
+    };
+
+    listingsDB.create(payload)
+      .then(function () {
+        return listingsDB.reload();
+      })
+      .then(function (newL) {
+        _allListings = newL; listingsById = {};
+        _allListings.forEach(function(l){ l._source='listing'; listingsById[l._docId]=l; });
+        document.getElementById('publishPanelBody').style.display = 'none';
+        document.getElementById('publishPanelBody').insertAdjacentHTML('afterend',
+          '<div class="pub-success">'+
+            '<div class="pub-success-icon">🚀</div>'+
+            '<div class="pub-success-msg">Published to public site!</div>'+
+            '<div class="pub-success-sub">"'+escHtml(title)+'" is now live as a '+escHtml(category)+' listing.</div>'+
+          '</div>'
+        );
+        renderAll();
+      })
+      .catch(function (err) {
+        alert('Error publishing: ' + err.message);
+        btn.disabled = false; btn.textContent = 'Publish Listing →';
+      });
+  }
+
+  // ─── Expose globals ───────────────────────────────────────────────────────
   window.openModal            = openModal;
+  window.openListingModal     = openListingModal;
   window.closeModal           = closeModal;
   window.promptDeleteParcel   = promptDeleteParcel;
+  window.promptArchiveListing = promptArchiveListing;
+  window.restoreListing       = restoreListing;
   window.cancelDeleteParcel   = cancelDeleteParcel;
   window.executeArchiveParcel = executeArchiveParcel;
   window.modalSelectPhoto     = modalSelectPhoto;
@@ -1060,8 +1607,16 @@
   window.closeLightbox        = closeLightbox;
   window.handleOverlayClick   = handleOverlayClick;
   window.renderAll            = renderAll;
+  window.showPublishPanel     = showPublishPanel;
+  window.hidePublishPanel     = hidePublishPanel;
+  window.togglePubFeatured    = togglePubFeatured;
+  window.togglePubOffPlan     = togglePubOffPlan;
+  window.onPubCategoryChange  = onPubCategoryChange;
+  window.togglePubInvestFull  = togglePubInvestFull;
+  window.togglePubInvestFrac  = togglePubInvestFrac;
+  window.submitPublish        = submitPublish;
 
-  }); // imaliDB.ready
+  document.getElementById('pub_category').addEventListener('change', onPubCategoryChange);
 </script>
 </body>
 </html>

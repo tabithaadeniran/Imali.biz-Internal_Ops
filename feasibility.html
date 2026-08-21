@@ -1191,9 +1191,52 @@ function toggleTheme() {
   document.querySelector('.theme-toggle').textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
 })();
 
-/* ── Real UPI lookup (CoK GIS — KigaliParcels_withZoning) ── */
+/* ── Real UPI lookup — tries CoK GIS first, then RSA national database ── */
 var _lastGisGeometry = null;
 var _lastGisAttr = null;
+
+function _feaso_tryCoKGIS(upi) {
+  var url = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Hosted/KigaliParcels_withZoning/FeatureServer/0/query'
+    + '?where=' + encodeURIComponent("upi='" + upi + "'")
+    + '&outFields=upi,district,sector,cell,size,main_zone_code'
+    + '&returnGeometry=true&outSR=4326&f=json';
+  return fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.features || !data.features.length) return null;
+    var attr = data.features[0].attributes;
+    var geo  = data.features[0].geometry;
+    return {
+      district: attr.district || '',
+      sector:   attr.sector   || '',
+      cell:     attr.cell     || '',
+      size:     Math.round(attr.size || 0),
+      zone:     attr.main_zone_code || '',
+      ring:     (geo && geo.rings && geo.rings[0]) ? geo.rings[0] : null,
+      source:   'CoK GIS',
+    };
+  });
+}
+
+function _feaso_tryRSANational(upi) {
+  var url = 'https://portal.space.gov.rw/server/rest/services/Merged_UPIs/MapServer/1/query'
+    + '?where=' + encodeURIComponent("upi='" + upi.replace(/'/g, "''") + "'")
+    + '&outFields=upi,district,sector,cell,area_in_we'
+    + '&returnGeometry=true&outSR=4326&f=json';
+  return fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.features || !data.features.length) return null;
+    var attr = data.features[0].attributes;
+    var geo  = data.features[0].geometry;
+    function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : ''; }
+    return {
+      district: cap(attr.district || ''),
+      sector:   cap(attr.sector   || ''),
+      cell:     cap(attr.cell     || ''),
+      size:     Math.round(attr.area_in_we || 0),
+      zone:     '',
+      ring:     (geo && geo.rings && geo.rings[0]) ? geo.rings[0] : null,
+      source:   'RSA National',
+    };
+  });
+}
 
 function realLookup() {
   var upi = document.getElementById('upiInput').value.trim();
@@ -1202,59 +1245,51 @@ function realLookup() {
   var statusEl = document.getElementById('upiLookupStatus');
   var btn = document.getElementById('upiBtn');
   statusEl.className = 'upi-lookup-status loading';
-  statusEl.textContent = 'Querying CoK GIS cadastral registry…';
+  statusEl.textContent = 'Searching cadastral registry…';
   btn.disabled = true;
   _lastGisGeometry = null;
   _lastGisAttr = null;
 
-  // Hide result card while loading
   document.getElementById('upiCard').style.display = 'none';
-  // Disable shape-from-UPI button
   var shapeBtn = document.getElementById('shapeFromUpiBtn');
   shapeBtn.disabled = true;
   shapeBtn.classList.remove('active');
 
-  var encoded = encodeURIComponent("upi='" + upi + "'");
-  var url = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Hosted/KigaliParcels_withZoning/FeatureServer/0/query'
-    + '?where=' + encoded
-    + '&outFields=upi,district,sector,cell,size,main_zone_code'
-    + '&returnGeometry=true&outSR=4326&f=json';
-
-  fetch(url)
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
+  _feaso_tryCoKGIS(upi)
+    .catch(function() { return null; })
+    .then(function(result) {
+      if (result) return result;
+      statusEl.textContent = 'Not in Kigali GIS — checking national database…';
+      return _feaso_tryRSANational(upi).catch(function() { return null; });
+    })
+    .then(function(result) {
       btn.disabled = false;
-      if (!data.features || data.features.length === 0) {
+      if (!result) {
         statusEl.className = 'upi-lookup-status err';
-        statusEl.textContent = '✗ UPI not found in CoK GIS. Fill in details manually.';
+        statusEl.textContent = '✗ Not found in CoK GIS or the RSA national database — the parcel may exist but hasn\'t been digitised yet. Enter the area and zone manually below.';
         return;
       }
 
-      var feat = data.features[0];
-      var attr = feat.attributes;
-      var geo  = feat.geometry;
-      _lastGisAttr = attr;
+      _lastGisAttr = result;
 
-      // Store geometry for shape loading
-      if (geo && geo.rings && geo.rings[0]) {
-        _lastGisGeometry = geo.rings[0];
+      if (result.ring) {
+        _lastGisGeometry = result.ring;
         shapeBtn.disabled = false;
         shapeBtn.classList.add('active');
       }
 
       // ── Auto-fill Area ──
-      if (attr.size) {
+      if (result.size) {
         var areaEl = document.getElementById('areaInput');
-        areaEl.value = Math.round(attr.size);
+        areaEl.value = result.size;
         areaEl.classList.add('auto-filled');
       }
 
       // ── Auto-fill Sector ──
-      var sector = (attr.sector || '').trim();
-      if (sector) {
+      if (result.sector) {
         var sel = document.getElementById('sectorSelect');
         for (var i = 0; i < sel.options.length; i++) {
-          if (sel.options[i].text.toLowerCase() === sector.toLowerCase()) {
+          if (sel.options[i].text.toLowerCase() === result.sector.toLowerCase()) {
             sel.selectedIndex = i;
             sel.classList.add('auto-filled');
             break;
@@ -1263,28 +1298,28 @@ function realLookup() {
       }
 
       // ── Auto-fill Zone ──
-      var zoneCode = (attr.main_zone_code || '').trim();
-      if (zoneCode) applyZoneCode(zoneCode);
+      if (result.zone) applyZoneCode(result.zone);
 
       // ── UPI result card ──
       var card = document.getElementById('upiCard');
       card.style.display = 'block';
-      var displayName = sector ? sector + ' · ' + (attr.district || '') : upi;
+      var displayName = result.sector ? result.sector + ' · ' + result.district : upi;
       document.getElementById('upiCardName').textContent = displayName;
-      document.getElementById('upiCardLoc').textContent  = '📍 ' + (attr.district || '') + (attr.sector ? ' · ' + attr.sector : '') + (attr.cell ? ' · ' + attr.cell : '');
-      document.getElementById('upiCardArea').textContent = attr.size ? Math.round(attr.size).toLocaleString() + ' m²' : '—';
-      document.getElementById('upiCardZone').textContent = zoneCode || '—';
+      document.getElementById('upiCardLoc').textContent  = '📍 ' + result.district + (result.sector ? ' · ' + result.sector : '') + (result.cell ? ' · ' + result.cell : '');
+      document.getElementById('upiCardArea').textContent = result.size ? result.size.toLocaleString() + ' m²' : '—';
+      document.getElementById('upiCardZone').textContent = result.zone || '—';
       document.getElementById('upiCardTitle').textContent = '—';
 
       statusEl.className = 'upi-lookup-status ok';
-      statusEl.textContent = '✓ Found: ' + (attr.sector || '') + ', ' + (attr.district || '')
-        + ' — ' + Math.round(attr.size || 0).toLocaleString() + ' m²'
-        + (zoneCode ? ' · Zone ' + zoneCode : '');
+      statusEl.textContent = '✓ Found: ' + result.sector + ', ' + result.district
+        + ' — ' + (result.size || 0).toLocaleString() + ' m²'
+        + (result.zone ? ' · Zone ' + result.zone : '')
+        + ' [' + result.source + ']';
     })
     .catch(function() {
       btn.disabled = false;
       statusEl.className = 'upi-lookup-status err';
-      statusEl.textContent = '✗ Could not reach CoK GIS. Check connection or fill in manually.';
+      statusEl.textContent = '✗ Network error — check connection or fill in manually.';
     });
 }
 

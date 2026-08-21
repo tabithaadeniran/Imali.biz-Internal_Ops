@@ -253,7 +253,7 @@
         <div class="hero-tag">Imali.biz — Internal Operations</div>
         <h1 class="hero-title">Rwanda's Real Estate<br><em>Pipeline</em></h1>
         <p class="hero-sub">
-          A real-time view of <strong id="heroParcelCount">7</strong> land parcels aggregated across the Imali.biz land bank —
+          A real-time view of <strong id="heroParcelCount">—</strong> internal listings and public listings across the Imali.biz pipeline —
           total inventory, investment requirements, projected unit supply, and buyer demand.
           This is our internal lens on the opportunity we are building.
         </p>
@@ -262,7 +262,7 @@
       <div class="hero-card">
         <div class="hq-stat">
           <div class="hq-val" id="hqParcels">—</div>
-          <div class="hq-lbl">Land Parcels</div>
+          <div class="hq-lbl">Internal Listings</div>
         </div>
         <div class="hq-stat">
           <div class="hq-val gold" id="hqSqm">—</div>
@@ -278,7 +278,16 @@
           <div class="hq-lbl">Portfolio Value</div>
         </div>
         <hr class="hero-card-divider">
-        <p class="hero-card-note">Portfolio value = total land price + total development cost across all parcels in the Imali.biz land bank.</p>
+        <div class="hq-stat">
+          <div class="hq-val green" id="hqPublicListings">—</div>
+          <div class="hq-lbl">Public Listings</div>
+        </div>
+        <div class="hq-stat">
+          <div class="hq-val" style="font-size:1.1rem;color:rgba(245,240,232,0.35)" id="hqListingTypes">—</div>
+          <div class="hq-lbl">Listing Breakdown</div>
+        </div>
+        <hr class="hero-card-divider">
+        <p class="hero-card-note">Portfolio value = total land price + total development cost across all internal listings. Public listings = live listings on the consumer site.</p>
       </div>
     </div>
   </section>
@@ -446,6 +455,7 @@
 
 <script src="data.js"></script>
 <script src="data/db.js"></script>
+<script src="data/listings-db.js"></script>
 <script>
   // ─── Cursor ──────────────────────────────────────────────────────────────
   const cursor = document.querySelector('.cursor');
@@ -503,10 +513,17 @@
     return '#f5a0a0';
   }
 
-  // ─── Data (waits for Firestore) ──────────────────────────────────────────
-  imaliDB.ready.then(function () {
+  // ─── Data (waits for both Firestore collections) ─────────────────────────
+  Promise.all([imaliDB.ready, listingsDB.ready]).then(function () {
   const parcels = window.parcels || [];
   const s = getSummary();
+  const pubListings = listingsDB.getListings();
+  const pubCount = pubListings.length;
+  animateNum(document.getElementById('hqPublicListings'), pubCount, '', '');
+  var byType = {};
+  pubListings.forEach(function(l) { var c = l.listing_category || 'other'; byType[c] = (byType[c]||0)+1; });
+  var typeSummary = Object.entries(byType).map(function(e) { return e[1]+' '+e[0]; }).join(' · ');
+  document.getElementById('hqListingTypes').textContent = typeSummary || 'No public listings yet';
   const today = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
   document.getElementById('heroDate').textContent = today;
   document.getElementById('footerDate').textContent = today;
@@ -654,7 +671,7 @@
       `).join('')}
     </tbody>
   `;
-  }); // imaliDB.ready
+  }); // Promise.all
 </script>
 </body>
 </html>

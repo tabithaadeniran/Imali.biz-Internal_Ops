@@ -4,7 +4,7 @@
 <script>(function(){var t=localStorage.getItem('imali-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Edit Land Parcel — Imali.biz Internal</title>
+<title>Edit Internal Listing — Imali.biz Internal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -241,6 +241,38 @@
   .lb-nav:hover { background: rgba(255,255,255,0.22); }
   .lb-prev { left: 1.25rem; }
   .lb-next { right: 1.25rem; }
+
+  /* ─── Category / type picker ─────────────────────────────────────────── */
+  .type-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem; }
+  .type-pick-btn {
+    background: rgba(245,240,232,0.03); border: 1.5px solid rgba(245,240,232,0.09);
+    border-radius: 0.9rem; padding: 1.1rem 1rem; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+    transition: border-color 0.2s, background 0.2s; font-family: 'DM Sans', sans-serif;
+  }
+  .type-pick-btn:hover { border-color: rgba(212,168,50,0.35); background: rgba(212,168,50,0.04); }
+  .type-pick-btn.active { border-color: rgba(212,168,50,0.7); background: rgba(212,168,50,0.08); }
+  .type-pick-icon { font-size: 1.6rem; line-height: 1; margin-bottom: 0.15rem; }
+  .type-pick-label { font-size: 0.88rem; font-weight: 700; color: var(--cream); }
+  .type-pick-sub { font-size: 0.68rem; color: rgba(245,240,232,0.4); text-align: center; }
+  [data-theme="light"] .type-pick-btn { background: rgba(10,10,15,0.02); border-color: rgba(10,10,15,0.1); }
+  [data-theme="light"] .type-pick-btn.active { border-color: rgba(212,168,50,0.8); background: rgba(212,168,50,0.07); }
+  [data-theme="light"] .type-pick-label { color: var(--ink); }
+  [data-theme="light"] .type-pick-sub { color: rgba(10,10,15,0.45); }
+
+  /* ─── Readiness sliders ───────────────────────────────────────────────── */
+  .readiness-row { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.9rem; }
+  .readiness-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: rgba(245,240,232,0.5); font-weight: 600; width: 110px; flex-shrink: 0; }
+  [data-theme="light"] .readiness-label { color: rgba(10,10,15,0.5); }
+  .readiness-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 5px; border-radius: 3px; background: rgba(245,240,232,0.1); outline: none; cursor: pointer; }
+  .readiness-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--gold); cursor: pointer; }
+  .readiness-slider::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--gold); cursor: pointer; border: none; }
+  .readiness-val { font-size: 0.82rem; font-weight: 700; color: var(--gold); width: 32px; text-align: right; flex-shrink: 0; }
+
+  @media (max-width: 600px) {
+    .type-picker { grid-template-columns: 1fr; }
+    .readiness-label { width: 80px; }
+  }
 </style>
 </head>
 <body>
@@ -272,7 +304,7 @@
   <a href="inventory.html" class="back-link">← Back to Inventory</a>
 
   <div class="form-eyebrow">Pipeline Management</div>
-  <h1 class="form-title">Edit <em>Land Parcel</em></h1>
+  <h1 class="form-title">Edit <em>Internal Listing</em></h1>
   <p class="form-sub" id="formSub">Loading parcel data…</p>
 
   <!-- UPI read-only chip -->
@@ -292,9 +324,32 @@
   <!-- Edit form -->
   <form id="parcelForm" onsubmit="reviewChanges(event)" style="display:none">
 
+    <!-- Listing Type -->
+    <div class="form-card">
+      <div class="section-heading">Listing Type</div>
+      <input type="hidden" id="f_category" name="category" value="land">
+      <div class="type-picker" id="typePicker">
+        <button type="button" class="type-pick-btn active" data-cat="land" onclick="pickCategory('land')">
+          <span class="type-pick-icon">🏕</span>
+          <span class="type-pick-label">Land</span>
+          <span class="type-pick-sub">Raw or cleared land parcel</span>
+        </button>
+        <button type="button" class="type-pick-btn" data-cat="project" onclick="pickCategory('project')">
+          <span class="type-pick-icon">🏗</span>
+          <span class="type-pick-label">Project</span>
+          <span class="type-pick-sub">Active development underway</span>
+        </button>
+        <button type="button" class="type-pick-btn" data-cat="off-plan" onclick="pickCategory('off-plan')">
+          <span class="type-pick-icon">📐</span>
+          <span class="type-pick-label">Off-plan</span>
+          <span class="type-pick-sub">Planned, not yet built</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Identity -->
     <div class="form-card">
-      <div class="section-heading">Parcel Identity</div>
+      <div class="section-heading">Internal Listing Identity</div>
       <div class="field-grid">
         <div class="field full">
           <label class="field-label" for="f_name">Parcel Name / Label</label>
@@ -466,6 +521,42 @@
       </div>
     </div>
 
+    <!-- Development Readiness -->
+    <div class="form-card">
+      <div class="section-heading">Development Readiness</div>
+      <p class="field-hint" style="margin-bottom:1.4rem">Rate how ready this listing is for development in each dimension (0 = not ready, 100 = fully ready).</p>
+      <div class="readiness-row">
+        <span class="readiness-label">Legal</span>
+        <input class="readiness-slider" type="range" min="0" max="100" value="0" name="r_legal" oninput="document.getElementById('rv_legal').textContent=this.value">
+        <span class="readiness-val" id="rv_legal">0</span>
+      </div>
+      <div class="readiness-row">
+        <span class="readiness-label">Physical</span>
+        <input class="readiness-slider" type="range" min="0" max="100" value="0" name="r_physical" oninput="document.getElementById('rv_physical').textContent=this.value">
+        <span class="readiness-val" id="rv_physical">0</span>
+      </div>
+      <div class="readiness-row">
+        <span class="readiness-label">Infrastructure</span>
+        <input class="readiness-slider" type="range" min="0" max="100" value="0" name="r_infrastructure" oninput="document.getElementById('rv_infrastructure').textContent=this.value">
+        <span class="readiness-val" id="rv_infrastructure">0</span>
+      </div>
+      <div class="readiness-row">
+        <span class="readiness-label">Urban Plan</span>
+        <input class="readiness-slider" type="range" min="0" max="100" value="0" name="r_urban" oninput="document.getElementById('rv_urban').textContent=this.value">
+        <span class="readiness-val" id="rv_urban">0</span>
+      </div>
+      <div class="readiness-row">
+        <span class="readiness-label">Community</span>
+        <input class="readiness-slider" type="range" min="0" max="100" value="0" name="r_community" oninput="document.getElementById('rv_community').textContent=this.value">
+        <span class="readiness-val" id="rv_community">0</span>
+      </div>
+      <div class="readiness-row" style="margin-bottom:0">
+        <span class="readiness-label">Tokenisation</span>
+        <input class="readiness-slider" type="range" min="0" max="100" value="0" name="r_tokenisation" oninput="document.getElementById('rv_tokenisation').textContent=this.value">
+        <span class="readiness-val" id="rv_tokenisation">0</span>
+      </div>
+    </div>
+
     <!-- Photos & Plans -->
     <div class="form-card" id="photosCard">
       <div class="section-heading">Photos &amp; Plans</div>
@@ -537,6 +628,23 @@
 <script src="shared/cloudinary.js"></script>
 <script>
 
+// ── Category picker ────────────────────────────────────────────────────────────
+function pickCategory(cat) {
+  document.getElementById('f_category').value = cat;
+  document.querySelectorAll('.type-pick-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.cat === cat);
+  });
+}
+
+function setSlider(name, val) {
+  var el = document.querySelector('[name="' + name + '"]');
+  if (!el) return;
+  el.value = val;
+  var idSuffix = name.replace('r_', '');
+  var disp = document.getElementById('rv_' + idSuffix);
+  if (disp) disp.textContent = val;
+}
+
 // ── Cursor ─────────────────────────────────────────────────────────────────────
 const cursor = document.querySelector('.cursor');
 const ring   = document.querySelector('.cursor-ring');
@@ -602,6 +710,18 @@ Promise.all([imaliAuth.ready, imaliDB.ready]).then(function () {
   // Units / unit type
   if (p.units_planned > 0) setValue('f_units', p.units_planned);
   setSelect('f_unit_type', p.unit_type || '');
+
+  // Category
+  pickCategory(p.category || 'land');
+
+  // Readiness sliders
+  var rd = p.readiness || {};
+  setSlider('r_legal',          rd.legal          || 0);
+  setSlider('r_physical',       rd.physical       || 0);
+  setSlider('r_infrastructure', rd.infrastructure || 0);
+  setSlider('r_urban',          rd.urban          || 0);
+  setSlider('r_community',      rd.community      || 0);
+  setSlider('r_tokenisation',   rd.tokenisation   || 0);
 
   // Photos & plans
   _editPhotos     = (p.photos || []).slice();
@@ -698,6 +818,15 @@ function reviewChanges(e) {
   var newCompNotes    = (fd.get('comp_notes') || '').trim();
   var newUnits    = parseInt(fd.get('units_planned')) || 0;
   var newUnitType = fd.get('unit_type') || '';
+  var newCategory = fd.get('category') || 'land';
+  var newReadiness = {
+    legal:          parseInt(fd.get('r_legal'))          || 0,
+    physical:       parseInt(fd.get('r_physical'))       || 0,
+    infrastructure: parseInt(fd.get('r_infrastructure')) || 0,
+    urban:          parseInt(fd.get('r_urban'))          || 0,
+    community:      parseInt(fd.get('r_community'))      || 0,
+    tokenisation:   parseInt(fd.get('r_tokenisation'))   || 0,
+  };
 
   pendingOverride = {
     name:          newName,
@@ -714,6 +843,8 @@ function reviewChanges(e) {
     comp_notes:    newCompNotes,
     units_planned: newUnits || null,
     unit_type:     newUnitType,
+    category:      newCategory,
+    readiness:     newReadiness,
     photos:        _editPhotos.slice(),
     plans:         _editPlans.slice(),
     cover_photo:   _editCoverPhoto,
@@ -738,6 +869,11 @@ function reviewChanges(e) {
   chk('Comp. Timeline', p.comp_timeline || '—', newCompTimeline || '—');
   chk('Units',     (p.units_planned || '—'), (newUnits || '—'));
   chk('Unit Type', (p.unit_type || '—'),     (newUnitType || '—'));
+  chk('Type',      (p.category || 'land'),   newCategory);
+  var oldRd = p.readiness || {};
+  ['legal','physical','infrastructure','urban','community','tokenisation'].forEach(function(dim) {
+    chk('Readiness — ' + dim, (oldRd[dim] || 0), newReadiness[dim]);
+  });
   var origPhotoCnt = (p.photos || []).length, newPhotoCnt = _editPhotos.length;
   if (origPhotoCnt !== newPhotoCnt) changes.push({ label: 'Photos', old: origPhotoCnt + ' photo(s)', new: newPhotoCnt + ' photo(s)' });
   var origPlanCnt = (p.plans || []).length, newPlanCnt = _editPlans.length;
