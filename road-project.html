@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Road Project — Parcel Analysis · Imali.biz</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="road-parcels.js"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #f5f0e8;
+  --surface:   #ede8df;
+  --border:    rgba(10,10,15,0.10);
+  --text:      #1a1a22;
+  --text-dim:  rgba(26,26,34,0.55);
+  --accent:    #2a7c5e;
+  --shadow:    0 2px 12px rgba(0,0,0,0.10);
+}
+[data-theme="dark"] {
+  --bg:       #0f0f14;
+  --surface:  #1a1a22;
+  --border:   rgba(245,240,232,0.10);
+  --text:     #f5f0e8;
+  --text-dim: rgba(245,240,232,0.50);
+  --shadow:   0 2px 16px rgba(0,0,0,0.40);
+}
+
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.page-header {
+  display:flex; align-items:center; gap:1rem;
+  padding:0 1.2rem; height:48px; flex-shrink:0;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  z-index:1000;
+}
+.back-btn {
+  display:flex; align-items:center; gap:0.4rem;
+  font-size:0.75rem; font-weight:500; color:var(--text-dim);
+  text-decoration:none; padding:0.3rem 0.7rem;
+  border:1px solid var(--border); border-radius:1rem;
+  background:transparent; cursor:pointer; transition:all .15s;
+}
+.back-btn:hover { color:var(--text); border-color:var(--accent); }
+.header-title { font-family:'DM Serif Display',serif; font-size:1rem; font-weight:400; }
+.header-sub { font-size:0.7rem; color:var(--text-dim); margin-left:0.2rem; }
+.header-spacer { flex:1; }
+.theme-toggle {
+  font-size:0.7rem; font-weight:500; padding:0.28rem 0.75rem;
+  border:1px solid var(--border); border-radius:1rem;
+  background:transparent; color:var(--text); cursor:pointer;
+}
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+.map-wrap { flex:1; display:flex; min-height:0; position:relative; }
+#map { flex:1; }
+
+/* ── Layers panel ────────────────────────────────────────────────────────── */
+.layers-panel {
+  width:260px; flex-shrink:0;
+  background:var(--surface); border-left:1px solid var(--border);
+  display:flex; flex-direction:column; overflow:hidden;
+  z-index:500;
+}
+.lp-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0.8rem 1rem 0.5rem;
+  border-bottom:1px solid var(--border);
+}
+.lp-title { font-size:0.75rem; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); }
+.lp-scroll { flex:1; overflow-y:auto; padding:0.5rem 0; }
+.lp-scroll::-webkit-scrollbar { width:4px; }
+.lp-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+/* Basemap switcher */
+.bm-section { padding:0.5rem 1rem 0.75rem; border-bottom:1px solid var(--border); }
+.bm-label { font-size:0.65rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); margin-bottom:0.4rem; }
+.bm-row { display:flex; gap:0.25rem; flex-wrap:wrap; }
+.bm-btn {
+  font-size:0.65rem; font-weight:500; padding:0.2rem 0.6rem;
+  border:1px solid var(--border); border-radius:1rem;
+  background:transparent; color:var(--text); cursor:pointer; transition:all .15s;
+}
+.bm-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+/* Layer group */
+.layer-group { border-bottom:1px solid var(--border); }
+.layer-group-header {
+  display:flex; align-items:center; gap:0.5rem;
+  padding:0.55rem 1rem; cursor:pointer;
+  font-size:0.72rem; font-weight:600; letter-spacing:.03em;
+}
+.layer-group-header .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.layer-group-header .chevron { margin-left:auto; font-size:0.65rem; transition:transform .2s; }
+.layer-group-header.open .chevron { transform:rotate(90deg); }
+.layer-items { display:none; }
+.layer-group-header.open + .layer-items { display:block; }
+
+/* Layer row */
+.layer-row {
+  display:flex; align-items:center; gap:0.55rem;
+  padding:0.38rem 1rem 0.38rem 1.6rem;
+}
+.layer-row input[type=checkbox] { accent-color:var(--accent); cursor:pointer; width:13px; height:13px; }
+.layer-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.layer-info { flex:1; min-width:0; }
+.layer-name { font-size:0.72rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.layer-desc { font-size:0.62rem; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* Legend */
+.legend-section { padding:0.6rem 1rem; border-bottom:1px solid var(--border); }
+.legend-title { font-size:0.65rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); margin-bottom:0.45rem; }
+.legend-row { display:flex; align-items:center; gap:0.5rem; margin-bottom:0.3rem; }
+.legend-swatch { width:24px; height:4px; border-radius:2px; flex-shrink:0; }
+.legend-swatch.dashed { background:repeating-linear-gradient(90deg, var(--c) 0, var(--c) 7px, transparent 7px, transparent 11px); }
+.legend-swatch.band { width:14px; height:14px; border-radius:3px; border:2px solid; flex-shrink:0; }
+.legend-text { font-size:0.65rem; color:var(--text-dim); }
+
+/* ── Map controls ────────────────────────────────────────────────────────── */
+.zoom-ctrl {
+  position:absolute; top:12px; left:12px; z-index:400;
+  display:flex; flex-direction:column; gap:2px;
+}
+.zoom-btn {
+  width:30px; height:30px; border:1px solid var(--border);
+  background:var(--surface); color:var(--text);
+  font-size:1rem; line-height:1; cursor:pointer; border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:var(--shadow);
+}
+.zoom-btn:hover { background:var(--bg); }
+
+/* ── Popup ───────────────────────────────────────────────────────────────── */
+.leaflet-popup-content-wrapper {
+  background:var(--surface) !important; color:var(--text) !important;
+  border:1px solid var(--border) !important; border-radius:8px !important;
+  box-shadow:var(--shadow) !important;
+}
+.leaflet-popup-tip { background:var(--surface) !important; }
+.popup-upi { font-size:0.8rem; font-weight:600; margin-bottom:0.35rem; font-family:'DM Serif Display',serif; }
+.popup-band { font-size:0.65rem; font-weight:600; padding:0.18rem 0.5rem; border-radius:1rem; display:inline-block; margin-bottom:0.45rem; }
+.popup-grid { display:grid; grid-template-columns:auto 1fr; gap:0.18rem 0.6rem; font-size:0.68rem; }
+.popup-label { color:var(--text-dim); }
+.popup-value { font-weight:500; }
+
+/* Leaflet attribution */
+.leaflet-control-attribution { font-size:0.6rem !important; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<header class="page-header">
+  <a class="back-btn" href="map.html">← Opportunity Map</a>
+  <span class="header-title">Road Project</span>
+  <span class="header-sub">· Gisozi Connector · Parcel Analysis</span>
+  <div class="header-spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">☾ Dark</button>
+</header>
+
+<!-- ── Map + panel ─────────────────────────────────────────────────────────── -->
+<div class="map-wrap">
+  <div id="map"></div>
+
+  <!-- Zoom controls -->
+  <div class="zoom-ctrl">
+    <button class="zoom-btn" onclick="map.zoomIn()">+</button>
+    <button class="zoom-btn" onclick="map.zoomOut()">−</button>
+  </div>
+
+  <!-- Layers panel -->
+  <aside class="layers-panel">
+    <div class="lp-header">
+      <span class="lp-title">Map Layers</span>
+    </div>
+    <div class="lp-scroll">
+
+      <!-- Basemap -->
+      <div class="bm-section">
+        <div class="bm-label">Basemap</div>
+        <div class="bm-row">
+          <button class="bm-btn active" data-bm="default"    onclick="setBasemap('default')">Minimal</button>
+          <button class="bm-btn"        data-bm="satellite"  onclick="setBasemap('satellite')">🛰 Satellite</button>
+          <button class="bm-btn"        data-bm="hybrid"     onclick="setBasemap('hybrid')">🌍 Hybrid</button>
+          <button class="bm-btn"        data-bm="terrain"    onclick="setBasemap('terrain')">⛰ Terrain</button>
+        </div>
+      </div>
+
+      <!-- Road -->
+      <div class="layer-group">
+        <div class="layer-group-header open" onclick="toggleGroup(this)">
+          <span class="dot" style="background:#00acc1"></span>
+          Road Alignment
+          <span class="chevron">›</span>
+        </div>
+        <div class="layer-items">
+          <div class="layer-row">
+            <input type="checkbox" id="lyr-road" checked onchange="toggleLayer('road', this.checked)"/>
+            <span class="layer-dot" style="background:#00acc1;outline:2px dashed #00acc1;outline-offset:2px"></span>
+            <div class="layer-info">
+              <div class="layer-name">Road Centreline</div>
+              <div class="layer-desc">Confirmed path · 1,124 m · Gisozi sector</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parcels -->
+      <div class="layer-group">
+        <div class="layer-group-header open" onclick="toggleGroup(this)">
+          <span class="dot" style="background:#7c4dff"></span>
+          Affected Parcels
+          <span class="chevron">›</span>
+        </div>
+        <div class="layer-items">
+          <div class="layer-row">
+            <input type="checkbox" id="lyr-band0" checked onchange="toggleLayer('band0', this.checked)"/>
+            <span class="layer-dot" style="background:#e53935;border:2px solid #e53935;border-radius:2px;width:12px;height:12px"></span>
+            <div class="layer-info">
+              <div class="layer-name">Road-adjacent (&lt;15 m)</div>
+              <div class="layer-desc">62 parcels · directly abutting road</div>
+            </div>
+          </div>
+          <div class="layer-row">
+            <input type="checkbox" id="lyr-band1" checked onchange="toggleLayer('band1', this.checked)"/>
+            <span class="layer-dot" style="background:#fb8c00;border:2px solid #fb8c00;border-radius:2px;width:12px;height:12px"></span>
+            <div class="layer-info">
+              <div class="layer-name">15 – 50 m</div>
+              <div class="layer-desc">64 parcels</div>
+            </div>
+          </div>
+          <div class="layer-row">
+            <input type="checkbox" id="lyr-band2" checked onchange="toggleLayer('band2', this.checked)"/>
+            <span class="layer-dot" style="background:#1e88e5;border:2px solid #1e88e5;border-radius:2px;width:12px;height:12px"></span>
+            <div class="layer-info">
+              <div class="layer-name">50 – 100 m</div>
+              <div class="layer-desc">136 parcels</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zoning -->
+      <div class="layer-group">
+        <div class="layer-group-header" onclick="toggleGroup(this)">
+          <span class="dot" style="background:#7b1fa2"></span>
+          Zoning
+          <span class="chevron">›</span>
+        </div>
+        <div class="layer-items">
+          <div class="layer-row">
+            <input type="checkbox" id="lyr-zoning" onchange="toggleLayer('zoning', this.checked)"/>
+            <span class="layer-dot" style="background:#7b1fa2"></span>
+            <div class="layer-info">
+              <div class="layer-name">Proposed Zoning</div>
+              <div class="layer-desc">Kigali Master Plan 2020 · Layer 117</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zoning legend (shown only when zoning layer is active) -->
+      <div class="legend-section" id="zoning-legend" style="display:none">
+        <div class="legend-title">Proposed Zoning</div>
+        <div style="font-size:0.6rem;color:var(--text-dim);margin-bottom:0.45rem">Kigali Master Plan 2020</div>
+        <!-- Residential -->
+        <div style="font-size:0.6rem;font-weight:600;color:var(--text-dim);margin:0.35rem 0 0.2rem;letter-spacing:.04em">RESIDENTIAL</div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#fff9c4;border-color:#e8d83a"></div><span class="legend-text">R1 — Low density</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#fff176;border-color:#e0c830"></div><span class="legend-text">R2 — Medium density</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#ffee58;border-color:#d4b020"></div><span class="legend-text">R3 — High density</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#fdd835;border-color:#c49a10"></div><span class="legend-text">R4/R5 — Very high / mixed</span></div>
+        <!-- Commercial -->
+        <div style="font-size:0.6rem;font-weight:600;color:var(--text-dim);margin:0.35rem 0 0.2rem;letter-spacing:.04em">COMMERCIAL</div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#ffe0b2;border-color:#e8980a"></div><span class="legend-text">C1 — Local commercial</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#ffcc80;border-color:#e07800"></div><span class="legend-text">C2 — District commercial</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#ffa726;border-color:#c45e00"></div><span class="legend-text">C3/C4 — Town / city centre</span></div>
+        <!-- Mixed use -->
+        <div style="font-size:0.6rem;font-weight:600;color:var(--text-dim);margin:0.35rem 0 0.2rem;letter-spacing:.04em">MIXED USE &amp; OTHER</div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#ce93d8;border-color:#9c27b0"></div><span class="legend-text">MU — Mixed use</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#d1c4e9;border-color:#7b1fa2"></div><span class="legend-text">PF — Public facility</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#e1bee7;border-color:#9c27b0"></div><span class="legend-text">ED — Education</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#b2ebf2;border-color:#00838f"></div><span class="legend-text">T — Tourism</span></div>
+        <!-- Infrastructure -->
+        <div style="font-size:0.6rem;font-weight:600;color:var(--text-dim);margin:0.35rem 0 0.2rem;letter-spacing:.04em">INFRASTRUCTURE</div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#b0bec5;border-color:#546e7a"></div><span class="legend-text">I — Industrial</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#eceff1;border-color:#90a4ae"></div><span class="legend-text">TR/RD — Transport / roads</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#81d4fa;border-color:#0277bd"></div><span class="legend-text">W — Water / wetland</span></div>
+        <!-- Green -->
+        <div style="font-size:0.6rem;font-weight:600;color:var(--text-dim);margin:0.35rem 0 0.2rem;letter-spacing:.04em">GREEN &amp; AGRICULTURE</div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#dcedc8;border-color:#7cb342"></div><span class="legend-text">OS/GR — Open space / green</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#dce775;border-color:#9e9d24"></div><span class="legend-text">NR/BU — Nature / buffer</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#c8e6c9;border-color:#388e3c"></div><span class="legend-text">A1 — Agriculture (prime)</span></div>
+        <div class="legend-row"><div class="legend-swatch band" style="background:#a5d6a7;border-color:#2e7d32"></div><span class="legend-text">A2 — Agriculture (secondary)</span></div>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend-section">
+        <div class="legend-title">Legend</div>
+        <div class="legend-row">
+          <div class="legend-swatch" style="height:3px;background:repeating-linear-gradient(90deg,#00acc1 0,#00acc1 8px,transparent 8px,transparent 13px)"></div>
+          <span class="legend-text">Road centreline (planned)</span>
+        </div>
+        <div class="legend-row">
+          <div class="legend-swatch band" style="background:rgba(229,57,53,0.2);border-color:#e53935;--c:#e53935"></div>
+          <span class="legend-text">Road-adjacent &lt;15 m (62)</span>
+        </div>
+        <div class="legend-row">
+          <div class="legend-swatch band" style="background:rgba(251,140,0,0.18);border-color:#fb8c00"></div>
+          <span class="legend-text">15 – 50 m (64)</span>
+        </div>
+        <div class="legend-row">
+          <div class="legend-swatch band" style="background:rgba(30,136,229,0.15);border-color:#1e88e5"></div>
+          <span class="legend-text">50 – 100 m (136)</span>
+        </div>
+      </div>
+
+    </div><!-- /lp-scroll -->
+  </aside>
+</div><!-- /map-wrap -->
+
+<script>
+// ── Basemap tiles ─────────────────────────────────────────────────────────────
+const initialTheme = document.documentElement.getAttribute('data-theme') || 'light';
+
+const TILES = {
+  light: L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    { attribution:'Tiles &copy; <a href="https://www.esri.com">Esri</a>', maxZoom:16 }),
+  dark: L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    { attribution:'Tiles &copy; <a href="https://www.esri.com">Esri</a>', maxZoom:16 }),
+  satellite: L.tileLayer(
+    'https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+    { attribution:'&copy; Google Satellite Imagery', subdomains:'0123', maxZoom:20 }),
+  hybrid: L.tileLayer(
+    'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    { attribution:'&copy; Google Maps Hybrid', subdomains:'0123', maxZoom:20 }),
+  terrain: L.tileLayer(
+    'https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+    { attribution:'&copy; Google Terrain', subdomains:'0123', maxZoom:20 }),
+};
+
+// ── Map ───────────────────────────────────────────────────────────────────────
+const map = L.map('map', {
+  center: [-1.9228, 30.0588],
+  zoom: 15,
+  zoomControl: false,
+  layers: [TILES[initialTheme]],
+  maxZoom: 20,
+});
+
+// ── ArcGIS image overlay (same approach as main opportunity map) ──────────────
+const ArcGISDirectLayer = L.ImageOverlay.extend({
+  options: { opacity:0.75, format:'png32', layers:null },
+  initialize(url, options) { this._serviceUrl=url; L.setOptions(this,options); L.ImageOverlay.prototype.initialize.call(this,'',[[0,0],[0,0]],options); },
+  onAdd(m) { this._map=m; this._img=document.createElement('img'); this._img.style.cssText='position:absolute;pointer-events:none;'; this._img.onload=()=>{ this._img.style.opacity=this.options.opacity; }; m.getPanes().overlayPane.appendChild(this._img); m.on('moveend zoomend',this._update,this); this._update(); },
+  onRemove(m) { if(this._img&&this._img.parentNode) this._img.parentNode.removeChild(this._img); m.off('moveend zoomend',this._update,this); },
+  _update() {
+    const m=this._map, sz=m.getSize(), pad=0.2;
+    const pw=Math.round(sz.x*(1+2*pad)), ph=Math.round(sz.y*(1+2*pad));
+    const tl=m.containerPointToLatLng([-sz.x*pad,-sz.y*pad]);
+    const br=m.containerPointToLatLng([sz.x*(1+pad),sz.y*(1+pad)]);
+    const bbox=`${tl.lng},${br.lat},${br.lng},${tl.lat}`;
+    const lyrs=this.options.layers?`show:${this.options.layers.join(',')}`:'';
+    const url=`${this._serviceUrl}/export?bbox=${bbox}&bboxSR=4326&size=${pw},${ph}&imageSR=4326&format=${this.options.format}&transparent=true${lyrs?'&layers='+lyrs:''}&f=image`;
+    this._img.src=url;
+    const tl2=m.latLngToLayerPoint(tl), br2=m.latLngToLayerPoint(br);
+    L.DomUtil.setPosition(this._img,tl2);
+    this._img.style.width=`${br2.x-tl2.x}px`; this._img.style.height=`${br2.y-tl2.y}px`;
+  },
+  setOpacity(v) { this.options.opacity=v; if(this._img) this._img.style.opacity=v; return this; },
+});
+
+// ── Road path ─────────────────────────────────────────────────────────────────
+const ROAD_COORDS = [
+  [-1.923934143656241, 30.05424967567446],
+  [-1.923551383164446, 30.05546723888086],
+  [-1.923549868215134, 30.05609499515093],
+  [-1.923740141920272, 30.05667710354032],
+  [-1.923754082788343, 30.05731256669937],
+  [-1.923531248767575, 30.05788485121801],
+  [-1.922946521638919, 30.05884425144878],
+  [-1.922584742061604, 30.05931851391516],
+  [-1.92162102950633,  30.06006893153503],
+  [-1.92154716231798,  30.06053103467476],
+  [-1.921700232844887, 30.06082951571886],
+  [-1.921614117452367, 30.06159536329588],
+  [-1.92161760269339,  30.06242598653271],
+  [-1.921429788266565, 30.06300703551552],
+  [-1.921144501972576, 30.06324993629191],
+];
+
+// ── Band config ───────────────────────────────────────────────────────────────
+const BANDS = {
+  'Road-adjacent (both sides)': { key:'band0', color:'#e53935', fillOpacity:0.22, weight:2 },
+  '15 - 50 m':                  { key:'band1', color:'#fb8c00', fillOpacity:0.18, weight:1.5 },
+  '50 - 100 m':                 { key:'band2', color:'#1e88e5', fillOpacity:0.13, weight:1.5 },
+};
+
+function bandLabel(band) {
+  if (band === 'Road-adjacent (both sides)') return 'Road-adjacent';
+  return band;
+}
+function bandColor(band) { return (BANDS[band] || {}).color || '#888'; }
+
+// ── Popup content ─────────────────────────────────────────────────────────────
+function makePopup(p) {
+  const bc = bandColor(p.band);
+  const textC = p.band === '50 - 100 m' ? '#1565c0' : '#fff';
+  return `
+    <div style="min-width:190px">
+      <div class="popup-upi">${p.upi}</div>
+      <span class="popup-band" style="background:${bc};color:${textC}">${bandLabel(p.band)}</span>
+      <div class="popup-grid">
+        <span class="popup-label">Size</span>      <span class="popup-value">${Number(p.size_m2).toLocaleString()} m²</span>
+        <span class="popup-label">Distance</span>  <span class="popup-value">${Number(p.dist_m).toFixed(1)} m from centreline</span>
+        <span class="popup-label">District</span>  <span class="popup-value">${p.district}</span>
+        <span class="popup-label">Sector</span>    <span class="popup-value">${p.sector}</span>
+        <span class="popup-label">Cell</span>      <span class="popup-value">${p.cell}</span>
+        <span class="popup-label">Village</span>   <span class="popup-value">${p.village}</span>
+      </div>
+    </div>`;
+}
+
+// ── Build layers ──────────────────────────────────────────────────────────────
+const roadLayer = L.polyline(ROAD_COORDS, {
+  color: '#00acc1', weight: 4, opacity: 0.95, dashArray: '12 7',
+}).bindTooltip('<strong>Gisozi Connector Road</strong><br>1,124 m · confirmed centreline', { sticky:true });
+
+const bandLayers = { band0: L.layerGroup(), band1: L.layerGroup(), band2: L.layerGroup() };
+
+(ROAD_PARCEL_DATA.features || []).forEach(feat => {
+  const p = feat.properties;
+  const cfg = BANDS[p.band];
+  if (!cfg) return;
+  const coords = feat.geometry.coordinates[0].map(c => [c[1], c[0]]);
+  L.polygon(coords, {
+    color: cfg.color,
+    weight: cfg.weight,
+    opacity: 0.85,
+    fillColor: cfg.color,
+    fillOpacity: cfg.fillOpacity,
+  }).bindPopup(makePopup(p), { maxWidth:260 })
+    .addTo(bandLayers[cfg.key]);
+});
+
+const zoningLayer = new ArcGISDirectLayer(
+  'https://masterplan.kigalicity.gov.rw/server/rest/services/Masterplan2020/Masterplan2020_24June2024/MapServer',
+  { opacity:0.75, format:'png32', layers:[117] }
+);
+
+// ── Add default visible layers ────────────────────────────────────────────────
+roadLayer.addTo(map);
+bandLayers.band0.addTo(map);
+bandLayers.band1.addTo(map);
+bandLayers.band2.addTo(map);
+
+// ── Layer toggle ──────────────────────────────────────────────────────────────
+const LAYER_MAP = {
+  road:    roadLayer,
+  band0:   bandLayers.band0,
+  band1:   bandLayers.band1,
+  band2:   bandLayers.band2,
+  zoning:  zoningLayer,
+};
+
+function toggleLayer(id, on) {
+  const lyr = LAYER_MAP[id];
+  if (!lyr) return;
+  if (on) lyr.addTo(map); else map.removeLayer(lyr);
+  if (id === 'zoning') {
+    document.getElementById('zoning-legend').style.display = on ? '' : 'none';
+  }
+}
+
+// ── Layer group accordion ─────────────────────────────────────────────────────
+function toggleGroup(header) {
+  header.classList.toggle('open');
+}
+
+// ── Basemap switcher ──────────────────────────────────────────────────────────
+let activeTile = TILES[initialTheme];
+let activeBasemap = 'default';
+
+function setBasemap(mode) {
+  activeBasemap = mode;
+  map.removeLayer(activeTile);
+  const theme = document.documentElement.getAttribute('data-theme') || 'light';
+  activeTile = mode === 'default' ? TILES[theme] : TILES[mode];
+  activeTile.addTo(map);
+  activeTile.setZIndex(0);
+  document.querySelectorAll('.bm-btn').forEach(b => b.classList.toggle('active', b.dataset.bm === mode));
+}
+
+// ── Theme toggle ──────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('imali-road-theme', next);
+  document.querySelector('.theme-toggle').textContent = next === 'dark' ? '☀ Light' : '☾ Dark';
+  if (activeBasemap === 'default') {
+    map.removeLayer(activeTile);
+    activeTile = TILES[next];
+    activeTile.addTo(map);
+    activeTile.setZIndex(0);
+  }
+}
+
+// Restore theme
+const savedTheme = localStorage.getItem('imali-road-theme');
+if (savedTheme && savedTheme !== initialTheme) toggleTheme();
+document.querySelector('.theme-toggle').textContent = (document.documentElement.getAttribute('data-theme') === 'dark') ? '☀ Light' : '☾ Dark';
+</script>
+</body>
+</html>

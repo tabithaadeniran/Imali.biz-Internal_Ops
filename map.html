@@ -843,6 +843,7 @@ html, body { height: 100%; overflow: hidden; }
 /* Crosshair cursor when a tool is active */
 body.tool-active .leaflet-container { cursor: crosshair !important; }
 
+
 </style>
 </head>
 <body>
@@ -877,6 +878,7 @@ body.tool-active .leaflet-container { cursor: crosshair !important; }
         <div class="map-title">Opportunity <em>Map</em></div>
       </div>
       <div class="map-live-badge"><span class="live-dot"></span> Live</div>
+      <a href="road-project.html" style="display:flex;align-items:center;gap:0.35rem;font-size:0.65rem;font-weight:500;padding:0.28rem 0.75rem;border:1px solid rgba(0,172,193,0.35);border-radius:2rem;color:#00acc1;text-decoration:none;white-space:nowrap;background:rgba(0,172,193,0.06);" title="Road Project — Parcel Analysis">🛣 Road Project</a>
     </div>
 
     <!-- Zoom controls inline with header -->
@@ -1016,10 +1018,10 @@ document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor
 
 // ── Tiles ─────────────────────────────────────────────────────────────────────
 const TILES = {
-  light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    { attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>', subdomains:'abcd', maxZoom:20 }),
-  dark:  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    { attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>', subdomains:'abcd', maxZoom:20 }),
+  light: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    { attribution:'Tiles &copy; <a href="https://www.esri.com">Esri</a>', maxZoom:16 }),
+  dark:  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    { attribution:'Tiles &copy; <a href="https://www.esri.com">Esri</a>', maxZoom:16 }),
   // Google Satellite — free public tile endpoint used by many mapping apps
   satellite: L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
     { attribution:'&copy; Google Satellite Imagery', subdomains:'0123', maxZoom:20, maxNativeZoom:20 }),
@@ -1690,6 +1692,30 @@ const GEO = {
     // Kivu Belt Road — 208 km · Rubavu › Rutsiro › Karongi › Nyamasheke › Rusizi
     {name:'Kivu Belt Road (208 km)', color:'#80cbc4', weight:2.5,
      coords:[[-1.680,29.260],[-1.715,29.255],[-1.780,29.275],[-1.870,29.330],[-1.945,29.415],[-2.000,29.450],[-2.025,29.445],[-2.060,29.465],[-2.120,29.410],[-2.180,29.330],[-2.230,29.240],[-2.290,29.220],[-2.360,29.120],[-2.420,29.010],[-2.472,28.918]]},
+  ],
+  // ── Planned local roads — confirmed alignments not yet in basemap ────────────
+  plannedRoads: [
+    {
+      name: 'Gisozi Connector Road', sub: '1,124 m · confirmed alignment · Musezero & Ruhango cells, Gisozi sector',
+      color: '#00acc1', weight: 3, dashArray: '10 6',
+      coords: [
+        [-1.923934143656241, 30.05424967567446],
+        [-1.923551383164446, 30.05546723888086],
+        [-1.923549868215134, 30.05609499515093],
+        [-1.923740141920272, 30.05667710354032],
+        [-1.923754082788343, 30.05731256669937],
+        [-1.923531248767575, 30.05788485121801],
+        [-1.922946521638919, 30.05884425144878],
+        [-1.922584742061604, 30.05931851391516],
+        [-1.92162102950633,  30.06006893153503],
+        [-1.92154716231798,  30.06053103467476],
+        [-1.921700232844887, 30.06082951571886],
+        [-1.921614117452367, 30.06159536329588],
+        [-1.92161760269339,  30.06242598653271],
+        [-1.921429788266565, 30.06300703551552],
+        [-1.921144501972576, 30.06324993629191],
+      ],
+    },
   ],
   hospitalityGaps: [
     {ll:[-2.20,30.13], name:'Bugesera Corridor', sub:'High construction activity · 0 hotels within 5km'},
@@ -2436,11 +2462,17 @@ const BUILDERS = {
   existing_infra: () => L.layerGroup(GEO.existingInfra.map(d =>
     mkCircle(d.ll, '#1565c0', 6, `<strong>${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`)
   )),
-  planned_infra: () => L.layerGroup(GEO.plannedInfra.map(d =>
-    L.circleMarker(d.ll, { radius:7, fillColor:'#00acc1', color:'#00acc1', weight:2, opacity:0.9, fillOpacity:0.35,
-      dashArray:'4 3' })
-    .bindTooltip(`<strong>${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`, { sticky:false, direction:'top', offset:[0,-6] })
-  )),
+  planned_infra: () => L.layerGroup([
+    ...GEO.plannedInfra.map(d =>
+      L.circleMarker(d.ll, { radius:7, fillColor:'#00acc1', color:'#00acc1', weight:2, opacity:0.9, fillOpacity:0.35,
+        dashArray:'4 3' })
+      .bindTooltip(`<strong>${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`, { sticky:false, direction:'top', offset:[0,-6] })
+    ),
+    ...GEO.plannedRoads.map(d =>
+      L.polyline(d.coords, { color:d.color, weight:d.weight, opacity:0.9, dashArray:d.dashArray })
+      .bindTooltip(`<strong>${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`, { sticky:true, direction:'top' })
+    ),
+  ]),
   road_networks: () => L.layerGroup(GEO.roads.map(d =>
     L.polyline(d.coords, { color:d.color, weight:d.weight, opacity:0.8 })
     .bindTooltip(d.name, { sticky:true, direction:'top' })
