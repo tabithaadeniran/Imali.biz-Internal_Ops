@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Contribution Calculator — Road Project · Imali.biz</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<script src="road-parcels.js"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #f5f0e8;
+  --surface:    #ede8df;
+  --surface2:   #e6e0d6;
+  --border:     rgba(10,10,15,0.10);
+  --text:       #1a1a22;
+  --text-dim:   rgba(26,26,34,0.52);
+  --accent:     #2a7c5e;
+  --accent-lt:  rgba(42,124,94,0.10);
+  --cyan:       #00acc1;
+  --shadow:     0 2px 12px rgba(0,0,0,0.08);
+  --radius:     8px;
+
+  --c-adj:   #e53935;
+  --c-adj-lt: rgba(229,57,53,0.10);
+  --c-mid:   #fb8c00;
+  --c-mid-lt: rgba(251,140,0,0.10);
+  --c-far:   #1e88e5;
+  --c-far-lt: rgba(30,136,229,0.10);
+}
+[data-theme="dark"] {
+  --bg:       #0f0f14;
+  --surface:  #1a1a22;
+  --surface2: #22222e;
+  --border:   rgba(245,240,232,0.10);
+  --text:     #f5f0e8;
+  --text-dim: rgba(245,240,232,0.48);
+  --shadow:   0 2px 16px rgba(0,0,0,0.40);
+  --accent-lt: rgba(42,124,94,0.15);
+  --c-adj-lt: rgba(229,57,53,0.15);
+  --c-mid-lt: rgba(251,140,0,0.15);
+  --c-far-lt: rgba(30,136,229,0.15);
+}
+
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.page-header {
+  display:flex; align-items:center; gap:0.9rem; flex-wrap:wrap;
+  padding:0 1.4rem; height:48px; flex-shrink:0;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:100;
+}
+.back-btn {
+  display:flex; align-items:center; gap:0.35rem;
+  font-size:0.72rem; font-weight:500; color:var(--text-dim);
+  text-decoration:none; padding:0.28rem 0.65rem;
+  border:1px solid var(--border); border-radius:1rem;
+  transition:all .15s;
+}
+.back-btn:hover { color:var(--text); border-color:var(--cyan); }
+.header-title { font-family:'DM Serif Display',serif; font-size:1rem; }
+.header-sub { font-size:0.68rem; color:var(--text-dim); }
+.header-spacer { flex:1; }
+.theme-toggle {
+  font-size:0.68rem; font-weight:500; padding:0.25rem 0.7rem;
+  border:1px solid var(--border); border-radius:1rem;
+  background:transparent; color:var(--text); cursor:pointer;
+}
+
+/* ── Main layout ─────────────────────────────────────────────────────────── */
+.main { max-width:1100px; margin:0 auto; padding:1.8rem 1.4rem 3rem; width:100%; }
+
+/* ── Section headings ────────────────────────────────────────────────────── */
+.section-label {
+  font-size:0.62rem; font-weight:600; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--text-dim); margin-bottom:0.6rem;
+}
+
+/* ── Controls card ───────────────────────────────────────────────────────── */
+.controls-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:1.3rem 1.5rem;
+  margin-bottom:1.5rem; box-shadow:var(--shadow);
+}
+.controls-row { display:flex; gap:1.2rem; flex-wrap:wrap; align-items:flex-end; }
+.field { display:flex; flex-direction:column; gap:0.35rem; }
+.field label { font-size:0.7rem; font-weight:500; color:var(--text-dim); }
+.field input, .field select {
+  font-family:'DM Sans',sans-serif; font-size:0.85rem; font-weight:500;
+  padding:0.45rem 0.75rem; border:1px solid var(--border);
+  border-radius:6px; background:var(--bg); color:var(--text);
+  outline:none; transition:border-color .15s;
+}
+.field input:focus, .field select:focus { border-color:var(--accent); }
+.field input[type=number] { width:180px; }
+.field select { width:120px; }
+.field-wide input { width:260px; }
+
+/* Method selector */
+.method-tabs { display:flex; gap:0; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.method-tab {
+  padding:0.42rem 1rem; font-size:0.72rem; font-weight:500;
+  background:transparent; color:var(--text-dim); border:none; cursor:pointer;
+  border-right:1px solid var(--border); transition:all .15s; white-space:nowrap;
+}
+.method-tab:last-child { border-right:none; }
+.method-tab.active { background:var(--accent); color:#fff; }
+
+/* Weight controls */
+.weights-row {
+  display:flex; gap:1rem; flex-wrap:wrap; align-items:center;
+  margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);
+}
+.weight-field { display:flex; align-items:center; gap:0.5rem; }
+.weight-field label { font-size:0.7rem; font-weight:500; white-space:nowrap; }
+.band-dot { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+.weight-input {
+  width:70px; font-family:'DM Sans',sans-serif; font-size:0.82rem;
+  padding:0.3rem 0.5rem; border:1px solid var(--border);
+  border-radius:5px; background:var(--bg); color:var(--text); text-align:center;
+}
+.weight-input:focus { outline:none; border-color:var(--accent); }
+.weights-hint { font-size:0.65rem; color:var(--text-dim); margin-top:0.2rem; }
+
+/* Recalc button */
+.calc-btn {
+  padding:0.48rem 1.3rem; font-family:'DM Sans',sans-serif;
+  font-size:0.8rem; font-weight:600;
+  background:var(--accent); color:#fff; border:none;
+  border-radius:6px; cursor:pointer; transition:opacity .15s;
+  white-space:nowrap; align-self:flex-end;
+}
+.calc-btn:hover { opacity:0.88; }
+
+/* ── Summary tiles ───────────────────────────────────────────────────────── */
+.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:0.9rem; margin-bottom:1.5rem; }
+.tile {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:0.9rem 1.1rem; box-shadow:var(--shadow);
+}
+.tile-label { font-size:0.62rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); margin-bottom:0.3rem; }
+.tile-value { font-family:'DM Serif Display',serif; font-size:1.35rem; line-height:1.2; }
+.tile-sub { font-size:0.65rem; color:var(--text-dim); margin-top:0.15rem; }
+
+/* Band summary strip */
+.band-strip { display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+.band-tile {
+  flex:1; min-width:160px; padding:0.8rem 1rem;
+  border-radius:var(--radius); border:1px solid var(--border);
+  box-shadow:var(--shadow);
+}
+.band-tile-label { font-size:0.62rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:0.3rem; }
+.band-tile-value { font-size:1.05rem; font-weight:600; }
+.band-tile-sub { font-size:0.64rem; color:var(--text-dim); margin-top:0.1rem; }
+.band-tile-adj  { background:var(--c-adj-lt); border-color:rgba(229,57,53,0.25); }
+.band-tile-adj  .band-tile-label { color:var(--c-adj); }
+.band-tile-mid  { background:var(--c-mid-lt); border-color:rgba(251,140,0,0.25); }
+.band-tile-mid  .band-tile-label { color:var(--c-mid); }
+.band-tile-far  { background:var(--c-far-lt); border-color:rgba(30,136,229,0.25); }
+.band-tile-far  .band-tile-label { color:var(--c-far); }
+
+/* ── Table ───────────────────────────────────────────────────────────────── */
+.table-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden;
+}
+.table-toolbar {
+  display:flex; align-items:center; gap:0.8rem; padding:0.8rem 1rem;
+  border-bottom:1px solid var(--border); flex-wrap:wrap;
+}
+.search-input {
+  font-family:'DM Sans',sans-serif; font-size:0.78rem;
+  padding:0.38rem 0.75rem; border:1px solid var(--border);
+  border-radius:6px; background:var(--bg); color:var(--text);
+  outline:none; width:220px;
+}
+.search-input:focus { border-color:var(--accent); }
+.filter-select {
+  font-family:'DM Sans',sans-serif; font-size:0.75rem;
+  padding:0.38rem 0.6rem; border:1px solid var(--border);
+  border-radius:6px; background:var(--bg); color:var(--text);
+}
+.toolbar-spacer { flex:1; }
+.row-count { font-size:0.68rem; color:var(--text-dim); white-space:nowrap; }
+.export-btn {
+  font-family:'DM Sans',sans-serif; font-size:0.72rem; font-weight:500;
+  padding:0.35rem 0.85rem; border:1px solid var(--border);
+  border-radius:6px; background:var(--bg); color:var(--text);
+  cursor:pointer; white-space:nowrap; transition:all .15s;
+}
+.export-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+.table-wrap { overflow-x:auto; max-height:520px; overflow-y:auto; }
+table { width:100%; border-collapse:collapse; font-size:0.75rem; }
+thead { position:sticky; top:0; z-index:2; }
+th {
+  background:var(--surface2); padding:0.6rem 0.85rem;
+  text-align:left; font-size:0.65rem; font-weight:600;
+  letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim);
+  border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer;
+  user-select:none;
+}
+th:hover { color:var(--text); }
+th .sort-icon { margin-left:0.3rem; opacity:0.4; font-size:0.6rem; }
+th.sorted .sort-icon { opacity:1; color:var(--accent); }
+td {
+  padding:0.48rem 0.85rem; border-bottom:1px solid var(--border);
+  white-space:nowrap; vertical-align:middle;
+}
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(--surface2); }
+
+.band-badge {
+  display:inline-block; padding:0.15rem 0.5rem; border-radius:1rem;
+  font-size:0.64rem; font-weight:600;
+}
+.band-adj { background:var(--c-adj-lt); color:var(--c-adj); }
+.band-mid { background:var(--c-mid-lt); color:var(--c-mid); }
+.band-far { background:var(--c-far-lt); color:var(--c-far); }
+
+.pct-bar-wrap { display:flex; align-items:center; gap:0.5rem; min-width:100px; }
+.pct-bar-bg { flex:1; height:4px; border-radius:2px; background:var(--border); overflow:hidden; }
+.pct-bar-fill { height:100%; border-radius:2px; transition:width .3s; }
+.pct-text { font-size:0.7rem; color:var(--text-dim); min-width:36px; text-align:right; }
+
+.amount-cell { font-weight:600; }
+
+.no-results { padding:2.5rem; text-align:center; color:var(--text-dim); font-size:0.85rem; }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <a class="back-btn" href="road-project.html">← Road Project Map</a>
+  <span class="header-title">Contribution Calculator</span>
+  <span class="header-sub">· Gisozi Connector Road</span>
+  <div class="header-spacer"></div>
+  <button class="theme-toggle" onclick="toggleTheme()">☾ Dark</button>
+</header>
+
+<div class="main">
+
+  <!-- Controls -->
+  <div class="controls-card">
+    <div class="section-label">Road Budget &amp; Calculation Method</div>
+    <div class="controls-row">
+      <div class="field field-wide">
+        <label>Total Road Cost</label>
+        <input type="number" id="budgetInput" value="100000000" min="0" step="1000000" oninput="recalc()"/>
+      </div>
+      <div class="field">
+        <label>Currency</label>
+        <select id="currencySelect" onchange="recalc()">
+          <option value="RWF">RWF</option>
+          <option value="USD">USD</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Split Method</label>
+        <div class="method-tabs">
+          <button class="method-tab active" data-method="weighted" onclick="setMethod('weighted')">Proximity-weighted</button>
+          <button class="method-tab" data-method="area"     onclick="setMethod('area')">By area only</button>
+          <button class="method-tab" data-method="equal"    onclick="setMethod('equal')">Equal share</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weight controls (shown only for weighted method) -->
+    <div class="weights-row" id="weightsRow">
+      <span style="font-size:0.7rem;font-weight:500;color:var(--text-dim)">Band weights:</span>
+      <div class="weight-field">
+        <span class="band-dot" style="background:#e53935"></span>
+        <label>Road-adjacent</label>
+        <input class="weight-input" id="w0" type="number" value="1.00" min="0" max="10" step="0.05" oninput="recalc()"/>
+      </div>
+      <div class="weight-field">
+        <span class="band-dot" style="background:#fb8c00"></span>
+        <label>15 – 50 m</label>
+        <input class="weight-input" id="w1" type="number" value="0.50" min="0" max="10" step="0.05" oninput="recalc()"/>
+      </div>
+      <div class="weight-field">
+        <span class="band-dot" style="background:#1e88e5"></span>
+        <label>50 – 100 m</label>
+        <input class="weight-input" id="w2" type="number" value="0.25" min="0" max="10" step="0.05" oninput="recalc()"/>
+      </div>
+      <span class="weights-hint">Higher weight = larger share of cost. Road-adjacent parcels benefit most so typically carry the highest weight.</span>
+    </div>
+  </div>
+
+  <!-- Summary tiles -->
+  <div class="tiles" id="summaryTiles">
+    <div class="tile">
+      <div class="tile-label">Total Budget</div>
+      <div class="tile-value" id="tileBudget">—</div>
+      <div class="tile-sub" id="tileCurrency">—</div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Parcels Included</div>
+      <div class="tile-value" id="tileParcels">234</div>
+      <div class="tile-sub">across 3 proximity bands</div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Avg. Contribution</div>
+      <div class="tile-value" id="tileAvg">—</div>
+      <div class="tile-sub">per parcel</div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Largest Single Share</div>
+      <div class="tile-value" id="tileMax">—</div>
+      <div class="tile-sub" id="tileMaxUpi">—</div>
+    </div>
+  </div>
+
+  <!-- Band summary -->
+  <div class="band-strip">
+    <div class="band-tile band-tile-adj">
+      <div class="band-tile-label">Road-adjacent (&lt;15 m)</div>
+      <div class="band-tile-value" id="bandAdjTotal">—</div>
+      <div class="band-tile-sub" id="bandAdjSub">60 parcels</div>
+    </div>
+    <div class="band-tile band-tile-mid">
+      <div class="band-tile-label">15 – 50 m</div>
+      <div class="band-tile-value" id="bandMidTotal">—</div>
+      <div class="band-tile-sub" id="bandMidSub">60 parcels</div>
+    </div>
+    <div class="band-tile band-tile-far">
+      <div class="band-tile-label">50 – 100 m</div>
+      <div class="band-tile-value" id="bandFarTotal">—</div>
+      <div class="band-tile-sub" id="bandFarSub">114 parcels</div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-toolbar">
+      <input class="search-input" id="searchInput" placeholder="Search UPI, cell, village…" oninput="renderTable()"/>
+      <select class="filter-select" id="bandFilter" onchange="renderTable()">
+        <option value="">All bands</option>
+        <option value="Road-adjacent (both sides)">Road-adjacent</option>
+        <option value="15 - 50 m">15 – 50 m</option>
+        <option value="50 - 100 m">50 – 100 m</option>
+      </select>
+      <div class="toolbar-spacer"></div>
+      <span class="row-count" id="rowCount"></span>
+      <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table id="resultTable">
+        <thead>
+          <tr>
+            <th onclick="sortBy('upi')">UPI <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('band')">Band <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('size_m2')">Size (m²) <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('dist_m')">Dist. (m) <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('cell')">Cell <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('village')">Village <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('weight')">Weight <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('share_pct')">Share % <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('contribution')">Contribution <span class="sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="no-results" id="noResults" style="display:none">No parcels match the current filter.</div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let calcResults = [];   // full computed rows
+let filtered    = [];   // after search/filter
+let sortKey     = 'contribution';
+let sortDir     = -1;   // -1 = desc, 1 = asc
+let method      = 'weighted';
+
+const BAND_KEYS = {
+  'Road-adjacent (both sides)': 'adj',
+  '15 - 50 m': 'mid',
+  '50 - 100 m': 'far',
+};
+
+// ── Formatting ────────────────────────────────────────────────────────────────
+function fmt(n, currency) {
+  if (currency === 'USD') {
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits:0, maximumFractionDigits:0 });
+  }
+  return n.toLocaleString('en-RW', { minimumFractionDigits:0, maximumFractionDigits:0 }) + ' RWF';
+}
+function fmtShort(n, currency) {
+  if (currency === 'USD') {
+    if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return '$' + (n/1e3).toFixed(1) + 'K';
+    return '$' + n.toFixed(0);
+  }
+  if (n >= 1e9) return (n/1e9).toFixed(2) + 'B RWF';
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M RWF';
+  if (n >= 1e3) return (n/1e3).toFixed(0) + 'K RWF';
+  return n.toFixed(0) + ' RWF';
+}
+
+// ── Core calculation ──────────────────────────────────────────────────────────
+function recalc() {
+  const budget   = parseFloat(document.getElementById('budgetInput').value) || 0;
+  const currency = document.getElementById('currencySelect').value;
+  const w0 = parseFloat(document.getElementById('w0').value) || 0;
+  const w1 = parseFloat(document.getElementById('w1').value) || 0;
+  const w2 = parseFloat(document.getElementById('w2').value) || 0;
+
+  const WEIGHTS = {
+    'Road-adjacent (both sides)': w0,
+    '15 - 50 m': w1,
+    '50 - 100 m': w2,
+  };
+
+  const features = ROAD_PARCEL_DATA.features || [];
+  const n = features.length;
+
+  // Compute each parcel's weighted value
+  let totalWeighted = 0;
+  const rows = features.map(feat => {
+    const p = feat.properties;
+    let w;
+    if (method === 'equal') {
+      w = 1;
+    } else if (method === 'area') {
+      w = p.size_m2;
+    } else {
+      w = p.size_m2 * (WEIGHTS[p.band] ?? 0);
+    }
+    totalWeighted += w;
+    return { ...p, _w: w };
+  });
+
+  // Assign contributions
+  calcResults = rows.map(r => {
+    const share_pct   = totalWeighted > 0 ? (r._w / totalWeighted) * 100 : 0;
+    const contribution = totalWeighted > 0 ? (r._w / totalWeighted) * budget : 0;
+    const weight       = method === 'equal' ? 1
+                       : method === 'area'  ? r.size_m2
+                       : r._w;
+    return { ...r, weight, share_pct, contribution };
+  });
+
+  // Summary tiles
+  const adjRows = calcResults.filter(r => r.band === 'Road-adjacent (both sides)');
+  const midRows = calcResults.filter(r => r.band === '15 - 50 m');
+  const farRows = calcResults.filter(r => r.band === '50 - 100 m');
+
+  const adjTotal = adjRows.reduce((s,r) => s+r.contribution, 0);
+  const midTotal = midRows.reduce((s,r) => s+r.contribution, 0);
+  const farTotal = farRows.reduce((s,r) => s+r.contribution, 0);
+
+  const sorted = [...calcResults].sort((a,b) => b.contribution - a.contribution);
+  const maxRow = sorted[0];
+
+  document.getElementById('tileBudget').textContent  = fmtShort(budget, currency);
+  document.getElementById('tileCurrency').textContent = currency;
+  document.getElementById('tileParcels').textContent  = n;
+  document.getElementById('tileAvg').textContent      = fmtShort(n > 0 ? budget/n : 0, currency);
+  document.getElementById('tileMax').textContent      = maxRow ? fmtShort(maxRow.contribution, currency) : '—';
+  document.getElementById('tileMaxUpi').textContent   = maxRow ? maxRow.upi : '—';
+
+  document.getElementById('bandAdjTotal').textContent = fmtShort(adjTotal, currency);
+  document.getElementById('bandAdjSub').textContent   = `${adjRows.length} parcels · ${adjTotal > 0 ? ((adjTotal/budget)*100).toFixed(1) : 0}% of total`;
+  document.getElementById('bandMidTotal').textContent = fmtShort(midTotal, currency);
+  document.getElementById('bandMidSub').textContent   = `${midRows.length} parcels · ${midTotal > 0 ? ((midTotal/budget)*100).toFixed(1) : 0}% of total`;
+  document.getElementById('bandFarTotal').textContent = fmtShort(farTotal, currency);
+  document.getElementById('bandFarSub').textContent   = `${farRows.length} parcels · ${farTotal > 0 ? ((farTotal/budget)*100).toFixed(1) : 0}% of total`;
+
+  renderTable();
+}
+
+// ── Table ─────────────────────────────────────────────────────────────────────
+function renderTable() {
+  const q    = document.getElementById('searchInput').value.toLowerCase();
+  const band = document.getElementById('bandFilter').value;
+
+  filtered = calcResults.filter(r => {
+    if (band && r.band !== band) return false;
+    if (q) {
+      const hay = `${r.upi} ${r.cell} ${r.village} ${r.sector} ${r.district}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  // Sort
+  filtered.sort((a, b) => {
+    const av = a[sortKey] ?? '';
+    const bv = b[sortKey] ?? '';
+    if (typeof av === 'number') return sortDir * (av - bv);
+    return sortDir * String(av).localeCompare(String(bv));
+  });
+
+  // Update sort icons
+  document.querySelectorAll('th').forEach(th => {
+    th.classList.remove('sorted');
+    const icon = th.querySelector('.sort-icon');
+    if (icon) icon.textContent = '↕';
+  });
+  const sortedTh = document.querySelector(`th[onclick="sortBy('${sortKey}')"]`);
+  if (sortedTh) {
+    sortedTh.classList.add('sorted');
+    const icon = sortedTh.querySelector('.sort-icon');
+    if (icon) icon.textContent = sortDir === -1 ? '↓' : '↑';
+  }
+
+  const currency = document.getElementById('currencySelect').value;
+  const maxContrib = calcResults.length > 0 ? Math.max(...calcResults.map(r => r.contribution)) : 1;
+
+  const tbody = document.getElementById('tableBody');
+  const noRes = document.getElementById('noResults');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    noRes.style.display = '';
+    document.getElementById('rowCount').textContent = '0 parcels';
+    return;
+  }
+  noRes.style.display = 'none';
+  document.getElementById('rowCount').textContent = `${filtered.length} parcel${filtered.length !== 1 ? 's' : ''}`;
+
+  const bandClass = { 'Road-adjacent (both sides)':'adj', '15 - 50 m':'mid', '50 - 100 m':'far' };
+  const bandShort = { 'Road-adjacent (both sides)':'Road-adj.', '15 - 50 m':'15–50 m', '50 - 100 m':'50–100 m' };
+  const barColor  = { adj:'#e53935', mid:'#fb8c00', far:'#1e88e5' };
+
+  tbody.innerHTML = filtered.map(r => {
+    const bk  = bandClass[r.band] || 'far';
+    const pct = maxContrib > 0 ? (r.contribution / maxContrib * 100).toFixed(1) : 0;
+    const wDisp = method === 'equal' ? '—'
+                : method === 'area'  ? r.size_m2.toLocaleString() + ' m²'
+                : r.weight.toLocaleString(undefined, {maximumFractionDigits:0});
+    return `<tr>
+      <td style="font-family:monospace;font-size:0.72rem">${r.upi}</td>
+      <td><span class="band-badge band-${bk}">${bandShort[r.band]}</span></td>
+      <td>${Number(r.size_m2).toLocaleString()}</td>
+      <td>${Number(r.dist_m).toFixed(1)}</td>
+      <td>${r.cell}</td>
+      <td>${r.village}</td>
+      <td style="color:var(--text-dim)">${wDisp}</td>
+      <td>
+        <div class="pct-bar-wrap">
+          <div class="pct-bar-bg"><div class="pct-bar-fill" style="width:${pct}%;background:${barColor[bk]}"></div></div>
+          <span class="pct-text">${r.share_pct.toFixed(3)}%</span>
+        </div>
+      </td>
+      <td class="amount-cell">${fmt(Math.round(r.contribution), currency)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function sortBy(key) {
+  if (sortKey === key) { sortDir *= -1; }
+  else { sortKey = key; sortDir = -1; }
+  renderTable();
+}
+
+// ── Method toggle ─────────────────────────────────────────────────────────────
+function setMethod(m) {
+  method = m;
+  document.querySelectorAll('.method-tab').forEach(t => t.classList.toggle('active', t.dataset.method === m));
+  document.getElementById('weightsRow').style.display = m === 'weighted' ? '' : 'none';
+  recalc();
+}
+
+// ── Export CSV ────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const currency = document.getElementById('currencySelect').value;
+  const budget   = parseFloat(document.getElementById('budgetInput').value) || 0;
+  const rows = [
+    ['UPI','Band','Size (m2)','Distance from Road (m)','District','Sector','Cell','Village','Weight','Share (%)','Contribution (' + currency + ')'],
+    ...filtered.map(r => [
+      r.upi, r.band, r.size_m2, r.dist_m.toFixed(1),
+      r.district, r.sector, r.cell, r.village,
+      method === 'equal' ? 1 : r.weight.toFixed(4),
+      r.share_pct.toFixed(6),
+      Math.round(r.contribution),
+    ])
+  ];
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const blob = new Blob(['﻿' + csv], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Road_Contribution_${currency}_${budget.toLocaleString()}.csv`;
+  a.click();
+}
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('imali-road-theme', next);
+  document.querySelector('.theme-toggle').textContent = next === 'dark' ? '☀ Light' : '☾ Dark';
+}
+const saved = localStorage.getItem('imali-road-theme');
+if (saved) {
+  document.documentElement.setAttribute('data-theme', saved);
+  document.querySelector('.theme-toggle').textContent = saved === 'dark' ? '☀ Light' : '☾ Dark';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+recalc();
+</script>
+</body>
+</html>
