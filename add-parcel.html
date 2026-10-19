@@ -779,7 +779,11 @@ function initMiniMap() {
   if (miniMap) return;
   document.getElementById('mapOverlayMsg').style.display = 'none';
   miniMap = L.map('miniMap', { zoomControl: true, attributionControl: false }).setView([-1.9536, 30.0605], 14);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(miniMap);
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var tileUrl = isDark
+    ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+    : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+  L.tileLayer(tileUrl, { maxZoom: 19, maxNativeZoom: 16, attribution: 'Tiles &copy; Esri' }).addTo(miniMap);
 }
 
 function showOnMap(lat, lng, ring) {
@@ -1039,7 +1043,8 @@ function submitParcel(e) {
   var submitBtn = document.querySelector('#parcelForm button[type="submit"]');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving…'; }
 
-  imaliDB.saveParcel(entry)
+  Promise.resolve()
+    .then(function () { return imaliDB.saveParcel(entry); })
     .then(function () { return imaliDB.reload(); })
     .then(function () {
       document.getElementById('parcelForm').style.display = 'none';
@@ -1051,7 +1056,8 @@ function submitParcel(e) {
       renderAddedList();
     })
     .catch(function (err) {
-      alert('Error saving parcel: ' + err.message);
+      console.error('[submitParcel] Save failed:', err);
+      alert('Error saving parcel: ' + (err && err.message ? err.message : String(err)));
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Save Internal Listing →'; }
     });
 }

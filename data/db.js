@@ -64,6 +64,11 @@
     p.readiness    = rd;
     p.avg_readiness = Math.round(dims.reduce(function (s, d) { return s + (rd[d] || 0); }, 0) / dims.length);
 
+    // Re-inflate geometry stored as a JSON string
+    if (p.geometry && typeof p.geometry === 'string') {
+      try { p.geometry = JSON.parse(p.geometry); } catch (e) { p.geometry = null; }
+    }
+
     // Fallback image
     if (!p.image) p.image = 'images/pexels-bala-5120876.jpg';
 
@@ -133,6 +138,11 @@
     ['_docId', 'id', 'location', 'gfa_sqm', 'dev_cost_rwf',
      'price_per_sqm', 'dev_cost_per_unit', 'leverage_ratio', 'avg_readiness']
       .forEach(function (k) { delete out[k]; });
+    // Firestore doesn't support nested arrays — GeoJSON coordinates are [[[lng,lat],...]]
+    // Serialise geometry to a JSON string for storage; applyComputed leaves it as-is.
+    if (out.geometry && typeof out.geometry === 'object') {
+      out.geometry = JSON.stringify(out.geometry);
+    }
     return out;
   }
 
@@ -146,6 +156,7 @@
 
     /** Save a brand-new parcel document. Returns Promise<DocumentReference>. */
     saveParcel: function (data) {
+      if (!_db) return Promise.reject(new Error('Database not initialised — refresh the page and try again.'));
       var payload = _clean(data);
       payload.created_at = window.firebase.firestore.FieldValue.serverTimestamp();
       return _db.collection('parcels').add(payload);
