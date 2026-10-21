@@ -100,8 +100,10 @@ html, body { height: 100%; overflow: hidden; }
 .msr-body { flex: 1; min-width: 0; }
 .msr-label { font-size: 0.73rem; font-weight: 600; color: var(--cream); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 [data-theme="light"] .msr-label { color: var(--ink); }
-.msr-sub { font-size: 0.62rem; color: rgba(245,240,232,0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.05rem; }
-[data-theme="light"] .msr-sub { color: rgba(10,10,15,0.45); }
+.msr-upi { font-size: 0.63rem; color: rgba(245,240,232,0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.06rem; font-variant-numeric: tabular-nums; }
+[data-theme="light"] .msr-upi { color: rgba(10,10,15,0.55); }
+.msr-sub { font-size: 0.60rem; color: rgba(245,240,232,0.35); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.03rem; }
+[data-theme="light"] .msr-sub { color: rgba(10,10,15,0.38); }
 .msr-badge { font-size: 0.57rem; padding: 0.1rem 0.4rem; border-radius: 2rem; background: rgba(212,168,50,0.12); border: 1px solid rgba(212,168,50,0.25); color: var(--gold); flex-shrink: 0; }
 [data-theme="light"] .msr-badge { color: #a07820; }
 .msr-empty { padding: 0.9rem 0.75rem; font-size: 0.73rem; color: rgba(245,240,232,0.3); text-align: center; }
@@ -1449,11 +1451,13 @@ var PARCEL_SEARCH_INDEX = [];
       box.style.display = 'block'; return;
     }
     box.innerHTML = hits.map(function(h, i) {
+      var showUpi = h.upi && h.upi !== h.name;
       return '<div class="msr-item" data-idx="' + i + '">'
         + '<span class="msr-icon">◈</span>'
         + '<div class="msr-body">'
-        +   '<div class="msr-label">' + h.label + '</div>'
-        +   '<div class="msr-sub">' + h.sub + '</div>'
+        +   '<div class="msr-label">' + (h.name || h.label) + '</div>'
+        +   (showUpi ? '<div class="msr-upi">' + h.upi + '</div>' : '')
+        +   (h.sub ? '<div class="msr-sub">' + h.sub + '</div>' : '')
         + '</div>'
         + (h.badge ? '<span class="msr-badge">' + h.badge + '</span>' : '')
         + '</div>';
@@ -1610,8 +1614,10 @@ const IMALI_PARCELS = [
 IMALI_PARCELS.forEach(function(p) {
   PARCEL_SEARCH_INDEX.push({
     label: p.name,
+    name:  p.name,
+    upi:   p.upi || '',
     sub:   p.loc,
-    badge: p.type || 'land',
+    badge: p.zone,
     ll:    p.ll,
     zoom:  17,
     tags:  [p.name, p.upi, p.loc, p.type, p.zone].filter(Boolean).map(function(s){ return s.toLowerCase(); }),
@@ -2224,7 +2230,7 @@ function buildPipelineGeoJSON() {
       var upi  = p.upi || '';
       if (!PIPELINE_PRICES.hasOwnProperty(upi)) return; // not an official pipeline parcel
       var meta = PIPELINE_PRICES[upi];
-      var parts = [p.village, p.sector, p.district].filter(Boolean);
+      var parts = [p.cell || p.village, p.sector, p.district].filter(Boolean);
       var loc  = parts.map(function(s){ return s.charAt(0).toUpperCase()+s.slice(1); }).join(', ');
       var area = Math.round(p.size || 0);
       var zone = meta.zone || '';
@@ -2265,8 +2271,10 @@ function buildPipelineGeoJSON() {
 
       PARCEL_SEARCH_INDEX.push({
         label: upi,
+        name:  note || upi,
+        upi:   upi,
         sub:   loc,
-        badge: pill,
+        badge: zone,
         ll:    centroid,
         zoom:  17,
         tags:  [upi, p.village, p.sector, p.district, p.cell, note, zone]
@@ -2291,7 +2299,7 @@ function buildPipelineGeoJSON() {
       var zone = meta.zone || '';
       var note = meta.note || '';
       var pill = [zone, note].filter(Boolean).join(' · ') || 'land';
-      var loc  = [bd.sector, bd.district].filter(Boolean)
+      var loc  = [bd.cell, bd.sector, bd.district].filter(Boolean)
                    .map(function(s){ return s.charAt(0).toUpperCase()+s.slice(1); }).join(', ');
       var landPerM2 = (area && meta.price) ? Math.round(meta.price/area).toLocaleString()+' RWF' : null;
 
@@ -2329,8 +2337,10 @@ function buildPipelineGeoJSON() {
 
       PARCEL_SEARCH_INDEX.push({
         label: upi,
+        name:  note || upi,
+        upi:   upi,
         sub:   loc,
-        badge: pill,
+        badge: zone,
         ll:    centroid,
         zoom:  17,
         tags:  [upi, bd.cell, bd.sector, bd.district, note, zone]
@@ -2401,7 +2411,7 @@ function _populateExtraParcels(group) {
     var sc   = { listed:'#26a69a', under_review:'#ffb74d', pending:'#90a4ae' }[p.status] || '#90a4ae';
     var sl   = { listed:'Listed', under_review:'Under Review', pending:'Pending' }[p.status] || p.status;
     var pill = [p.zone, 'land'].filter(Boolean).join(' · ') || 'land';
-    var loc  = [p.sector, p.district].filter(Boolean).join(', ') || 'Kigali';
+    var loc  = [p.cell, p.sector, p.district].filter(Boolean).join(', ') || 'Kigali';
     var deURL = 'design-engine.html?upi=' + encodeURIComponent(upi)
       + '&name='     + encodeURIComponent(p.name || upi)
       + '&area='     + (p.size_sqm || '')
@@ -2467,8 +2477,10 @@ function _populateExtraParcels(group) {
 
     PARCEL_SEARCH_INDEX.push({
       label: p.name || upi,
+      name:  p.name || upi,
+      upi:   upi,
       sub:   loc,
-      badge: 'added',
+      badge: p.zone,
       ll:    ll,
       zoom:  17,
       tags:  [p.name, upi, p.sector, p.district, p.zone].filter(Boolean).map(function(s){ return s.toLowerCase(); }),
