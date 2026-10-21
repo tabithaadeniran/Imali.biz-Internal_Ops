@@ -1034,7 +1034,8 @@ const TILES = {
 };
 
 // ── Kigali City Master Plan server (ArcGIS REST) ──────────────────────────────
-const MP_URL   = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Masterplan2020/Masterplan2020_24June2024/MapServer';
+const MP_URL          = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Masterplan2020/Masterplan2020_24June2024/MapServer';
+const ZONING_PHASES_URL = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Masterplan2020/Zoning_Phases_22Apr2026/MapServer';
 const NSDI_MP  = 'https://geodata.rw/server/rest/services/masterplan'; // district DLUPs + national plan
 
 // ── Zoning colour palette (applied to all FeatureServer DLUP layers) ──────────
@@ -1160,8 +1161,9 @@ const ArcGISDirectLayer = L.ImageOverlay.extend({
       transparent: 'true',
       f:           'image',
     });
-    if (this.options.layers)    p.set('layers',    'show:' + this.options.layers.join(','));
-    if (this.options.layerDefs) p.set('layerDefs', JSON.stringify(this.options.layerDefs));
+    if (this.options.dynamicLayers) p.set('dynamicLayers', JSON.stringify(this.options.dynamicLayers));
+    else if (this.options.layers)   p.set('layers',        'show:' + this.options.layers.join(','));
+    if (this.options.layerDefs)     p.set('layerDefs',     JSON.stringify(this.options.layerDefs));
 
     const url = `${this._serviceUrl}/export?${p}`;
     if (this._lastFetchedUrl === url) return; // already showing this view
@@ -1243,6 +1245,23 @@ const MP_LAYERS_MAP = {
   planning_overlays:[82, 88, 89, 91, 92, 94, 95, 96],
 };
 
+// Phase colour palette — Phase-1 (green) → Phase-5 (dark red)
+const PHASE_COLORS = {
+  'Phase-1': '#43a047',
+  'Phase-2': '#8bc34a',
+  'Phase-3': '#ffc107',
+  'Phase-4': '#ff7043',
+  'Phase-5': '#b71c1c',
+};
+// Short descriptor shown in hover tooltips
+const PHASE_DESCS = {
+  'Phase-1': 'Developed / Developing — core Kigali, full infrastructure',
+  'Phase-2': 'Near-term — CoK infrastructure rollout planned by 2031',
+  'Phase-3': 'Medium-term — extended infrastructure required by 2038',
+  'Phase-4': 'Long-term — self-provision infrastructure, opens 2038–2045',
+  'Phase-5': 'Future Reserve — no development until officially launched (2045–2050)',
+};
+
 // Identify URLs for district DLUP MapServer layers (queried on hover alongside MP_URL)
 const DLUP_IDENTIFY = {
   burera_dlup:    `${NSDI_MP}/Burera_DLUP/MapServer`,
@@ -1316,38 +1335,68 @@ async function updateLegendPanel() {
   const body    = document.getElementById('lpLegendBody');
   if (!section || !body) return;
 
-  // Which MP layers are currently visible?
+  // Which MP server layers are currently visible?
   const active = Object.entries(MP_LAYERS_MAP).filter(([id]) => {
     const f = findLayer(id); return f && f.layer.visible;
   });
 
-  if (active.length === 0) { section.style.display = 'none'; return; }
+  // Is the client-side Kigali phases layer active?
+  const phasesNode   = findLayer('kigali_phases');
+  const phasesActive = phasesNode && phasesNode.layer.visible;
+
+  if (active.length === 0 && !phasesActive) { section.style.display = 'none'; return; }
 
   section.style.display = '';
-  body.innerHTML = '<div class="lp-legend-msg">Loading legend…</div>';
-
-  const legend = await getMPLegend();
-  if (!legend || Object.keys(legend).length === 0) {
-    body.innerHTML = '<div class="lp-legend-msg">Legend data unavailable</div>';
-    return;
-  }
+  if (active.length > 0) body.innerHTML = '<div class="lp-legend-msg">Loading legend…</div>';
 
   let html = '';
-  for (const [, arcIds] of active) {
-    for (const arcId of arcIds) {
-      const lyr = legend[arcId]; if (!lyr) continue;
-      const validItems = lyr.items.filter(it => it.imageData);
-      if (!validItems.length) continue;
-      html += `<div class="lp-legend-group">`;
-      html += `<div class="lp-legend-grp-name">${lyr.name}</div>`;
-      for (const it of validItems) {
-        const ct = it.contentType || 'image/png';
-        html += `<div class="lp-legend-item">
-          <img class="lp-legend-swatch" src="data:${ct};base64,${it.imageData}" alt="">
-          <span class="lp-legend-lbl">${it.label || '—'}</span>
-        </div>`;
+
+  // ── Custom phase legend (no server round-trip needed) ──
+  if (phasesActive) {
+    const phases = [
+      { label:'Phase 1', year:'2018–2024', area:'27.3 km²',  pct:'3.7%',  key:'Phase-1' },
+      { label:'Phase 2', year:'2024–2031', area:'59.3 km²',  pct:'8.1%',  key:'Phase-2' },
+      { label:'Phase 3', year:'2031–2038', area:'101.4 km²', pct:'13.9%', key:'Phase-3' },
+      { label:'Phase 4', year:'2038–2045', area:'266.2 km²', pct:'36.4%', key:'Phase-4' },
+      { label:'Phase 5', year:'2045–2050', area:'276.8 km²', pct:'37.9%', key:'Phase-5' },
+    ];
+    html += `<div class="lp-legend-group"><div class="lp-legend-grp-name">Development Phases · 731 km² total · per parcel</div>`;
+    for (const ph of phases) {
+      const c = PHASE_COLORS[ph.key];
+      html += `<div class="lp-legend-item">
+        <span class="lp-legend-swatch" style="background:${c};border-radius:2px;opacity:.85;"></span>
+        <span class="lp-legend-lbl">${ph.label} · ${ph.year} · ${ph.area} (${ph.pct})</span>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  // ── ArcGIS MapServer legend for other active layers ──
+  if (active.length > 0) {
+    const legend = await getMPLegend();
+    if (!legend || Object.keys(legend).length === 0) {
+      if (!phasesActive) {
+        body.innerHTML = '<div class="lp-legend-msg">Legend data unavailable</div>';
+        return;
       }
-      html += `</div>`;
+    } else {
+      for (const [, arcIds] of active) {
+        for (const arcId of arcIds) {
+          const lyr = legend[arcId]; if (!lyr) continue;
+          const validItems = lyr.items.filter(it => it.imageData);
+          if (!validItems.length) continue;
+          html += `<div class="lp-legend-group">`;
+          html += `<div class="lp-legend-grp-name">${lyr.name}</div>`;
+          for (const it of validItems) {
+            const ct = it.contentType || 'image/png';
+            html += `<div class="lp-legend-item">
+              <img class="lp-legend-swatch" src="data:${ct};base64,${it.imageData}" alt="">
+              <span class="lp-legend-lbl">${it.label || '—'}</span>
+            </div>`;
+          }
+          html += `</div>`;
+        }
+      }
     }
   }
 
@@ -2441,6 +2490,70 @@ if (window.imaliDB) {
   }).catch(function() {});
 }
 
+// ── Kigali Development Phases — per-parcel, client-side GeoJSON ──────────────
+// Paginates through all 8 180 zone polygons from Zoning_Phases_22Apr2026
+// FeatureServer with geometry simplification (~6.5 MB total, ~400 KB per page).
+// Hover tooltips are instant because they're bound client-side via bindTooltip.
+const PHASES_FS = 'https://masterplan.kigalicity.gov.rw/server/rest/services/Masterplan2020/Zoning_Phases_22Apr2026/FeatureServer/0/query';
+
+function buildKigaliPhases() {
+  const group = L.layerGroup();
+
+  (async function loadPhases() {
+    const PAGE = 2000;
+    const params = new URLSearchParams({
+      where: '1=1',
+      outFields: 'name,year,zone_code,new_zoning,area_ha',
+      returnGeometry: 'true',
+      outSR: '4326',
+      maxAllowableOffset: '0.00005',
+      geometryPrecision: '5',
+      resultRecordCount: PAGE,
+      f: 'geojson',
+    });
+
+    let offset = 0;
+    const allFeatures = [];
+    // fetch pages until we get fewer than PAGE back
+    while (true) {
+      params.set('resultOffset', offset);
+      const data = await fetch(`${PHASES_FS}?${params}`).then(r => r.json());
+      const batch = data.features || [];
+      allFeatures.push(...batch);
+      if (batch.length < PAGE) break;
+      offset += PAGE;
+    }
+
+    L.geoJSON({ type: 'FeatureCollection', features: allFeatures }, {
+      renderer: CANVAS_RENDERER,
+      style: feature => {
+        const c = PHASE_COLORS[feature.properties.name] || '#90a4ae';
+        return { color: c, weight: 1, opacity: 0.85, fillColor: c, fillOpacity: 0.28 };
+      },
+      onEachFeature: (feature, layer) => {
+        const p        = feature.properties;
+        const phaseKey = p.name  || '';
+        const c        = PHASE_COLORS[phaseKey] || '#90a4ae';
+        const name     = phaseKey.replace('-', ' ');
+        const year     = (p.year || '').replace('Year ', '');
+        const zone     = p.zone_code  || '';
+        const zoning   = p.new_zoning || '';
+        const areaHa   = p.area_ha != null ? (+p.area_ha).toFixed(2) + ' ha' : '';
+        const desc     = PHASE_DESCS[phaseKey] || '';
+        layer.bindTooltip(
+          `<div style="font-weight:600;color:${c}">${name}</div>`
+          + (year    ? `<div style="opacity:.7;font-size:.85em">${year}</div>` : '')
+          + (zone    ? `<div style="opacity:.65;font-size:.82em">${zone}${zoning && zoning !== zone ? ' · ' + zoning : ''}</div>` : '')
+          + (areaHa  ? `<div style="opacity:.5;font-size:.78em">${areaHa}</div>` : ''),
+          { sticky: true, direction: 'top', offset: [0, -4] }
+        );
+      },
+    }).addTo(group);
+  })().catch(e => console.warn('[kigali_phases] load failed:', e));
+
+  return group;
+}
+
 const BUILDERS = {
   imali_parcels: () => {
     const group = L.layerGroup();
@@ -2515,6 +2628,9 @@ const BUILDERS = {
     L.circleMarker(d.ll, { radius:9, fillColor:d.color, color:'#fff', weight:1.5, opacity:0.9, fillOpacity:0.88 })
      .bindTooltip(`<strong>🏭 ${d.name}</strong><br><span style="opacity:.6">${d.sub}</span>`, {sticky:false,direction:'top',offset:[0,-6]})
   )),
+
+  // ── Kigali Development Phases — MapServer layer 9 (17 polygons, GeoJSON) ─────
+  kigali_phases: () => buildKigaliPhases(),
 
   // ── Socio-Economic & Zoning — live Kigali Master Plan data ──────────────────
   // Use ArcGISDirectLayer (not L.esri.dynamicMapLayer):
@@ -2676,6 +2792,9 @@ const LAYER_GROUPS = [
 
       // ── National overview ────────────────────────────────────────────────
       { id:'national_lu_2050', label:'National Land Use Plan 2050', desc:'All-Rwanda strategic zoning · NLUDMP2050 · broad categories', color:'#00897b', opacity:70, visible:false, leaflet:null },
+
+      // ── Kigali Development Phases ────────────────────────────────────────
+      { id:'kigali_phases', label:'Kigali Development Phases', desc:'Per-parcel development phase from Zoning_Phases_22Apr2026 · Phase 1 (3.7% · currently active) → Phase 5 (37.9%) · colour-coded green→red', color:'#43a047', opacity:65, visible:false, leaflet:null },
 
       // ── Proposed Zoning — 3-level: container → province → district ───────
       { id:'proposed_zoning', label:'Proposed Zoning', desc:'District Land Use Plans per province · geodata.rw + Kigali City Master Plan', color:'#26a69a', opacity:70, visible:false, leaflet:null,
