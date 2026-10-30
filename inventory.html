@@ -540,7 +540,7 @@
         <button class="src-btn" data-src="parcels">Internal Listings</button>
         <button class="src-btn" data-src="listings">Public Listings</button>
       </div>
-      <input class="filter-input" id="searchInput" type="text" placeholder="Search by title, name or location…">
+      <input class="filter-input" id="searchInput" type="text" placeholder="Search by name, UPI or location…">
       <select class="filter-select" id="districtFilter">
         <option value="">All Districts</option>
       </select>
@@ -940,7 +940,7 @@
     var items = [];
     if (showParcels) {
       items = items.concat(_allParcels.filter(function(p) {
-        return (!q  || p.name.toLowerCase().includes(q) || (p.location||'').toLowerCase().includes(q)) &&
+        return (!q  || p.name.toLowerCase().includes(q) || (p.location||'').toLowerCase().includes(q) || (p.upi||'').toLowerCase().includes(q)) &&
                (!di || p.district===di) && (!ty || p.type===ty) && (!st || p.status===st);
       }));
     }
